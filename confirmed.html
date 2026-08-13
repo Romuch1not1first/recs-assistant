@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Recs Assistant — почта подтверждена</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 24px; background: #0b0d10; color: #e8eaed;
+    font: 15px/1.55 -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .card {
+    width: 100%; max-width: 420px; background: #16181d; border: 1px solid #2b2f38;
+    border-radius: 16px; padding: 28px 26px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+  }
+  .brand { font-size: 12px; color: #8b9199; letter-spacing: .4px; margin-bottom: 18px; }
+  .mark {
+    width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 27px;
+  }
+  .ok .mark { background: #12301f; border: 1px solid #2a8f57; color: #7fe0aa; }
+  .bad .mark { background: #3a1218; border: 1px solid #9c3341; color: #ef8f96; }
+  h1 { font-size: 21px; font-weight: 800; margin: 0 0 8px; letter-spacing: .2px; }
+  p { margin: 0 0 6px; color: #a8aeb6; font-size: 14px; }
+  .email { color: #e8eaed; font-weight: 600; word-break: break-all; }
+  .btn {
+    display: block; margin-top: 20px; padding: 13px; border-radius: 10px;
+    background: #1f6f43; border: 1px solid #2a8f57; color: #fff;
+    font-size: 15px; font-weight: 700; text-decoration: none;
+  }
+  .btn:hover { background: #248050; }
+  .steps {
+    margin-top: 18px; padding-top: 16px; border-top: 1px solid #23262d;
+    text-align: left; color: #8b9199; font-size: 12.5px;
+  }
+  .steps b { color: #b6bcc4; }
+  .steps ol { margin: 8px 0 0; padding-left: 18px; }
+  .steps li { margin: 4px 0; }
+</style>
+</head>
+<body>
+  <div class="card ok" id="card">
+    <div class="brand">RECS ASSISTANT</div>
+    <div class="mark" id="mark">✓</div>
+    <h1 id="title">Почта подтверждена</h1>
+    <p id="text">Аккаунт готов. Откройте расширение и войдите.</p>
+    <p class="email" id="email"></p>
+
+    <a class="btn" id="cta" href="https://tinder.com/app/recs">Перейти в Tinder</a>
+
+    <div class="steps" id="steps">
+      <b>Что дальше</b>
+      <ol>
+        <li>Нажмите иконку расширения в панели Chrome.</li>
+        <li>Введите ту же почту и пароль — теперь вход пройдёт.</li>
+        <li>Нажмите «Старт».</li>
+      </ol>
+    </div>
+  </div>
+
+<script>
+/**
+ * Supabase кладёт результат во фрагмент адреса: при успехе — токены сессии,
+ * при просроченной ссылке — error/error_description.
+ *
+ * Токены отсюда сразу вычищаются: фрагмент иначе остаётся в истории браузера
+ * и в заголовке вкладки, а это полноценные ключи от аккаунта.
+ */
+const LANGS = {
+  ru: {
+    okTitle: 'Почта подтверждена', okText: 'Аккаунт готов. Откройте расширение и войдите.',
+    badTitle: 'Ссылка не сработала',
+    badText: 'Скорее всего, она устарела. Запросите новое письмо в расширении.',
+    cta: 'Перейти в Tinder', next: 'Что дальше',
+    s1: 'Нажмите иконку расширения в панели Chrome.',
+    s2: 'Введите ту же почту и пароль — теперь вход пройдёт.',
+    s3: 'Нажмите «Старт».',
+  },
+  uk: {
+    okTitle: 'Пошту підтверджено', okText: 'Акаунт готовий. Відкрийте розширення та увійдіть.',
+    badTitle: 'Посилання не спрацювало',
+    badText: 'Найімовірніше, воно застаріло. Запросіть новий лист у розширенні.',
+    cta: 'Перейти в Tinder', next: 'Що далі',
+    s1: 'Натисніть іконку розширення на панелі Chrome.',
+    s2: 'Введіть ту саму пошту й пароль — тепер вхід пройде.',
+    s3: 'Натисніть «Старт».',
+  },
+  en: {
+    okTitle: 'Email confirmed', okText: 'Your account is ready. Open the extension and sign in.',
+    badTitle: 'That link did not work',
+    badText: 'It has most likely expired. Request a new email from the extension.',
+    cta: 'Go to Tinder', next: 'What next',
+    s1: 'Click the extension icon in the Chrome toolbar.',
+    s2: 'Enter the same email and password — sign-in will work now.',
+    s3: 'Press Start.',
+  },
+};
+
+const lang = LANGS[(navigator.language || 'en').slice(0, 2).toLowerCase()] || LANGS.en;
+document.documentElement.lang = Object.keys(LANGS).find((k) => LANGS[k] === lang);
+
+const params = new URLSearchParams(location.hash.slice(1));
+const failed = params.has('error') || params.has('error_code');
+const email = readEmail(params.get('access_token'));
+
+// Стираем фрагмент с токенами, не оставляя записи в истории.
+if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+
+const $ = (id) => document.getElementById(id);
+$('cta').textContent = lang.cta;
+$('steps').querySelector('b').textContent = lang.next;
+[...$('steps').querySelectorAll('li')].forEach((li, i) => { li.textContent = lang['s' + (i + 1)]; });
+
+if (failed) {
+  $('card').className = 'card bad';
+  $('mark').textContent = '!';
+  $('title').textContent = lang.badTitle;
+  $('text').textContent = params.get('error_description') || lang.badText;
+  $('steps').hidden = true;
+} else {
+  $('title').textContent = lang.okTitle;
+  $('text').textContent = lang.okText;
+  if (email) $('email').textContent = email;
+}
+
+/** Достаёт почту из полезной нагрузки токена — только чтобы показать её. */
+function readEmail(jwt) {
+  try {
+    const body = jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(decodeURIComponent(escape(atob(body)))).email || '';
+  } catch {
+    return '';
+  }
+}
+</script>
+</body>
+</html>

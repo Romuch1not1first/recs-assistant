@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Recs Assistant — подписка</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 24px; background: #0b0d10; color: #e8eaed;
+    font: 15px/1.55 -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .card {
+    width: 100%; max-width: 440px; background: #16181d; border: 1px solid #2b2f38;
+    border-radius: 16px; padding: 28px 26px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+  }
+  .brand { font-size: 12px; color: #8b9199; letter-spacing: .4px; margin-bottom: 18px; text-align: center; }
+  h1 { font-size: 21px; font-weight: 800; margin: 0 0 14px; letter-spacing: .2px; text-align: center; }
+  p { margin: 0 0 8px; color: #a8aeb6; font-size: 14px; }
+  label { display: block; font-size: 12px; color: #8b9199; margin: 10px 0 4px; }
+  input {
+    width: 100%; padding: 10px; border-radius: 8px; font-size: 14px;
+    border: 1px solid #2f343d; background: #101216; color: #e8eaed;
+  }
+  input:focus { outline: none; border-color: #2a8f57; }
+  .btn {
+    display: block; width: 100%; margin-top: 16px; padding: 13px; border-radius: 10px;
+    background: #1f6f43; border: 1px solid #2a8f57; color: #fff; cursor: pointer;
+    font-size: 15px; font-weight: 700; font-family: inherit; text-align: center; text-decoration: none;
+  }
+  .btn:hover { background: #248050; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn.pro { background: #3a3320; border-color: #5a4c26; color: #f0c65a; }
+  .btn.pro:hover { background: #463d26; }
+  .btn.ghost { background: transparent; border-color: #343a45; color: #b6bcc4; }
+  .msg { font-size: 12.5px; line-height: 1.45; margin-top: 10px; min-height: 16px; }
+  .msg.err { color: #ef8f96; }
+  .msg.ok { color: #7fe0aa; }
+  .line { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; margin: 6px 0; }
+  .line span { color: #8b9199; }
+  .line b { font-weight: 600; word-break: break-all; text-align: right; }
+  .line b.ok { color: #7fe0aa; }
+  .line b.warn { color: #e0b33a; }
+  .what {
+    margin-top: 18px; padding-top: 16px; border-top: 1px solid #23262d;
+    color: #8b9199; font-size: 12.5px;
+  }
+  .what b { color: #b6bcc4; }
+  .what ul { margin: 8px 0 0; padding-left: 18px; }
+  .what li { margin: 4px 0; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">RECS ASSISTANT</div>
+
+    <!-- Пришли из расширения со ссылкой на оплату: вход не нужен -->
+    <div id="payBox" hidden>
+      <h1>Оплата подписки</h1>
+      <p id="payText">Открываю форму оплаты…</p>
+      <div class="msg" id="payMsg"></div>
+      <a class="btn" id="backToTinder" href="https://tinder.com/app/recs" hidden>Вернуться в Tinder</a>
+    </div>
+
+    <!-- Не вошёл -->
+    <div id="authBox">
+      <h1>Вход в аккаунт</h1>
+      <p>Та же почта и пароль, что и в расширении.</p>
+      <label for="email">Почта</label>
+      <input type="email" id="email" autocomplete="username">
+      <label for="password">Пароль</label>
+      <input type="password" id="password" autocomplete="current-password">
+      <button class="btn" id="signIn">Войти</button>
+      <div class="msg" id="authMsg"></div>
+    </div>
+
+    <!-- Вошёл -->
+    <div id="planBox" hidden>
+      <h1>Подписка</h1>
+      <div class="line"><span>Аккаунт</span><b id="who">—</b></div>
+      <div class="line"><span>Состояние</span><b id="status">—</b></div>
+      <div class="line" id="untilLine" hidden><span>Оплачена до</span><b id="until">—</b></div>
+
+      <button class="btn pro" id="subscribe">Оформить подписку</button>
+      <button class="btn ghost" id="manage" hidden>Управление подпиской</button>
+      <button class="btn ghost" id="signOut">Выйти</button>
+      <div class="msg" id="planMsg"></div>
+
+      <div class="what">
+        <b>Что открывает подписка</b>
+        <ul>
+          <li><b>Фильтр по внешности</b> — отбор по оценке модели 1–10, а не по анкетным полям.</li>
+          <li><b>Фильтр по телосложению</b> — диапазон ИМТ по фотографиям.</li>
+        </ul>
+        <p style="margin-top:10px">Остальные фильтры — возраст, рост, расстояние, стоп-слова — работают без подписки.</p>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<script>
+/**
+ * Страница подписки.
+ *
+ * Здесь нет и не должно быть серверного ключа Paddle (`pdl_live_apikey_…`):
+ * страница открыта любому. Внизу — только client-side token, он для того и
+ * выдан, чтобы лежать в браузере.
+ *
+ * Вход отдельный от расширения намеренно: тянуть сюда токены из расширения
+ * через адресную строку — значит оставить ключи от аккаунта в истории браузера.
+ */
+
+/* ------------------------- что нужно заполнить ------------------------- */
+
+const CONFIG = {
+  supabaseUrl: 'https://scghlieavejohghkuozu.supabase.co',
+  supabaseKey: 'sb_publishable_tVIZPhzT4ZS2vBG2cqjMkw_ea2BXSB3',
+
+  // Paddle → Developer Tools → Authentication → Client-side tokens.
+  // Начинается на `live_` или `test_`. НЕ `pdl_live_apikey_…`.
+  paddleToken: 'live_CHANGE_ME',
+
+  // Paddle → Catalog → Products → цена подписки, начинается на `pri_`.
+  paddlePriceId: 'pri_CHANGE_ME',
+
+  // 'sandbox' на время проверки, 'production' — когда пойдут живые деньги.
+  paddleEnv: 'sandbox',
+};
+
+/* ---------------------------- Supabase ---------------------------- */
+
+const SESSION_KEY = 'recs_session';
+
+const readSession = () => {
+  try {
+    return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+  } catch {
+    return null;
+  }
+};
+
+const writeSession = (s) => {
+  if (s) localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+  else localStorage.removeItem(SESSION_KEY);
+};
+
+async function api(path, { method = 'GET', body, token } = {}) {
+  const res = await fetch(`${CONFIG.supabaseUrl}${path}`, {
+    method,
+    headers: {
+      apikey: CONFIG.supabaseKey,
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.msg || data?.error_description || data?.message || `HTTP ${res.status}`);
+  return data;
+}
+
+/* ------------------------------ экраны ------------------------------ */
+
+const $ = (id) => document.getElementById(id);
+const say = (el, text, tone = '') => {
+  $(el).textContent = text;
+  $(el).className = `msg ${tone}`;
+};
+
+const STATUS_TEXT = {
+  active: ['активна', 'ok'],
+  trialing: ['пробный период', 'ok'],
+  past_due: ['платёж не прошёл', 'warn'],
+  paused: ['приостановлена', 'warn'],
+  canceled: ['отменена', 'warn'],
+  none: ['нет', 'warn'],
+};
+
+async function loadPlan() {
+  const session = readSession();
+  if (!session) return show(null);
+
+  let sub = null;
+  try {
+    const rows = await api('/rest/v1/subscriptions?select=status,current_period_end&limit=1', {
+      token: session.access_token,
+    });
+    sub = rows?.[0] ?? null;
+  } catch (e) {
+    // Токен протух — просим войти заново, а не показываем непонятную ошибку.
+    if (String(e.message).includes('401')) {
+      writeSession(null);
+      return show(null);
+    }
+    say('planMsg', `Не удалось прочитать подписку: ${e.message}`, 'err');
+  }
+
+  show(session, sub);
+}
+
+function show(session, sub) {
+  $('payBox').hidden = true;
+  $('authBox').hidden = !!session;
+  $('planBox').hidden = !session;
+  if (!session) return;
+
+  $('who').textContent = session.email;
+
+  const status = sub?.status ?? 'none';
+  const [text, tone] = STATUS_TEXT[status] ?? [status, 'warn'];
+  $('status').textContent = text;
+  $('status').className = tone;
+
+  const until = sub?.current_period_end ? new Date(sub.current_period_end) : null;
+  $('untilLine').hidden = !until || Number.isNaN(+until);
+  if (until && !Number.isNaN(+until)) $('until').textContent = until.toLocaleDateString('ru-RU');
+
+  // Кнопка оформления не нужна тому, у кого подписка уже есть, — ему нужна
+  // кнопка управления. Показываем ровно одну.
+  const live = status === 'active' || status === 'trialing' || status === 'past_due';
+  $('subscribe').hidden = live;
+  $('manage').hidden = !live;
+}
+
+/* ------------------------------ действия ------------------------------ */
+
+$('signIn').addEventListener('click', async () => {
+  const email = $('email').value.trim();
+  const password = $('password').value;
+  if (!email || !password) return say('authMsg', 'Введите почту и пароль', 'err');
+
+  $('signIn').disabled = true;
+  say('authMsg', 'Минуту…');
+  try {
+    const data = await api('/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      body: { email, password },
+    });
+    writeSession({ access_token: data.access_token, user_id: data.user.id, email: data.user.email });
+    say('authMsg', '');
+    $('password').value = '';
+    await loadPlan();
+  } catch (e) {
+    say('authMsg', e.message, 'err');
+  } finally {
+    $('signIn').disabled = false;
+  }
+});
+
+$('signOut').addEventListener('click', () => {
+  writeSession(null);
+  show(null);
+});
+
+$('subscribe').addEventListener('click', () => {
+  const session = readSession();
+  if (!session) return;
+
+  if (CONFIG.paddleToken.includes('CHANGE_ME') || CONFIG.paddlePriceId.includes('CHANGE_ME')) {
+    return say('planMsg', 'Оплата ещё не настроена: в CONFIG не заполнены paddleToken и paddlePriceId.', 'err');
+  }
+
+  // Скрипт Paddle грузится со стороннего домена: его режут и блокировщики, и
+  // корпоративные сети. Без этой проверки клик молча падал бы в консоль.
+  if (typeof Paddle === 'undefined') {
+    return say('planMsg', 'Форма оплаты не загрузилась — отключите блокировщик рекламы и обновите страницу.', 'err');
+  }
+
+  // user_id уезжает в Paddle и возвращается в вебхуке — по нему сервер и
+  // понимает, чью подписку записывать.
+  Paddle.Checkout.open({
+    items: [{ priceId: CONFIG.paddlePriceId, quantity: 1 }],
+    customer: { email: session.email },
+    customData: { user_id: session.user_id },
+  });
+});
+
+/**
+ * Управление подпиской — портал Paddle. Ссылку выдаёт только их API по
+ * серверному ключу, поэтому её создаёт Edge Function, а не эта страница.
+ */
+$('manage').addEventListener('click', async () => {
+  const session = readSession();
+  if (!session) return;
+
+  $('manage').disabled = true;
+  say('planMsg', 'Открываю портал…');
+  try {
+    const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/paddle-portal`, {
+      method: 'POST',
+      headers: { apikey: CONFIG.supabaseKey, Authorization: `Bearer ${session.access_token}` },
+    });
+    const data = await res.json();
+    if (!res.ok || !data.url) throw new Error(data.error || `HTTP ${res.status}`);
+
+    say('planMsg', '');
+    location.href = data.url;
+  } catch (e) {
+    say('planMsg', `Портал недоступен: ${e.message}`, 'err');
+  } finally {
+    $('manage').disabled = false;
+  }
+});
+
+/* ------------------------------ запуск ------------------------------ */
+
+/**
+ * Оплата прошла. Дальше два разных случая: пришли из расширения (сессии на
+ * странице нет — просто говорим «готово») или вошли здесь сами (тогда есть что
+ * обновить на экране).
+ */
+function onPaid() {
+  if (!readSession()) {
+    $('payText').textContent = 'Оплата прошла.';
+    say('payMsg', 'Вернитесь в расширение — фильтры внешности и телосложения уже открыты.', 'ok');
+    $('backToTinder').hidden = false;
+    return;
+  }
+
+  // Вебхук идёт своим путём и приходит через секунду-другую: перечитываем
+  // подписку несколько раз, иначе человек увидит «нет» сразу после оплаты.
+  say('planMsg', 'Оплата прошла. Обновляю состояние…', 'ok');
+  let left = 6;
+  const timer = setInterval(async () => {
+    await loadPlan();
+
+    const active = !$('manage').hidden; // кнопку управления показывают только живой подписке
+    if (active || --left <= 0) clearInterval(timer);
+    say(
+      'planMsg',
+      active
+        ? 'Готово. Откройте расширение — фильтры уже доступны.'
+        : 'Оплата прошла, подписка ещё записывается…',
+      'ok'
+    );
+  }, 2000);
+}
+
+const paddleReady = !CONFIG.paddleToken.includes('CHANGE_ME');
+if (paddleReady) {
+  if (CONFIG.paddleEnv === 'sandbox') Paddle.Environment.set('sandbox');
+  Paddle.Initialize({
+    token: CONFIG.paddleToken,
+    eventCallback: (e) => {
+      if (e.name === 'checkout.completed') onPaid();
+    },
+  });
+}
+
+/**
+ * `_ptxn` в адресе — транзакция, созданная сервером для вошедшего в расширении.
+ * Вход здесь в этом случае не нужен и не показывается: кто уже вошёл в
+ * расширении, тот уже опознан, а второй логин перед оплатой только отпугивает.
+ */
+const ptxn = new URLSearchParams(location.search).get('_ptxn');
+
+if (!ptxn) {
+  loadPlan();
+} else {
+  $('payBox').hidden = false;
+  $('authBox').hidden = true;
+  $('planBox').hidden = true;
+
+  if (!paddleReady) {
+    say('payMsg', 'Оплата ещё не настроена: в CONFIG не заполнен paddleToken.', 'err');
+  } else if (typeof Paddle === 'undefined') {
+    say('payMsg', 'Форма оплаты не загрузилась — отключите блокировщик рекламы и обновите страницу.', 'err');
+  } else {
+    Paddle.Checkout.open({ transactionId: ptxn });
+  }
+}
+</script>
+</body>
+</html>
