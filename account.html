@@ -52,6 +52,23 @@
   .what ul { margin: 8px 0 0; padding-left: 18px; }
   .what li { margin: 4px 0; }
   [hidden] { display: none !important; }
+
+  /* Вкладки «Вход» / «Регистрация» — как в расширении, чтобы страница не
+     выглядела чужой тому, кто пришёл сюда из панели. */
+  .tabs { display: flex; gap: 5px; margin-bottom: 14px; }
+  .tab {
+    flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #343a45;
+    background: transparent; color: #8b9199; cursor: pointer;
+    font-size: 13px; font-weight: 600; font-family: inherit;
+  }
+  .tab.on { background: #23272f; color: #e8eaed; border-color: #4a515c; }
+
+  /* Индикатор надёжности: четыре деления вместо плавной полосы — видно, что
+     уровней конечное число и сколько осталось до приемлемого. */
+  .pwbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; height: 5px; margin: 8px 0 5px; }
+  .pwbar i { background: #2f343d; border-radius: 2px; }
+  .pwbar i.on { background: var(--pw, #ef6b74); }
+  .pwhint { font-size: 12px; line-height: 1.4; color: #8b9199; }
 </style>
 </head>
 <body>
@@ -68,13 +85,30 @@
 
     <!-- Не вошёл -->
     <div id="authBox">
-      <h1>Вход в аккаунт</h1>
-      <p>Та же почта и пароль, что и в расширении.</p>
+      <h1 id="authTitle">Вход в аккаунт</h1>
+      <div class="tabs">
+        <button class="tab on" id="tabIn">Вход</button>
+        <button class="tab" id="tabUp">Регистрация</button>
+      </div>
+      <p id="authLead">Та же почта и пароль, что и в расширении.</p>
+
       <label for="email">Почта</label>
       <input type="email" id="email" autocomplete="username">
+
       <label for="password">Пароль</label>
       <input type="password" id="password" autocomplete="current-password">
-      <button class="btn" id="signIn">Войти</button>
+
+      <!-- Только при регистрации -->
+      <div id="pwMeter" hidden>
+        <div class="pwbar" id="pwBar"><i></i><i></i><i></i><i></i></div>
+        <div class="pwhint" id="pwHint"></div>
+      </div>
+      <div id="pw2Row" hidden>
+        <label for="password2">Пароль ещё раз</label>
+        <input type="password" id="password2" autocomplete="new-password">
+      </div>
+
+      <button class="btn" id="submit">Войти</button>
       <div class="msg" id="authMsg"></div>
     </div>
 
@@ -102,7 +136,12 @@
   </div>
 
 <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
-<script>
+<script type="module">
+// Правило надёжности пароля — из общего файла, а не переписанное здесь заново:
+// иначе сайт и расширение однажды разошлись бы в том, какой пароль считать
+// приемлемым. Файл кладёт рядом `npm run sync-site`.
+import { scorePassword } from './password.js';
+
 /**
  * Страница подписки.
  *
@@ -227,30 +266,129 @@ function show(session, sub) {
   $('manage').hidden = !live;
 }
 
-/* ------------------------------ действия ------------------------------ */
+/* ------------------------- вход и регистрация ------------------------- */
 
-$('signIn').addEventListener('click', async () => {
+let mode = 'signIn'; // signIn | signUp
+
+const PW_COLORS = ['#ef6b74', '#ef6b74', '#e0b33a', '#7fe0aa', '#4fc98a'];
+
+const PW_TEXT = {
+  short: 'коротковат: нужно хотя бы 8 символов',
+  common: 'этот пароль есть в списках для подбора',
+  plain: 'одни буквы или одни цифры — добавьте разного',
+  2: 'сойдёт',
+  3: 'хороший',
+  4: 'надёжный',
+};
+
+/**
+ * Индикатор надёжности. Показываем не только уровень, но и что именно не так:
+ * полоска без объяснения заставляет угадывать, чем «сойдёт» отличается от
+ * «надёжного».
+ */
+function renderStrength() {
+  const value = $('password').value;
+  const { level, ok, issue } = scorePassword(value);
+
+  const cells = $('pwBar').children;
+  for (let i = 0; i < cells.length; i++) cells[i].classList.toggle('on', i < level);
+  $('pwBar').style.setProperty('--pw', PW_COLORS[level]);
+
+  $('pwHint').textContent = value
+    ? (PW_TEXT[issue] ?? PW_TEXT[level] ?? '')
+    : 'от 8 символов, буквы и цифры';
+  $('pwHint').style.color = !value || ok ? '#8b9199' : '#e0b33a';
+}
+
+function setMode(next) {
+  mode = next;
+  const signUp = next === 'signUp';
+
+  $('tabIn').classList.toggle('on', !signUp);
+  $('tabUp').classList.toggle('on', signUp);
+  $('authTitle').textContent = signUp ? 'Регистрация' : 'Вход в аккаунт';
+  $('authLead').textContent = signUp
+    ? 'Этой же почтой и паролем вы будете входить в расширении.'
+    : 'Та же почта и пароль, что и в расширении.';
+  $('submit').textContent = signUp ? 'Зарегистрироваться' : 'Войти';
+  $('password').autocomplete = signUp ? 'new-password' : 'current-password';
+
+  // Повтор пароля и индикатор нужны там, где пароль придумывают. При входе он
+  // уже известен, и проверять его нечем.
+  $('pw2Row').hidden = !signUp;
+  $('pwMeter').hidden = !signUp;
+  if (signUp) renderStrength();
+  else $('password2').value = '';
+
+  say('authMsg', '');
+}
+
+/** Вход по паролю. Возвращает сессию, которую кладём в localStorage. */
+async function doSignIn(email, password) {
+  const data = await api('/auth/v1/token?grant_type=password', {
+    method: 'POST',
+    body: { email, password },
+  });
+  writeSession({ access_token: data.access_token, user_id: data.user.id, email: data.user.email });
+  say('authMsg', '');
+  $('password').value = '';
+  await loadPlan();
+}
+
+/**
+ * Регистрация.
+ *
+ * На занятую почту Supabase отвечает не ошибкой, а пустым `identities`: так он
+ * не даёт по ответу выяснить, кто у сервиса зарегистрирован. Не разобрав этот
+ * случай, мы обещали бы письмо, которого подтверждённому пользователю никто не
+ * отправит.
+ */
+async function doSignUp(email, password) {
+  if (password !== $('password2').value) throw new Error('Пароли не совпадают');
+  if (!scorePassword(password).ok) throw new Error('Пароль слишком простой — его подберут');
+
+  const data = await api('/auth/v1/signup', { method: 'POST', body: { email, password } });
+
+  if (Array.isArray(data?.identities) && data.identities.length === 0) {
+    setMode('signIn');
+    throw new Error('Такая почта уже зарегистрирована — войдите или восстановите пароль');
+  }
+
+  setMode('signIn');
+  $('password').value = '';
+  $('password2').value = '';
+  say('authMsg', 'Аккаунт создан. Проверьте почту и перейдите по ссылке из письма — потом войдите здесь.', 'ok');
+}
+
+async function submitAuth() {
   const email = $('email').value.trim();
   const password = $('password').value;
   if (!email || !password) return say('authMsg', 'Введите почту и пароль', 'err');
 
-  $('signIn').disabled = true;
-  say('authMsg', 'Минуту…');
+  const signUp = mode === 'signUp';
+  $('submit').disabled = true;
+  if (!signUp) say('authMsg', 'Минуту…');
+
   try {
-    const data = await api('/auth/v1/token?grant_type=password', {
-      method: 'POST',
-      body: { email, password },
-    });
-    writeSession({ access_token: data.access_token, user_id: data.user.id, email: data.user.email });
-    say('authMsg', '');
-    $('password').value = '';
-    await loadPlan();
+    await (signUp ? doSignUp(email, password) : doSignIn(email, password));
   } catch (e) {
     say('authMsg', e.message, 'err');
   } finally {
-    $('signIn').disabled = false;
+    $('submit').disabled = false;
   }
+}
+
+$('tabIn').addEventListener('click', () => setMode('signIn'));
+$('tabUp').addEventListener('click', () => setMode('signUp'));
+$('submit').addEventListener('click', submitAuth);
+$('password').addEventListener('input', () => {
+  if (mode === 'signUp') renderStrength();
 });
+for (const id of ['email', 'password', 'password2']) {
+  $(id).addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitAuth();
+  });
+}
 
 $('signOut').addEventListener('click', () => {
   writeSession(null);
