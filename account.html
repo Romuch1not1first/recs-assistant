@@ -69,6 +69,14 @@
   .pwbar i { background: #2f343d; border-radius: 2px; }
   .pwbar i.on { background: var(--pw, #ef6b74); }
   .pwhint { font-size: 12px; line-height: 1.4; color: #8b9199; }
+
+  /* Узнанный почтовый сервис под полем адреса. */
+  .mailhint { font-size: 12px; color: #8b9199; font-weight: 600; margin-top: 5px; }
+
+  /* Кнопка перехода в почту — синяя: это не вход и не оплата, а разовый шаг,
+     и путать её с основной зелёной кнопкой не стоит. */
+  .btn.mail { background: #1d3a5c; border-color: #2b5a8f; color: #cfe3ff; }
+  .btn.mail:hover { background: #234669; }
 </style>
 </head>
 <body>
@@ -94,6 +102,8 @@
 
       <label for="email">Почта</label>
       <input type="email" id="email" autocomplete="username">
+      <!-- Узнанный по домену почтовый сервис: видно, что адрес разобран верно. -->
+      <div class="mailhint" id="mailHint" hidden></div>
 
       <label for="password">Пароль</label>
       <input type="password" id="password" autocomplete="current-password">
@@ -110,6 +120,10 @@
 
       <button class="btn" id="submit">Войти</button>
       <div class="msg" id="authMsg"></div>
+
+      <!-- После регистрации: куда идти за письмом. «Проверьте почту» без
+           кнопки заканчивается тем, что человек уходит искать вкладку. -->
+      <a class="btn mail" id="openMail" target="_blank" rel="noopener noreferrer" hidden></a>
     </div>
 
     <!-- Вошёл -->
@@ -141,6 +155,7 @@
 // иначе сайт и расширение однажды разошлись бы в том, какой пароль считать
 // приемлемым. Файл кладёт рядом `npm run sync-site`.
 import { scorePassword } from './password.js';
+import { mailProvider } from './mail-providers.js';
 
 /**
  * Страница подписки.
@@ -300,9 +315,40 @@ function renderStrength() {
   $('pwHint').style.color = !value || ok ? '#8b9199' : '#e0b33a';
 }
 
+/**
+ * Подпись под полем адреса: какой почтой человек пользуется.
+ *
+ * Это заодно проверка на опечатку в домене: `gmial.com` сервисом не
+ * опознаётся, и отсутствие подписи там, где она была секунду назад, заметно.
+ */
+function renderMailHint() {
+  const provider = mailProvider($('email').value);
+  $('mailHint').hidden = !provider;
+  $('mailHint').textContent = provider ? provider.name : '';
+}
+
+/**
+ * Кнопка «Открыть Gmail» после регистрации.
+ *
+ * Домен незнаком (корпоративная почта, свой сервер) — кнопки нет: вести
+ * человека наугад хуже, чем не вести вовсе.
+ */
+function showMailButton(email) {
+  const provider = mailProvider(email);
+  $('openMail').hidden = !provider;
+  if (!provider) return;
+
+  $('openMail').textContent = `Открыть ${provider.name}`;
+  $('openMail').href = provider.url;
+}
+
 function setMode(next) {
   mode = next;
   const signUp = next === 'signUp';
+
+  // Кнопка почты относится к прошлой регистрации: при смене вкладки она уже
+  // не про то, что человек делает сейчас.
+  $('openMail').hidden = true;
 
   $('tabIn').classList.toggle('on', !signUp);
   $('tabUp').classList.toggle('on', signUp);
@@ -320,6 +366,7 @@ function setMode(next) {
   if (signUp) renderStrength();
   else $('password2').value = '';
 
+  renderMailHint();
   say('authMsg', '');
 }
 
@@ -358,6 +405,7 @@ async function doSignUp(email, password) {
   $('password').value = '';
   $('password2').value = '';
   say('authMsg', 'Аккаунт создан. Проверьте почту и перейдите по ссылке из письма — потом войдите здесь.', 'ok');
+  showMailButton(email);
 }
 
 async function submitAuth() {
@@ -381,6 +429,7 @@ async function submitAuth() {
 $('tabIn').addEventListener('click', () => setMode('signIn'));
 $('tabUp').addEventListener('click', () => setMode('signUp'));
 $('submit').addEventListener('click', submitAuth);
+$('email').addEventListener('input', renderMailHint);
 $('password').addEventListener('input', () => {
   if (mode === 'signUp') renderStrength();
 });
