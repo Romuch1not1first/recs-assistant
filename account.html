@@ -73,6 +73,10 @@
   /* Узнанный почтовый сервис под полем адреса. */
   .mailhint { font-size: 12px; color: #8b9199; font-weight: 600; margin-top: 5px; }
 
+  /* Подпись про выгоду годового — под кнопкой: в самой кнопке она соперничала
+     бы с ценой за внимание. */
+  .save { color: #7fe0aa; font-size: 12px; text-align: center; margin-top: 6px; }
+
   /* Кнопка перехода в почту — синяя: это не вход и не оплата, а разовый шаг,
      и путать её с основной зелёной кнопкой не стоит. */
   .btn.mail { background: #1d3a5c; border-color: #2b5a8f; color: #cfe3ff; }
@@ -133,7 +137,11 @@
       <div class="line"><span>Состояние</span><b id="status">—</b></div>
       <div class="line" id="untilLine" hidden><span>Оплачена до</span><b id="until">—</b></div>
 
-      <button class="btn pro" id="subscribe">Оформить подписку</button>
+      <div id="planPick">
+        <button class="btn pro" id="planMonthly"></button>
+        <button class="btn pro" id="planYearly"></button>
+        <div class="save" id="planSave" hidden></div>
+      </div>
       <button class="btn ghost" id="manage" hidden>Управление подпиской</button>
       <button class="btn ghost" id="signOut">Выйти</button>
       <div class="msg" id="planMsg"></div>
@@ -156,6 +164,7 @@
 // приемлемым. Файл кладёт рядом `npm run sync-site`.
 import { scorePassword } from './password.js';
 import { mailProvider } from './mail-providers.js';
+import { planById, priceLabel, yearlySavings } from './plans.js';
 
 /**
  * Страница подписки.
@@ -175,15 +184,15 @@ const CONFIG = {
   supabaseKey: 'sb_publishable_tVIZPhzT4ZS2vBG2cqjMkw_ea2BXSB3',
 
   // Paddle → Developer Tools → Authentication → Client-side tokens.
-  // Начинается на `live_` или `test_`. НЕ `pdl_live_apikey_…`.
-  paddleToken: 'live_CHANGE_ME',
-
-  // Paddle → Catalog → Products → цена подписки, начинается на `pri_`.
-  paddlePriceId: 'pri_CHANGE_ME',
+  // Он для того и выдан, чтобы лежать в браузере. НЕ `pdl_live_apikey_…`.
+  paddleToken: 'live_249e7769529bc31e36f197a7f57',
 
   // 'sandbox' на время проверки, 'production' — когда пойдут живые деньги.
-  paddleEnv: 'sandbox',
+  paddleEnv: 'production',
 };
+
+// Цены продукта AI Swapper лежат в plans.js — общем с расширением, чтобы popup
+// и эта страница не разошлись в том, сколько стоит подписка.
 
 /* ---------------------------- Supabase ---------------------------- */
 
@@ -274,11 +283,25 @@ function show(session, sub) {
   $('untilLine').hidden = !until || Number.isNaN(+until);
   if (until && !Number.isNaN(+until)) $('until').textContent = until.toLocaleDateString('ru-RU');
 
-  // Кнопка оформления не нужна тому, у кого подписка уже есть, — ему нужна
-  // кнопка управления. Показываем ровно одну.
+  // Тарифы не нужны тому, у кого подписка уже есть, — ему нужна кнопка
+  // управления. Показываем что-то одно.
   const live = status === 'active' || status === 'trialing' || status === 'past_due';
-  $('subscribe').hidden = live;
+  $('planPick').hidden = live;
   $('manage').hidden = !live;
+  if (!live) renderPlans();
+}
+
+/** Подписи тарифов: «На месяц — $20». */
+function renderPlans() {
+  for (const [id, button] of [['monthly', 'planMonthly'], ['yearly', 'planYearly']]) {
+    const plan = planById(id);
+    if (!plan) continue;
+    $(button).textContent = `${id === 'yearly' ? 'На год' : 'На месяц'} — ${priceLabel(plan)}`;
+  }
+
+  const saved = yearlySavings();
+  $('planSave').hidden = !saved;
+  $('planSave').textContent = saved ? `годовая выгоднее на ${saved}%` : '';
 }
 
 /* ------------------------- вход и регистрация ------------------------- */
@@ -444,13 +467,11 @@ $('signOut').addEventListener('click', () => {
   show(null);
 });
 
-$('subscribe').addEventListener('click', () => {
+/** Открывает форму оплаты выбранного тарифа. */
+function openCheckout(planId) {
   const session = readSession();
-  if (!session) return;
-
-  if (CONFIG.paddleToken.includes('CHANGE_ME') || CONFIG.paddlePriceId.includes('CHANGE_ME')) {
-    return say('planMsg', 'Оплата ещё не настроена: в CONFIG не заполнены paddleToken и paddlePriceId.', 'err');
-  }
+  const plan = planById(planId);
+  if (!session || !plan) return;
 
   // Скрипт Paddle грузится со стороннего домена: его режут и блокировщики, и
   // корпоративные сети. Без этой проверки клик молча падал бы в консоль.
@@ -461,11 +482,15 @@ $('subscribe').addEventListener('click', () => {
   // user_id уезжает в Paddle и возвращается в вебхуке — по нему сервер и
   // понимает, чью подписку записывать.
   Paddle.Checkout.open({
-    items: [{ priceId: CONFIG.paddlePriceId, quantity: 1 }],
+    items: [{ priceId: plan.priceId, quantity: 1 }],
     customer: { email: session.email },
-    customData: { user_id: session.user_id },
+    customData: { user_id: session.user_id, plan: plan.id },
   });
-});
+}
+
+for (const [button, plan] of [['planMonthly', 'monthly'], ['planYearly', 'yearly']]) {
+  $(button).addEventListener('click', () => openCheckout(plan));
+}
 
 /**
  * Управление подпиской — портал Paddle. Ссылку выдаёт только их API по
