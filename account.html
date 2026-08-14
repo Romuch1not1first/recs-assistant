@@ -129,6 +129,9 @@
       <button class="btn" id="submit">Войти</button>
       <div class="msg" id="authMsg"></div>
 
+      <!-- Почта не подтверждена: письмо могло не дойти или устареть. -->
+      <button class="btn ghost" id="resend" hidden>Отправить письмо ещё раз</button>
+
       <!-- После регистрации: куда идти за письмом. «Проверьте почту» без
            кнопки заканчивается тем, что человек уходит искать вкладку. -->
       <a class="btn mail" id="openMail" target="_blank" rel="noopener noreferrer" hidden></a>
@@ -227,9 +230,30 @@ async function api(path, { method = 'GET', body, token } = {}) {
   });
 
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.msg || data?.error_description || data?.message || `HTTP ${res.status}`);
+  if (!res.ok) {
+    // Код несём отдельно от текста: сообщения Supabase английские, а решение,
+    // что показать человеку, принимается именно по коду.
+    const err = new Error(data?.msg || data?.error_description || data?.message || `HTTP ${res.status}`);
+    err.code = data?.error_code ?? data?.error ?? '';
+    throw err;
+  }
   return data;
 }
+
+/**
+ * Ошибки Supabase приходят по-английски — показываем свои по коду.
+ * Незнакомый код оставляет текст сервера: он хотя бы точен.
+ */
+const ERRORS = {
+  invalid_credentials: 'Неверная почта или пароль',
+  email_not_confirmed: 'Почта не подтверждена — перейдите по ссылке из письма',
+  weak_password: 'Пароль короче 6 символов',
+  email_exists: 'Такая почта уже зарегистрирована',
+  user_already_exists: 'Такая почта уже зарегистрирована',
+  validation_failed: 'Проверьте введённые данные',
+  over_email_send_rate_limit: 'Слишком часто — подождите минуту',
+  over_request_rate_limit: 'Слишком часто — подождите минуту',
+};
 
 /* ------------------------------ экраны ------------------------------ */
 
@@ -376,9 +400,10 @@ function setMode(next) {
   mode = next;
   const signUp = next === 'signUp';
 
-  // Кнопка почты относится к прошлой регистрации: при смене вкладки она уже
-  // не про то, что человек делает сейчас.
+  // Кнопки почты относятся к прошлой попытке: при смене вкладки они уже не
+  // про то, что человек делает сейчас.
   $('openMail').hidden = true;
+  $('resend').hidden = true;
 
   $('tabIn').classList.toggle('on', !signUp);
   $('tabUp').classList.toggle('on', signUp);
@@ -450,11 +475,37 @@ async function submitAuth() {
   try {
     await (signUp ? doSignUp(email, password) : doSignIn(email, password));
   } catch (e) {
-    say('authMsg', e.message, 'err');
+    say('authMsg', ERRORS[e.code] ?? e.message, 'err');
+
+    // Пароль верный, но по ссылке из письма не переходили. Тупик, если не дать
+    // отсюда же выслать письмо заново: старое могло не дойти или устареть.
+    if (e.code === 'email_not_confirmed') {
+      $('resend').hidden = false;
+      $('resend').dataset.email = email;
+      showMailButton(email);
+    }
   } finally {
     $('submit').disabled = false;
   }
 }
+
+/** Повторное письмо с подтверждением. */
+$('resend').addEventListener('click', async () => {
+  const email = $('resend').dataset.email;
+  if (!email) return;
+
+  $('resend').disabled = true;
+  say('authMsg', 'Отправляю…');
+  try {
+    await api('/auth/v1/resend', { method: 'POST', body: { type: 'signup', email } });
+    say('authMsg', 'Письмо отправлено. Перейдите по ссылке из него, затем войдите.', 'ok');
+    $('resend').hidden = true;
+  } catch (e) {
+    say('authMsg', ERRORS[e.code] ?? e.message, 'err');
+  } finally {
+    $('resend').disabled = false;
+  }
+});
 
 $('tabIn').addEventListener('click', () => setMode('signIn'));
 $('tabUp').addEventListener('click', () => setMode('signUp'));
