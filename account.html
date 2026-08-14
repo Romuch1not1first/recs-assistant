@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Recs Assistant — подписка</title>
+<title>AutoSwap AI — подписка</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -17,7 +17,11 @@
     border-radius: 16px; padding: 28px 26px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
   }
-  .brand { font-size: 12px; color: #8b9199; letter-spacing: .4px; margin-bottom: 18px; text-align: center; }
+  .brand {
+    display: block; font-size: 12px; color: #8b9199; letter-spacing: .4px;
+    margin-bottom: 18px; text-align: center; text-decoration: none;
+  }
+  .brand:hover { color: #e8eaed; }
   h1 { font-size: 21px; font-weight: 800; margin: 0 0 14px; letter-spacing: .2px; text-align: center; }
   p { margin: 0 0 8px; color: #a8aeb6; font-size: 14px; }
   label { display: block; font-size: 12px; color: #8b9199; margin: 10px 0 4px; }
@@ -85,7 +89,7 @@
 </head>
 <body>
   <div class="card">
-    <div class="brand">RECS ASSISTANT</div>
+    <a class="brand" href="/">◆ AUTOSWAP AI</a>
 
     <!-- Пришли из расширения со ссылкой на оплату: вход не нужен -->
     <div id="payBox" hidden>
@@ -289,6 +293,9 @@ function show(session, sub) {
   $('planPick').hidden = live;
   $('manage').hidden = !live;
   if (!live) renderPlans();
+
+  // Пришли с витрины с выбранным тарифом — открываем его форму.
+  usePendingPlan();
 }
 
 /** Подписи тарифов: «На месяц — $20». */
@@ -490,6 +497,23 @@ function openCheckout(planId) {
 
 for (const [button, plan] of [['planMonthly', 'monthly'], ['planYearly', 'yearly']]) {
   $(button).addEventListener('click', () => openCheckout(plan));
+}
+
+/**
+ * Тариф, выбранный на витрине: `/account.html?plan=yearly`.
+ *
+ * Открываем его форму сразу — человек уже нажал «Оформить» на главной, и
+ * второй такой же выбор здесь был бы переспрашиванием. Если он ещё не вошёл,
+ * намерение ждёт входа и срабатывает после него.
+ */
+let pendingPlan = planById(new URLSearchParams(location.search).get('plan'))?.id ?? null;
+
+function usePendingPlan() {
+  if (!pendingPlan || $('planPick').hidden) return;
+
+  const plan = pendingPlan;
+  pendingPlan = null; // один раз: закрыл форму — сам решает, открывать ли снова
+  openCheckout(plan);
 }
 
 /**

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoSwap AI — расширение Chrome для Tinder</title>
+<meta name="description" content="Расширение Chrome, которое само листает рекомендации Tinder по вашим условиям: возраст, рост, расстояние, стоп-слова в описании и оценка фотографий моделью.">
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --bg: #0b0d10; --card: #16181d; --line: #2b2f38; --line2: #23262d;
+    --text: #e8eaed; --dim: #a8aeb6; --mute: #8b9199;
+    --green: #2a8f57; --green2: #1f6f43; --gold: #f0c65a; --gold-bg: #3a3320;
+  }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.6 -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: inherit; }
+  .wrap { width: 100%; max-width: 980px; margin: 0 auto; padding: 0 20px; }
+
+  /* Шапка */
+  header {
+    position: sticky; top: 0; z-index: 10; background: rgba(11, 13, 16, .92);
+    backdrop-filter: blur(8px); border-bottom: 1px solid var(--line2);
+  }
+  .bar { display: flex; align-items: center; gap: 16px; height: 62px; }
+  .logo { font-weight: 800; font-size: 17px; letter-spacing: .2px; text-decoration: none; }
+  .logo i { color: var(--gold); font-style: normal; }
+  nav { margin-left: auto; display: flex; align-items: center; gap: 18px; }
+  nav a { color: var(--mute); text-decoration: none; font-size: 14px; }
+  nav a:hover { color: var(--text); }
+
+  .btn {
+    display: inline-block; padding: 12px 20px; border-radius: 10px; cursor: pointer;
+    background: var(--green2); border: 1px solid var(--green); color: #fff;
+    font-size: 15px; font-weight: 700; font-family: inherit; text-decoration: none;
+    text-align: center;
+  }
+  .btn:hover { background: #248050; }
+  .btn.ghost { background: transparent; border-color: #343a45; color: var(--dim); }
+  .btn.ghost:hover { color: var(--text); border-color: #4a515c; }
+  .btn.gold { background: var(--gold-bg); border-color: #5a4c26; color: var(--gold); }
+  .btn.gold:hover { background: #463d26; }
+  .btn.small { padding: 8px 14px; font-size: 14px; }
+  .btn[aria-disabled="true"] { opacity: .55; cursor: default; }
+
+  /* Первый экран */
+  .hero { padding: 74px 0 64px; text-align: center; }
+  h1 { font-size: 42px; line-height: 1.15; font-weight: 800; margin: 0 0 16px; letter-spacing: -.5px; }
+  h1 i { color: var(--gold); font-style: normal; }
+  .lead { font-size: 18px; color: var(--dim); max-width: 620px; margin: 0 auto 28px; }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .under { margin-top: 14px; font-size: 13px; color: var(--mute); }
+
+  h2 { font-size: 26px; font-weight: 800; margin: 0 0 8px; letter-spacing: -.2px; }
+  .sub { color: var(--mute); margin: 0 0 26px; font-size: 15px; }
+  section { padding: 48px 0; border-top: 1px solid var(--line2); }
+
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .card h3 { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+  .card p { margin: 0; color: var(--dim); font-size: 14.5px; }
+  .num {
+    width: 28px; height: 28px; border-radius: 8px; background: #1f2229; color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; margin-bottom: 12px;
+  }
+  .tag {
+    display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 6px;
+    background: var(--gold-bg); border: 1px solid #5a4c26; color: var(--gold);
+    font-size: 11px; font-weight: 700; vertical-align: middle;
+  }
+  ul.checks { margin: 0; padding: 0; list-style: none; }
+  ul.checks li { padding: 7px 0 7px 24px; position: relative; color: var(--dim); font-size: 14.5px; }
+  ul.checks li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+
+  /* Цены */
+  .prices { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); max-width: 660px; }
+  .price { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; text-align: center; }
+  .price.best { border-color: #5a4c26; }
+  .price .name { color: var(--mute); font-size: 14px; }
+  .price .amount { font-size: 36px; font-weight: 800; margin: 6px 0 2px; }
+  .price .per { color: var(--mute); font-size: 13px; margin-bottom: 16px; }
+  .price .btn { width: 100%; }
+  .price .save { color: #7fe0aa; font-size: 13px; margin-top: 10px; min-height: 18px; }
+
+  details { border-top: 1px solid var(--line2); padding: 14px 0; }
+  details:last-of-type { border-bottom: 1px solid var(--line2); }
+  summary { cursor: pointer; font-weight: 600; font-size: 15.5px; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: '+ '; color: var(--gold); font-weight: 800; }
+  details[open] summary::before { content: '– '; }
+  details p { color: var(--dim); font-size: 14.5px; margin: 10px 0 0; }
+
+  footer { border-top: 1px solid var(--line2); padding: 28px 0 44px; color: var(--mute); font-size: 13px; }
+  .flinks { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; }
+  .flinks a { color: var(--mute); text-decoration: none; }
+  .flinks a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    h1 { font-size: 32px; }
+    .lead { font-size: 16px; }
+    nav a:not(.btn) { display: none; }
+    .hero { padding: 48px 0 40px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="/"><i>◆</i> AutoSwap AI</a>
+    <nav>
+      <a href="#how">Как работает</a>
+      <a href="#what">Возможности</a>
+      <a href="#price">Цена</a>
+      <a class="btn ghost small" href="/account.html">Войти</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="hero">
+    <h1>Tinder листает себя <i>сам</i></h1>
+    <p class="lead">
+      Расширение Chrome открывает карточку за карточкой, читает анкету, прогоняет фотографии
+      через модель и ставит Like или Nope по вашим условиям. Вы задаёте правила один раз.
+    </p>
+    <div class="cta">
+      <a class="btn" id="install" href="#install">Установить расширение</a>
+      <a class="btn ghost" href="#price">Посмотреть цену</a>
+    </div>
+    <div class="under" id="installNote">Chrome 116 и новее</div>
+  </div>
+
+  <section id="how">
+    <h2>Как это работает</h2>
+    <p class="sub">Три шага, дальше расширение работает само.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="num">1</div>
+        <h3>Задаёте условия</h3>
+        <p>Возраст, рост, расстояние, число фотографий, стоп-слова в описании. Панель открывается прямо поверх Tinder.</p>
+      </div>
+      <div class="card">
+        <div class="num">2</div>
+        <h3>Нажимаете «Старт»</h3>
+        <p>Расширение открывает карточку, читает анкету и отправляет фотографии на оценку. Всё видно в логе панели.</p>
+      </div>
+      <div class="card">
+        <div class="num">3</div>
+        <h3>Смотрите результат</h3>
+        <p>Подошедший профиль получает Like, остальные — Nope. Счётчики свайпов и причина каждого решения — на виду.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="what">
+    <h2>Что умеет</h2>
+    <p class="sub">Часть работает сразу после установки, часть открывает подписка.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Бесплатно</h3>
+        <ul class="checks">
+          <li>Возраст, рост, расстояние</li>
+          <li>Минимум фотографий в анкете</li>
+          <li>Стоп-слова в описании, в том числе регулярные выражения</li>
+          <li>Только с отметкой Verified или недавно активные</li>
+          <li>Лимит свайпов за сессию и доля отказов</li>
+          <li>Интерфейс на русском, українською и English</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>По подписке <span class="tag">AI</span></h3>
+        <ul class="checks">
+          <li><b>Фильтр по внешности</b> — оценка модели от 1 до 10, отбор по диапазону</li>
+          <li><b>Фильтр по телосложению</b> — рост и вес по фотографиям, диапазон ИМТ</li>
+          <li>Отбор по тому, что видно на снимке, а не только по заполненным полям анкеты</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="price">
+    <h2>Цена</h2>
+    <p class="sub">Оплата картой через Paddle. Отменить можно в любой момент.</p>
+    <div class="prices">
+      <div class="price">
+        <div class="name">Месяц</div>
+        <div class="amount" id="priceMonthly">—</div>
+        <div class="per">каждый месяц</div>
+        <a class="btn gold" href="/account.html?plan=monthly">Оформить</a>
+        <div class="save"></div>
+      </div>
+      <div class="price best">
+        <div class="name">Год</div>
+        <div class="amount" id="priceYearly">—</div>
+        <div class="per">один платёж в год</div>
+        <a class="btn gold" href="/account.html?plan=yearly">Оформить</a>
+        <div class="save" id="save"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <h2>Частые вопросы</h2>
+    <p class="sub"></p>
+
+    <details>
+      <summary>Нужен ли аккаунт?</summary>
+      <p>Да. Расширение работает под аккаунтом: он же связывает вас с подпиской. Регистрация — по почте с паролем, прямо в окне расширения.</p>
+    </details>
+
+    <details>
+      <summary>Куда уходят мои фотографии и переписки?</summary>
+      <p>Переписки не читаются вовсе. Фотографии профилей из ленты отправляются во внешнюю модель для оценки телосложения и внешности — без этого фильтры по снимкам работать не могут. Ваши собственные данные Tinder никуда не передаются.</p>
+    </details>
+
+    <details>
+      <summary>Насколько точна оценка по фотографии?</summary>
+      <p>Это прикидка. Ракурс, одежда и обработка сдвигают её, а оценка внешности вдобавок отражает предвзятость данных, на которых модель обучалась. Число будет стабильным, но считать его объективным не стоит.</p>
+    </details>
+
+    <details>
+      <summary>Можно ли отменить подписку?</summary>
+      <p>Да, в любой момент — кнопка «Управление подпиской» в личном кабинете открывает портал Paddle, где меняется карта и отменяется продление. Доступ сохраняется до конца оплаченного периода.</p>
+    </details>
+
+    <details>
+      <summary>Это разрешено правилами Tinder?</summary>
+      <p>Нет. Правила Tinder запрещают автоматизацию действий в приложении, и аккаунт за это могут ограничить или заблокировать. Расширение делает паузы между свайпами и держит долю отказов, чтобы поведение не выглядело machine-like, но гарантий это не даёт. Решение и риск — ваши.</p>
+    </details>
+  </section>
+
+  <footer>
+    <div class="flinks">
+      <a href="/account.html">Личный кабинет</a>
+      <a href="#price">Цена</a>
+      <a href="#faq">Вопросы</a>
+    </div>
+    <div>© <span id="year">2026</span> AutoSwap AI</div>
+  </footer>
+
+</div>
+
+<script type="module">
+/**
+ * Цены на витрине — из общего файла с расширением и кабинетом. Написанные
+ * здесь руками, они однажды разошлись бы с тем, что списывает Paddle, и это
+ * был бы спор с покупателем, а не опечатка.
+ */
+import { planById, priceLabel, yearlySavings } from './plans.js';
+
+/**
+ * Ссылка на расширение в Chrome Web Store. Пока пусто — кнопка честно говорит,
+ * что магазина ещё нет, вместо того чтобы вести в никуда.
+ */
+const CHROME_STORE_URL = '';
+
+const $ = (id) => document.getElementById(id);
+
+for (const [id, node] of [['monthly', 'priceMonthly'], ['yearly', 'priceYearly']]) {
+  const plan = planById(id);
+  if (plan) $(node).textContent = priceLabel(plan);
+}
+
+const saved = yearlySavings();
+$('save').textContent = saved ? `выгоднее на ${saved}%` : '';
+
+if (CHROME_STORE_URL) {
+  $('install').href = CHROME_STORE_URL;
+} else {
+  $('install').textContent = 'Скоро в Chrome Web Store';
+  $('install').setAttribute('aria-disabled', 'true');
+  $('install').removeAttribute('href');
+  $('installNote').textContent = 'Расширение проходит проверку. Кабинет и подписка уже работают.';
+}
+
+$('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
