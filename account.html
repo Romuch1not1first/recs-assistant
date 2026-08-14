@@ -288,7 +288,11 @@ async function loadPlan() {
       writeSession(null);
       return show(null);
     }
-    say('planMsg', `Не удалось прочитать подписку: ${e.message}`, 'err');
+    // Внутренности базы («could not find the table…», коды PostgREST) — это
+    // разговор с владельцем сайта, а не с покупателем. Ему — человеческая
+    // строка, подробности уходят в консоль, где их и ищут.
+    console.error('подписка не прочиталась:', e.code || '', e.message);
+    say('planMsg', 'Не удалось проверить подписку. Обновите страницу или напишите нам.', 'err');
   }
 
   show(session, sub);
