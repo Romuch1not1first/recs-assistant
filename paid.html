@@ -5,32 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>AutoSwipe AI — оплата принята</title>
-<link rel="stylesheet" href="/legal.css">
-<style>
-  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
-  .card {
-    width: 100%; max-width: 460px; background: var(--card); border: 1px solid var(--line);
-    border-radius: 16px; padding: 28px 26px; text-align: center;
-  }
-  .mark {
-    width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; font-size: 27px;
-    background: #12301f; border: 1px solid #2a8f57; color: #7fe0aa;
-  }
-  h1 { font-size: 21px; margin: 0 0 10px; }
-  .btn {
-    display: block; margin-top: 12px; padding: 13px; border-radius: 10px;
-    background: #1f6f43; border: 1px solid #2a8f57; color: #fff;
-    font-size: 15px; font-weight: 700; text-decoration: none;
-  }
-  .btn:hover { background: #248050; color: #fff; }
-  .btn.ghost { background: transparent; border-color: #343a45; color: var(--dim); }
-  .steps { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line2); text-align: left; }
-</style>
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="/site.css">
 </head>
-<body>
-  <div class="card">
-    <a class="brand" href="/" style="display:block;margin-bottom:18px;color:var(--mute);text-decoration:none;font-size:12px">◆ AUTOSWIPE AI</a>
+<body class="sheet">
+  <div class="panel center">
+    <a class="logo" href="/"><span class="mark">◆</span> <span>AutoSwipe AI</span></a>
+
     <div class="mark">✓</div>
     <h1>Оплата принята</h1>
     <p>
@@ -38,8 +20,8 @@
       обычно это занимает от одной до нескольких минут.
     </p>
 
-    <a class="btn" href="/account.html">Проверить состояние подписки</a>
-    <a class="btn ghost" href="https://tinder.com/app/recs">Перейти в Tinder</a>
+    <a class="btn block" href="/account.html">Проверить состояние подписки</a>
+    <a class="btn block plain" href="https://tinder.com/app/recs">Перейти в Tinder</a>
 
     <div class="steps">
       <b>Что дальше</b>
@@ -48,7 +30,7 @@
         <li>Откройте расширение: в строке «Подписка» появится дата, до которой оплачено.</li>
         <li>Фильтры внешности и телосложения в панели разблокируются.</li>
       </ol>
-      <p style="margin-top:12px">
+      <p class="tiny" style="margin-top:14px">
         Если через полчаса доступ не открылся — напишите на
         <a href="mailto:support@autoswipeai.com">support@autoswipeai.com</a>,
         приложив адрес кошелька, с которого платили.

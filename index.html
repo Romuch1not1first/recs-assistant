@@ -5,236 +5,334 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AutoSwipe AI — расширение Chrome для Tinder</title>
 <meta name="description" content="Расширение Chrome, которое само листает рекомендации Tinder по вашим условиям: возраст, рост, расстояние, стоп-слова в описании и оценка фотографий моделью.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="/site.css">
 <style>
-  * { box-sizing: border-box; }
-  :root {
-    --bg: #0b0d10; --card: #16181d; --line: #2b2f38; --line2: #23262d;
-    --text: #e8eaed; --dim: #a8aeb6; --mute: #8b9199;
-    --green: #2a8f57; --green2: #1f6f43; --gold: #f0c65a; --gold-bg: #3a3320;
+  /* Оформление, которое нужно только витрине: первый экран и макет панели.
+     В общий файл оно не идёт — на других страницах этих блоков нет. */
+
+  .hero { padding: 76px 0 0; text-align: center; }
+  .hero .btns { margin-top: 34px; }
+  .hero .under { margin-top: 18px; }
+
+  /* Макет панели расширения поверх карточки Tinder: показать работу проще,
+     чем описать её словами. Собран из блоков, не картинкой — картинка
+     размылась бы на экранах с высокой плотностью. */
+  .shot {
+    margin: 62px auto 0; max-width: 900px;
+    border-radius: 34px 34px 0 0;
+    /* Низ градиента — цвет следующей секции: иначе на стыке видна полоса. */
+    background: linear-gradient(180deg, #eceef2 0%, var(--bg-soft) 100%);
+    padding: 46px 24px 0;
+    display: flex; justify-content: center; gap: 26px;
+    overflow: hidden;
   }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 16px/1.6 -apple-system, "Segoe UI", Roboto, sans-serif;
+  @media (prefers-color-scheme: dark) {
+    .shot { background: linear-gradient(180deg, #1b1b1f 0%, var(--bg-soft) 100%); }
   }
-  a { color: inherit; }
-  .wrap { width: 100%; max-width: 980px; margin: 0 auto; padding: 0 20px; }
 
-  /* Шапка */
-  header {
-    position: sticky; top: 0; z-index: 10; background: rgba(11, 13, 16, .92);
-    backdrop-filter: blur(8px); border-bottom: 1px solid var(--line2);
+  .mock {
+    width: 300px; flex: none; text-align: left;
+    background: var(--card); border: 1px solid var(--line-soft);
+    border-radius: 22px 22px 0 0; padding: 18px 18px 26px;
+    box-shadow: 0 -1px 0 rgba(0,0,0,.03), 0 24px 60px rgba(0,0,0,.16);
   }
-  .bar { display: flex; align-items: center; gap: 16px; height: 62px; }
-  .logo { font-weight: 800; font-size: 17px; letter-spacing: .2px; text-decoration: none; }
-  .logo i { color: var(--gold); font-style: normal; }
-  nav { margin-left: auto; display: flex; align-items: center; gap: 18px; }
-  nav a { color: var(--mute); text-decoration: none; font-size: 14px; }
-  nav a:hover { color: var(--text); }
+  .mock-head { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .mock-head .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); flex: none; }
+  .mock-head .who { font-size: 14px; font-weight: 600; }
+  .mock-head .badge { margin-left: auto; }
 
-  .btn {
-    display: inline-block; padding: 12px 20px; border-radius: 10px; cursor: pointer;
-    background: var(--green2); border: 1px solid var(--green); color: #fff;
-    font-size: 15px; font-weight: 700; font-family: inherit; text-decoration: none;
-    text-align: center;
+  .mock-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 0; border-top: 1px solid var(--line-soft);
+    font-size: 13.5px; color: var(--text-2);
   }
-  .btn:hover { background: #248050; }
-  .btn.ghost { background: transparent; border-color: #343a45; color: var(--dim); }
-  .btn.ghost:hover { color: var(--text); border-color: #4a515c; }
-  .btn.gold { background: var(--gold-bg); border-color: #5a4c26; color: var(--gold); }
-  .btn.gold:hover { background: #463d26; }
-  .btn.small { padding: 8px 14px; font-size: 14px; }
-  .btn[aria-disabled="true"] { opacity: .55; cursor: default; }
+  .mock-row:first-of-type { border-top: 0; }
+  .mock-row b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
 
-  /* Первый экран */
-  .hero { padding: 74px 0 64px; text-align: center; }
-  h1 { font-size: 42px; line-height: 1.15; font-weight: 800; margin: 0 0 16px; letter-spacing: -.5px; }
-  h1 i { color: var(--gold); font-style: normal; }
-  .lead { font-size: 18px; color: var(--dim); max-width: 620px; margin: 0 auto 28px; }
-  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .under { margin-top: 14px; font-size: 13px; color: var(--mute); }
+  .mock-start {
+    margin-top: 16px; padding: 12px; border-radius: 12px;
+    background: var(--accent); color: #fff;
+    font-size: 15px; font-weight: 600; text-align: center;
+  }
+  .mock-log { margin-top: 14px; font-size: 12.5px; line-height: 1.9; color: var(--text-3); }
+  .mock-log i { font-style: normal; font-weight: 700; }
+  .mock-log i.y { color: var(--ok); }
+  .mock-log i.n { color: var(--err); }
 
-  h2 { font-size: 26px; font-weight: 800; margin: 0 0 8px; letter-spacing: -.2px; }
-  .sub { color: var(--mute); margin: 0 0 26px; font-size: 15px; }
-  section { padding: 48px 0; border-top: 1px solid var(--line2); }
+  /* Карточка ленты рядом с панелью — только силуэт, лиц и фото тут нет. */
+  .face {
+    width: 236px; flex: none;
+    border-radius: 22px 22px 0 0;
+    background: linear-gradient(180deg, #ffd2dc 0%, #ffb3c6 40%, #ff8fa8 100%);
+    box-shadow: 0 24px 60px rgba(0,0,0,.16);
+    padding: 16px; display: flex; flex-direction: column; justify-content: flex-end;
+    min-height: 330px; color: #3b0d1c;
+  }
+  @media (prefers-color-scheme: dark) {
+    .face { background: linear-gradient(180deg, #7c2b45 0%, #4a1930 100%); color: #ffe3ea; }
+  }
+  .face .nm { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
+  .face .meta { font-size: 13px; opacity: .78; margin-top: 2px; }
+  .face .score {
+    align-self: flex-start; margin-bottom: auto;
+    background: rgba(255,255,255,.86); color: #1d1d1f;
+    border-radius: var(--pill); padding: 5px 12px; font-size: 13px; font-weight: 600;
+  }
+  @media (prefers-color-scheme: dark) {
+    .face .score { background: rgba(0,0,0,.5); color: #fff; }
+  }
 
-  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
-  .card h3 { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
-  .card p { margin: 0; color: var(--dim); font-size: 14.5px; }
-  .num {
-    width: 28px; height: 28px; border-radius: 8px; background: #1f2229; color: var(--gold);
+  @media (max-width: 720px) {
+    .hero { padding-top: 52px; }
+    .shot { margin-top: 42px; padding: 32px 16px 0; gap: 14px; border-radius: 26px 26px 0 0; }
+    .face { display: none; }
+    .mock { width: 100%; max-width: 330px; }
+  }
+
+  /* Три шага: крупная цифра, короткая фраза. */
+  .steps-grid { counter-reset: step; }
+  .step .n {
+    width: 38px; height: 38px; border-radius: 50%; margin-bottom: 16px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 800; margin-bottom: 12px;
-  }
-  .tag {
-    display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 6px;
-    background: var(--gold-bg); border: 1px solid #5a4c26; color: var(--gold);
-    font-size: 11px; font-weight: 700; vertical-align: middle;
-  }
-  ul.checks { margin: 0; padding: 0; list-style: none; }
-  ul.checks li { padding: 7px 0 7px 24px; position: relative; color: var(--dim); font-size: 14.5px; }
-  ul.checks li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
-
-  /* Цены */
-  .prices { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); max-width: 660px; }
-  .price { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; text-align: center; }
-  .price.best { border-color: #5a4c26; }
-  .price .name { color: var(--mute); font-size: 14px; }
-  .price .amount { font-size: 36px; font-weight: 800; margin: 6px 0 2px; }
-  .price .per { color: var(--mute); font-size: 13px; margin-bottom: 16px; }
-  .price .btn { width: 100%; }
-  .price .save { color: #7fe0aa; font-size: 13px; margin-top: 10px; min-height: 18px; }
-
-  details { border-top: 1px solid var(--line2); padding: 14px 0; }
-  details:last-of-type { border-bottom: 1px solid var(--line2); }
-  summary { cursor: pointer; font-weight: 600; font-size: 15.5px; list-style: none; }
-  summary::-webkit-details-marker { display: none; }
-  summary::before { content: '+ '; color: var(--gold); font-weight: 800; }
-  details[open] summary::before { content: '– '; }
-  details p { color: var(--dim); font-size: 14.5px; margin: 10px 0 0; }
-
-  footer { border-top: 1px solid var(--line2); padding: 28px 0 44px; color: var(--mute); font-size: 13px; }
-  .flinks { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; }
-  .flinks a { color: var(--mute); text-decoration: none; }
-  .flinks a:hover { color: var(--text); }
-
-  @media (max-width: 640px) {
-    h1 { font-size: 32px; }
-    .lead { font-size: 16px; }
-    nav a:not(.btn) { display: none; }
-    .hero { padding: 48px 0 40px; }
+    background: var(--accent); color: #fff; font-size: 18px; font-weight: 600;
   }
 </style>
 </head>
-<body>
+<!-- Класс держит место под нижней панелью — она появляется на узких экранах,
+     и там же в site.css добавляется отступ, чтобы подвал не уезжал под неё. -->
+<body class="has-buybar">
 
-<header>
+<header class="site-head">
   <div class="wrap bar">
-    <a class="logo" href="/"><i>◆</i> AutoSwipe AI</a>
-    <nav>
+    <a class="logo" href="/"><span class="mark">◆</span> <span>AutoSwipe AI</span></a>
+    <nav class="site-nav">
       <a href="#how">Как работает</a>
       <a href="#what">Возможности</a>
       <a href="#price">Цена</a>
-      <a class="btn ghost small" href="/account.html">Войти</a>
+      <a href="#faq">Вопросы</a>
     </nav>
+    <div class="head-cta">
+      <a class="btn sm js-install" href="#download">Скачать</a>
+      <a class="btn sm ghost" href="#price">Оплатить</a>
+    </div>
   </div>
 </header>
 
-<div class="wrap">
+<main>
 
-  <div class="hero">
-    <h1>Tinder листает себя <i>сам</i></h1>
-    <p class="lead">
-      Расширение Chrome открывает карточку за карточкой, читает анкету, прогоняет фотографии
-      через модель и ставит Like или Nope по вашим условиям. Вы задаёте правила один раз.
-    </p>
-    <div class="cta">
-      <a class="btn" id="install" href="#install">Установить расширение</a>
-      <a class="btn ghost" href="#price">Посмотреть цену</a>
+  <!-- Первый экран: что это и две кнопки, ради которых сюда приходят. -->
+  <div class="hero" id="download">
+    <div class="wrap">
+      <p class="eyebrow">Расширение для браузера Chrome</p>
+      <h1 class="display">Tinder листает<br>себя сам</h1>
+      <p class="lead">
+        Вы один раз задаёте условия — возраст, рост, расстояние, стоп-слова.
+        Дальше расширение само открывает анкеты, оценивает фотографии
+        и ставит Like или Nope.
+      </p>
+
+      <div class="btns center">
+        <a class="btn lg js-install js-install-main" href="#download">
+          <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M10 2.5v11m0 0 4-4m-4 4-4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 14v2.5A1.5 1.5 0 0 0 4.5 18h11a1.5 1.5 0 0 0 1.5-1.5V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span class="js-install-label">Скачать расширение</span>
+        </a>
+        <a class="btn lg ghost" href="#price">Оплатить подписку</a>
+      </div>
+
+      <p class="tiny under" id="installNote">Бесплатно · Chrome 116 и новее · установка в один клик</p>
     </div>
-    <div class="under" id="installNote">Chrome 116 и новее</div>
+
+    <div class="shot" aria-hidden="true">
+      <div class="face">
+        <div class="score">Оценка модели 8,4 / 10</div>
+        <div class="nm">Анна, 26</div>
+        <div class="meta">168 см · 4 км от вас · 5 фото</div>
+      </div>
+
+      <div class="mock">
+        <div class="mock-head">
+          <span class="dot"></span>
+          <span class="who">AutoSwipe AI</span>
+          <span class="badge">PRO</span>
+        </div>
+        <div class="mock-row"><span>Возраст</span> <b>22 – 30</b></div>
+        <div class="mock-row"><span>Рост</span> <b>160 – 180 см</b></div>
+        <div class="mock-row"><span>Расстояние</span> <b>до 15 км</b></div>
+        <div class="mock-row"><span>Внешность</span> <b>7 – 10</b></div>
+        <div class="mock-start">Старт</div>
+        <div class="mock-log">
+          <i class="y">♥</i> Like — оценка 8,4<br>
+          <i class="n">✕</i> Nope — стоп-слово «сети»<br>
+          <i class="y">♥</i> Like — оценка 7,1<br>
+          <i class="n">✕</i> Nope — 42 км, далеко
+        </div>
+      </div>
+    </div>
   </div>
 
-  <section id="how">
-    <h2>Как это работает</h2>
-    <p class="sub">Три шага, дальше расширение работает само.</p>
-    <div class="grid">
-      <div class="card">
-        <div class="num">1</div>
-        <h3>Задаёте условия</h3>
-        <p>Возраст, рост, расстояние, число фотографий, стоп-слова в описании. Панель открывается прямо поверх Tinder.</p>
+  <!-- Как работает -->
+  <section id="how" class="soft">
+    <div class="wrap">
+      <div class="center">
+        <h2 class="title">Три шага — и дальше само</h2>
+        <p class="sub">Ничего настраивать в браузере не нужно: панель открывается прямо поверх Tinder.</p>
       </div>
-      <div class="card">
-        <div class="num">2</div>
-        <h3>Нажимаете «Старт»</h3>
-        <p>Расширение открывает карточку, читает анкету и отправляет фотографии на оценку. Всё видно в логе панели.</p>
+
+      <div class="cards steps-grid">
+        <div class="card step">
+          <div class="n">1</div>
+          <h3>Установите</h3>
+          <p>Нажмите «Скачать расширение» и подтвердите установку в Chrome. Занимает полминуты.</p>
+        </div>
+        <div class="card step">
+          <div class="n">2</div>
+          <h3>Задайте условия</h3>
+          <p>Возраст, рост, расстояние, минимум фотографий, стоп-слова в описании. Ползунки и галочки, писать ничего не нужно.</p>
+        </div>
+        <div class="card step">
+          <div class="n">3</div>
+          <h3>Нажмите «Старт»</h3>
+          <p>Расширение листает ленту само. Кто подошёл и почему — видно в логе панели, счётчики свайпов рядом.</p>
+        </div>
       </div>
-      <div class="card">
-        <div class="num">3</div>
-        <h3>Смотрите результат</h3>
-        <p>Подошедший профиль получает Like, остальные — Nope. Счётчики свайпов и причина каждого решения — на виду.</p>
+
+      <div class="center" style="margin-top:36px">
+        <a class="btn lg js-install js-install-main" href="#download"><span class="js-install-label">Скачать расширение</span></a>
       </div>
     </div>
   </section>
 
+  <!-- Возможности -->
   <section id="what">
-    <h2>Что умеет</h2>
-    <p class="sub">Часть работает сразу после установки, часть открывает подписка.</p>
-    <div class="grid">
-      <div class="card">
-        <h3>Бесплатно</h3>
-        <ul class="checks">
-          <li>Возраст, рост, расстояние</li>
-          <li>Минимум фотографий в анкете</li>
-          <li>Стоп-слова в описании, в том числе регулярные выражения</li>
-          <li>Только с отметкой Verified или недавно активные</li>
-          <li>Лимит свайпов за сессию и доля отказов</li>
-          <li>Интерфейс на русском, українською и English</li>
-        </ul>
+    <div class="wrap">
+      <div class="center">
+        <h2 class="title">Что входит</h2>
+        <p class="sub">Фильтры по анкете работают сразу и бесплатно. Оценка по фотографиям открывается подпиской.</p>
       </div>
-      <div class="card">
-        <h3>По подписке <span class="tag">AI</span></h3>
-        <ul class="checks">
-          <li><b>Фильтр по внешности</b> — оценка модели от 1 до 10, отбор по диапазону</li>
-          <li><b>Фильтр по телосложению</b> — рост и вес по фотографиям, диапазон ИМТ</li>
-          <li>Отбор по тому, что видно на снимке, а не только по заполненным полям анкеты</li>
-        </ul>
+
+      <div class="cards">
+        <div class="card">
+          <div class="icon">✓</div>
+          <h3>Бесплатно, сразу после установки</h3>
+          <ul class="checks">
+            <li>Возраст, рост, расстояние</li>
+            <li>Минимум фотографий в анкете</li>
+            <li>Стоп-слова в описании, в том числе регулярные выражения</li>
+            <li>Только с отметкой Verified или недавно активные</li>
+            <li>Лимит свайпов за сессию и доля отказов</li>
+            <li>Интерфейс на русском, українською и English</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="icon">★</div>
+          <h3>По подписке <span class="badge">AI</span></h3>
+          <ul class="checks">
+            <li><b>Фильтр по внешности</b> — оценка модели от 1 до 10 и отбор по диапазону</li>
+            <li><b>Фильтр по телосложению</b> — рост и вес по фотографиям, диапазон ИМТ</li>
+            <li>Отбор по тому, что видно на снимке, а не только по заполненным полям анкеты</li>
+          </ul>
+          <div style="margin-top:22px">
+            <a class="btn block" href="#price">Оплатить подписку</a>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section id="price">
-    <h2>Цена</h2>
-    <p class="sub">Оплата криптой или картой с конвертацией. Автопродления нет — платите за срок, который выбрали.</p>
-    <div class="prices">
-      <div class="price">
-        <div class="name">Месяц</div>
-        <div class="amount" id="priceMonthly">—</div>
-        <div class="per">каждый месяц</div>
-        <a class="btn gold" href="/account.html?plan=monthly">Оформить</a>
-        <div class="save"></div>
+  <!-- Цена -->
+  <section id="price" class="soft">
+    <div class="wrap">
+      <div class="center">
+        <h2 class="title">Цена</h2>
+        <p class="sub">
+          Оплата криптовалютой или картой с конвертацией. Автопродления нет —
+          вы платите за выбранный срок, и он не спишется сам.
+        </p>
       </div>
-      <div class="price best">
-        <div class="name">Год</div>
-        <div class="amount" id="priceYearly">—</div>
-        <div class="per">один платёж в год</div>
-        <a class="btn gold" href="/account.html?plan=yearly">Оформить</a>
-        <div class="save" id="save"></div>
+
+      <div class="plans">
+        <div class="plan">
+          <div class="name">Месяц</div>
+          <div class="amount" id="priceMonthly">—</div>
+          <div class="per">за 1 месяц доступа</div>
+          <a class="btn block" href="/account.html?plan=monthly">Оплатить месяц</a>
+          <div class="save"></div>
+        </div>
+
+        <div class="plan best">
+          <div class="ribbon">Выгоднее</div>
+          <div class="name">Год</div>
+          <div class="amount" id="priceYearly">—</div>
+          <div class="per">за 12 месяцев доступа</div>
+          <a class="btn block" href="/account.html?plan=yearly">Оплатить год</a>
+          <div class="save" id="save"></div>
+        </div>
       </div>
+
+      <p class="tiny center" style="margin-top:26px">
+        Оплата открывается в кабинете: нужен аккаунт — тот же, с которым вы входите в расширении.
+        <br><a href="/refund.html">Условия возврата</a>
+      </p>
     </div>
   </section>
 
+  <!-- Вопросы -->
   <section id="faq">
-    <h2>Частые вопросы</h2>
-    <p class="sub"></p>
+    <div class="wrap narrow">
+      <div class="center">
+        <h2 class="title">Частые вопросы</h2>
+        <p class="sub">Коротко о том, что спрашивают до покупки.</p>
+      </div>
 
-    <details>
-      <summary>Нужен ли аккаунт?</summary>
-      <p>Да. Расширение работает под аккаунтом: он же связывает вас с подпиской. Регистрация — по почте с паролем, прямо в окне расширения.</p>
-    </details>
+      <details class="faq">
+        <summary>Нужен ли аккаунт?</summary>
+        <p>Да. Расширение работает под аккаунтом — он же связывает вас с подпиской. Регистрация по почте и паролю, прямо в окне расширения или здесь на сайте.</p>
+      </details>
 
-    <details>
-      <summary>Куда уходят мои фотографии и переписки?</summary>
-      <p>Переписки не читаются вовсе. Фотографии профилей из ленты отправляются во внешнюю модель для оценки телосложения и внешности — без этого фильтры по снимкам работать не могут. Ваши собственные данные Tinder никуда не передаются.</p>
-    </details>
+      <details class="faq">
+        <summary>Куда уходят мои фотографии и переписки?</summary>
+        <p>Переписки не читаются вовсе. Фотографии профилей из ленты отправляются во внешнюю модель для оценки телосложения и внешности — без этого фильтры по снимкам работать не могут. Ваши собственные данные Tinder никуда не передаются.</p>
+      </details>
 
-    <details>
-      <summary>Насколько точна оценка по фотографии?</summary>
-      <p>Это прикидка. Ракурс, одежда и обработка сдвигают её, а оценка внешности вдобавок отражает предвзятость данных, на которых модель обучалась. Число будет стабильным, но считать его объективным не стоит.</p>
-    </details>
+      <details class="faq">
+        <summary>Насколько точна оценка по фотографии?</summary>
+        <p>Это прикидка. Ракурс, одежда и обработка сдвигают её, а оценка внешности вдобавок отражает предвзятость данных, на которых модель обучалась. Число будет стабильным, но считать его объективным не стоит.</p>
+      </details>
 
-    <details>
-      <summary>Как устроена оплата и можно ли отменить?</summary>
-      <p>Вы покупаете доступ на срок: месяц или год. Автосписания нет — с криптовалютой его технически не существует, поэтому отменять нечего. Не продлили — доступ просто закончился в оплаченную дату. Продлили раньше срока — новый период прибавится к остатку, ничего не сгорает.</p>
-    </details>
+      <details class="faq">
+        <summary>Как устроена оплата и можно ли отменить?</summary>
+        <p>Вы покупаете доступ на срок: месяц или год. Автосписания нет — с криптовалютой его технически не существует, поэтому отменять нечего. Не продлили — доступ просто закончился в оплаченную дату. Продлили раньше срока — новый период прибавится к остатку, ничего не сгорает.</p>
+      </details>
 
-    <details>
-      <summary>Это разрешено правилами Tinder?</summary>
-      <p>Нет. Правила Tinder запрещают автоматизацию действий в приложении, и аккаунт за это могут ограничить или заблокировать. Расширение делает паузы между свайпами и держит долю отказов, чтобы поведение не выглядело machine-like, но гарантий это не даёт. Решение и риск — ваши.</p>
-    </details>
+      <details class="faq">
+        <summary>Это разрешено правилами Tinder?</summary>
+        <p>Нет. Правила Tinder запрещают автоматизацию действий в приложении, и аккаунт за это могут ограничить или заблокировать. Расширение делает паузы между свайпами и держит долю отказов, чтобы поведение не выглядело машинным, но гарантий это не даёт. Решение и риск — ваши.</p>
+      </details>
+    </div>
   </section>
 
-  <footer>
+  <!-- Последний экран: те же две кнопки, чтобы не искать их наверху -->
+  <div class="cta-band">
+    <div class="wrap">
+      <h2 class="title">Готовы попробовать?</h2>
+      <p class="sub">Установка бесплатна. Подписка нужна только для оценки по фотографиям.</p>
+      <div class="btns center">
+        <a class="btn lg js-install js-install-main" href="#download"><span class="js-install-label">Скачать расширение</span></a>
+        <a class="btn lg ghost" href="/account.html?plan=monthly">Оплатить подписку</a>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
     <div class="flinks">
       <a href="/account.html">Личный кабинет</a>
       <a href="/terms.html">Условия использования</a>
@@ -243,8 +341,13 @@
       <a href="mailto:support@autoswipeai.com">support@autoswipeai.com</a>
     </div>
     <div>© <span id="year">2026</span> AutoSwipe AI · не связаны с Tinder и Match Group</div>
-  </footer>
+  </div>
+</footer>
 
+<!-- На телефоне оба действия всегда под большим пальцем. -->
+<div class="buybar">
+  <a class="btn js-install" href="#download"><span class="js-install-label">Скачать</span></a>
+  <a class="btn ghost" href="#price">Оплатить</a>
 </div>
 
 <script type="module">
@@ -256,8 +359,9 @@
 import { planById, priceLabel, yearlySavings } from './plans.js';
 
 /**
- * Ссылка на расширение в Chrome Web Store. Пока пусто — кнопка честно говорит,
- * что магазина ещё нет, вместо того чтобы вести в никуда.
+ * Ссылка на расширение в Chrome Web Store. Пока пусто — кнопки честно говорят,
+ * что магазина ещё нет, вместо того чтобы вести в никуда. Появится ссылка —
+ * достаточно вписать её сюда, и все кнопки «Скачать» на странице оживут.
  */
 const CHROME_STORE_URL = '';
 
@@ -269,15 +373,27 @@ for (const [id, node] of [['monthly', 'priceMonthly'], ['yearly', 'priceYearly']
 }
 
 const saved = yearlySavings();
-$('save').textContent = saved ? `выгоднее на ${saved}%` : '';
+$('save').textContent = saved ? `экономия ${saved}%` : '';
 
+/**
+ * Кнопки «Скачать» — их на странице пять штук: шапка, первый экран, шаги,
+ * нижняя полоса и панель на телефоне. Появится ссылка — все ведут в магазин.
+ *
+ * Пока её нет, крупные кнопки (`js-install-main`) честно говорят, что магазина
+ * ещё нет, и нажать их нельзя. Мелкие — в шапке и на нижней панели — остаются
+ * рабочими и ведут на первый экран: там это объяснение и лежит. Погасить и их
+ * значило бы оставить человека с двумя серыми кнопками и без причины.
+ */
 if (CHROME_STORE_URL) {
-  $('install').href = CHROME_STORE_URL;
+  for (const el of document.querySelectorAll('.js-install')) el.href = CHROME_STORE_URL;
 } else {
-  $('install').textContent = 'Скоро в Chrome Web Store';
-  $('install').setAttribute('aria-disabled', 'true');
-  $('install').removeAttribute('href');
-  $('installNote').textContent = 'Расширение проходит проверку. Кабинет и подписка уже работают.';
+  for (const el of document.querySelectorAll('.js-install-main')) {
+    const label = el.querySelector('.js-install-label') ?? el;
+    label.textContent = 'Скоро в Chrome Web Store';
+    el.setAttribute('aria-disabled', 'true');
+    el.removeAttribute('href');
+  }
+  $('installNote').textContent = 'Расширение проходит проверку в Chrome Web Store. Кабинет и оплата уже работают.';
 }
 
 $('year').textContent = new Date().getFullYear();

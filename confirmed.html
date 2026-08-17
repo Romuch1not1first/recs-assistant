@@ -5,56 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>AutoSwipe AI — почта подтверждена</title>
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="/site.css">
 <style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    padding: 24px; background: #0b0d10; color: #e8eaed;
-    font: 15px/1.55 -apple-system, "Segoe UI", Roboto, sans-serif;
-  }
-  .card {
-    width: 100%; max-width: 420px; background: #16181d; border: 1px solid #2b2f38;
-    border-radius: 16px; padding: 28px 26px; text-align: center;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
-  }
-  .brand {
-    display: block; font-size: 12px; color: #8b9199; letter-spacing: .4px;
-    margin-bottom: 18px; text-decoration: none;
-  }
-  .brand:hover { color: #e8eaed; }
-  .mark {
-    width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; font-size: 27px;
-  }
-  .ok .mark { background: #12301f; border: 1px solid #2a8f57; color: #7fe0aa; }
-  .bad .mark { background: #3a1218; border: 1px solid #9c3341; color: #ef8f96; }
-  h1 { font-size: 21px; font-weight: 800; margin: 0 0 8px; letter-spacing: .2px; }
-  p { margin: 0 0 6px; color: #a8aeb6; font-size: 14px; }
-  .email { color: #e8eaed; font-weight: 600; word-break: break-all; }
-  .btn {
-    display: block; margin-top: 20px; padding: 13px; border-radius: 10px;
-    background: #1f6f43; border: 1px solid #2a8f57; color: #fff;
-    font-size: 15px; font-weight: 700; text-decoration: none;
-  }
-  .btn:hover { background: #248050; }
-  .steps {
-    margin-top: 18px; padding-top: 16px; border-top: 1px solid #23262d;
-    text-align: left; color: #8b9199; font-size: 12.5px;
-  }
-  .steps b { color: #b6bcc4; }
-  .steps ol { margin: 8px 0 0; padding-left: 18px; }
-  .steps li { margin: 4px 0; }
+  .email { color: var(--text); font-weight: 600; word-break: break-all; }
 </style>
 </head>
-<body>
-  <div class="card ok" id="card">
-    <a class="brand" href="/">◆ AUTOSWIPE AI</a>
+<body class="sheet">
+  <div class="panel center" id="card">
+    <a class="logo" href="/"><span class="mark">◆</span> <span>AutoSwipe AI</span></a>
+
     <div class="mark" id="mark">✓</div>
     <h1 id="title">Почта подтверждена</h1>
     <p id="text">Аккаунт готов. Откройте расширение и войдите.</p>
     <p class="email" id="email"></p>
 
-    <a class="btn" id="cta" href="https://tinder.com/app/recs">Перейти в Tinder</a>
+    <a class="btn block" id="cta" href="https://tinder.com/app/recs">Перейти в Tinder</a>
 
     <div class="steps" id="steps">
       <b>Что дальше</b>
@@ -120,7 +87,9 @@ $('steps').querySelector('b').textContent = lang.next;
 [...$('steps').querySelectorAll('li')].forEach((li, i) => { li.textContent = lang['s' + (i + 1)]; });
 
 if (failed) {
-  $('card').className = 'card bad';
+  // Класс `bad` перекрашивает кружок в красный — оформление карточки задаёт
+  // общий site.css, поэтому базовые классы здесь сохраняем.
+  $('card').className = 'panel center bad';
   $('mark').textContent = '!';
   $('title').textContent = lang.badTitle;
   $('text').textContent = params.get('error_description') || lang.badText;

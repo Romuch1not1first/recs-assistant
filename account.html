@@ -5,102 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>AutoSwipe AI — подписка</title>
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="/site.css">
 <style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    padding: 24px; background: #0b0d10; color: #e8eaed;
-    font: 15px/1.55 -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Шаг «где я и что дальше»: на странице оплаты человек должен видеть, что
+     вход — это не конец пути, а первая из двух ступенек. */
+  .flow {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin: 0 0 22px; color: var(--text-3); font-size: 13px;
   }
-  .card {
-    width: 100%; max-width: 440px; background: #16181d; border: 1px solid #2b2f38;
-    border-radius: 16px; padding: 28px 26px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
-  }
-  .brand {
-    display: block; font-size: 12px; color: #8b9199; letter-spacing: .4px;
-    margin-bottom: 18px; text-align: center; text-decoration: none;
-  }
-  .brand:hover { color: #e8eaed; }
-  h1 { font-size: 21px; font-weight: 800; margin: 0 0 14px; letter-spacing: .2px; text-align: center; }
-  p { margin: 0 0 8px; color: #a8aeb6; font-size: 14px; }
-  label { display: block; font-size: 12px; color: #8b9199; margin: 10px 0 4px; }
-  input {
-    width: 100%; padding: 10px; border-radius: 8px; font-size: 14px;
-    border: 1px solid #2f343d; background: #101216; color: #e8eaed;
-  }
-  input:focus { outline: none; border-color: #2a8f57; }
-  .btn {
-    display: block; width: 100%; margin-top: 16px; padding: 13px; border-radius: 10px;
-    background: #1f6f43; border: 1px solid #2a8f57; color: #fff; cursor: pointer;
-    font-size: 15px; font-weight: 700; font-family: inherit; text-align: center; text-decoration: none;
-  }
-  .btn:hover { background: #248050; }
-  .btn:disabled { opacity: .5; cursor: default; }
-  .btn.pro { background: #3a3320; border-color: #5a4c26; color: #f0c65a; }
-  .btn.pro:hover { background: #463d26; }
-  .btn.ghost { background: transparent; border-color: #343a45; color: #b6bcc4; }
-  .msg { font-size: 12.5px; line-height: 1.45; margin-top: 10px; min-height: 16px; }
-  .msg.err { color: #ef8f96; }
-  .msg.ok { color: #7fe0aa; }
-  .line { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; margin: 6px 0; }
-  .line span { color: #8b9199; }
-  .line b { font-weight: 600; word-break: break-all; text-align: right; }
-  .line b.ok { color: #7fe0aa; }
-  .line b.warn { color: #e0b33a; }
-  .what {
-    margin-top: 18px; padding-top: 16px; border-top: 1px solid #23262d;
-    color: #8b9199; font-size: 12.5px;
-  }
-  .what b { color: #b6bcc4; }
-  .what ul { margin: 8px 0 0; padding-left: 18px; }
-  .what li { margin: 4px 0; }
-  [hidden] { display: none !important; }
-
-  /* Вкладки «Вход» / «Регистрация» — как в расширении, чтобы страница не
-     выглядела чужой тому, кто пришёл сюда из панели. */
-  .tabs { display: flex; gap: 5px; margin-bottom: 14px; }
-  .tab {
-    flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #343a45;
-    background: transparent; color: #8b9199; cursor: pointer;
-    font-size: 13px; font-weight: 600; font-family: inherit;
-  }
-  .tab.on { background: #23272f; color: #e8eaed; border-color: #4a515c; }
-
-  /* Индикатор надёжности: четыре деления вместо плавной полосы — видно, что
-     уровней конечное число и сколько осталось до приемлемого. */
-  .pwbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; height: 5px; margin: 8px 0 5px; }
-  .pwbar i { background: #2f343d; border-radius: 2px; }
-  .pwbar i.on { background: var(--pw, #ef6b74); }
-  .pwhint { font-size: 12px; line-height: 1.4; color: #8b9199; }
-
-  /* Узнанный почтовый сервис под полем адреса. */
-  .mailhint { font-size: 12px; color: #8b9199; font-weight: 600; margin-top: 5px; }
-
-  /* Подпись про выгоду годового — под кнопкой: в самой кнопке она соперничала
-     бы с ценой за внимание. */
-  .save { color: #7fe0aa; font-size: 12px; text-align: center; margin-top: 6px; }
-
-  /* Кнопка перехода в почту — синяя: это не вход и не оплата, а разовый шаг,
-     и путать её с основной зелёной кнопкой не стоит. */
-  .btn.mail { background: #1d3a5c; border-color: #2b5a8f; color: #cfe3ff; }
-  .btn.mail:hover { background: #234669; }
+  .flow i { font-style: normal; }
+  .flow b { color: var(--text); font-weight: 600; }
 </style>
 </head>
-<body>
-  <div class="card">
-    <a class="brand" href="/">◆ AUTOSWIPE AI</a>
+<body class="sheet">
+  <div class="panel">
+    <a class="logo" href="/"><span class="mark">◆</span> <span>AutoSwipe AI</span></a>
 
     <!-- Пришли из расширения со ссылкой на оплату: вход не нужен -->
     <div id="payBox" hidden>
       <h1>Оплата подписки</h1>
       <p id="payText">Открываю форму оплаты…</p>
       <div class="msg" id="payMsg"></div>
-      <a class="btn" id="backToTinder" href="https://tinder.com/app/recs" hidden>Вернуться в Tinder</a>
+      <a class="btn block" id="backToTinder" href="https://tinder.com/app/recs" hidden>Вернуться в Tinder</a>
     </div>
 
     <!-- Не вошёл -->
     <div id="authBox">
+      <div class="flow"><b>1. Вход</b> <i>→</i> <span>2. Оплата</span></div>
+
       <h1 id="authTitle">Вход в аккаунт</h1>
       <div class="tabs">
         <button class="tab on" id="tabIn">Вход</button>
@@ -108,33 +42,37 @@
       </div>
       <p id="authLead">Та же почта и пароль, что и в расширении.</p>
 
-      <label for="email">Почта</label>
-      <input type="email" id="email" autocomplete="username">
-      <!-- Узнанный по домену почтовый сервис: видно, что адрес разобран верно. -->
-      <div class="mailhint" id="mailHint" hidden></div>
+      <div class="field">
+        <label for="email">Почта</label>
+        <input type="email" id="email" autocomplete="username" placeholder="you@example.com">
+        <!-- Узнанный по домену почтовый сервис: видно, что адрес разобран верно. -->
+        <div class="mailhint" id="mailHint" hidden></div>
+      </div>
 
-      <label for="password">Пароль</label>
-      <input type="password" id="password" autocomplete="current-password">
+      <div class="field">
+        <label for="password">Пароль</label>
+        <input type="password" id="password" autocomplete="current-password">
+      </div>
 
       <!-- Только при регистрации -->
       <div id="pwMeter" hidden>
         <div class="pwbar" id="pwBar"><i></i><i></i><i></i><i></i></div>
         <div class="pwhint" id="pwHint"></div>
       </div>
-      <div id="pw2Row" hidden>
+      <div class="field" id="pw2Row" hidden>
         <label for="password2">Пароль ещё раз</label>
         <input type="password" id="password2" autocomplete="new-password">
       </div>
 
-      <button class="btn" id="submit">Войти</button>
+      <button class="btn block" id="submit">Войти</button>
       <div class="msg" id="authMsg"></div>
 
       <!-- Почта не подтверждена: письмо могло не дойти или устареть. -->
-      <button class="btn ghost" id="resend" hidden>Отправить письмо ещё раз</button>
+      <button class="btn block plain" id="resend" hidden>Отправить письмо ещё раз</button>
 
       <!-- После регистрации: куда идти за письмом. «Проверьте почту» без
            кнопки заканчивается тем, что человек уходит искать вкладку. -->
-      <a class="btn mail" id="openMail" target="_blank" rel="noopener noreferrer" hidden></a>
+      <a class="btn block plain" id="openMail" target="_blank" rel="noopener noreferrer" hidden></a>
     </div>
 
     <!-- Вошёл -->
@@ -146,15 +84,18 @@
 
       <!-- Тарифы видны всегда: оплата продлеваемая, отменять нечего. -->
       <div id="planPick">
-        <button class="btn pro" id="planMonthly"></button>
-        <button class="btn pro" id="planYearly"></button>
+        <h2 class="title-sm center" style="margin:26px 0 4px">Выберите срок</h2>
+        <p class="tiny center" style="margin:0 0 6px">Нажмите — откроется форма оплаты.</p>
+        <button class="btn block" id="planMonthly"></button>
+        <button class="btn block" id="planYearly"></button>
         <div class="save" id="planSave" hidden></div>
-        <div class="what" style="margin-top:12px;padding-top:0;border:0">
-          Оплата криптой или картой с конвертацией. Автосписания нет —
-          срок продлеваете сами, новый период прибавляется к оплаченному.
-        </div>
+        <p class="tiny center" style="margin-top:14px">
+          Криптовалютой или картой с конвертацией. Автосписания нет — срок
+          продлеваете сами, новый период прибавляется к оплаченному.
+        </p>
       </div>
-      <button class="btn ghost" id="signOut">Выйти</button>
+
+      <button class="btn block plain" id="signOut">Выйти</button>
       <div class="msg" id="planMsg"></div>
 
       <div class="what">
@@ -363,12 +304,17 @@ function show(session, sub) {
   usePendingPlan();
 }
 
-/** Подписи тарифов: «На месяц — $20». */
+/**
+ * Подписи тарифов: «Оплатить месяц — $20».
+ *
+ * Глагол в кнопке, а не только срок: человек должен видеть, что нажатие ведёт
+ * к оплате, а не переключает тариф где-то на странице.
+ */
 function renderPlans() {
   for (const [id, button] of [['monthly', 'planMonthly'], ['yearly', 'planYearly']]) {
     const plan = planById(id);
     if (!plan) continue;
-    $(button).textContent = `${id === 'yearly' ? 'На год' : 'На месяц'} — ${priceLabel(plan)}`;
+    $(button).textContent = `Оплатить ${id === 'yearly' ? 'год' : 'месяц'} — ${priceLabel(plan)}`;
   }
 
   const saved = yearlySavings();
@@ -380,7 +326,7 @@ function renderPlans() {
 
 let mode = 'signIn'; // signIn | signUp
 
-const PW_COLORS = ['#ef6b74', '#ef6b74', '#e0b33a', '#7fe0aa', '#4fc98a'];
+const PW_COLORS = ['#c9182b', '#c9182b', '#a45c00', '#14804a', '#14804a'];
 
 const PW_TEXT = {
   short: 'коротковат: нужно хотя бы 8 символов',
@@ -407,7 +353,7 @@ function renderStrength() {
   $('pwHint').textContent = value
     ? (PW_TEXT[issue] ?? PW_TEXT[level] ?? '')
     : 'от 8 символов, буквы и цифры';
-  $('pwHint').style.color = !value || ok ? '#8b9199' : '#e0b33a';
+  $('pwHint').style.color = !value || ok ? '' : 'var(--warn)';
 }
 
 /**
@@ -616,7 +562,7 @@ for (const [button, plan] of [['planMonthly', 'monthly'], ['planYearly', 'yearly
 /**
  * Тариф, выбранный на витрине: `/account.html?plan=yearly`.
  *
- * Открываем его форму сразу — человек уже нажал «Оформить» на главной, и
+ * Открываем его форму сразу — человек уже нажал «Оплатить» на главной, и
  * второй такой же выбор здесь был бы переспрашиванием. Если он ещё не вошёл,
  * намерение ждёт входа и срабатывает после него.
  */

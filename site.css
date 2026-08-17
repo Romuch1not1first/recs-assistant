@@ -1,0 +1,513 @@
+/* ============================================================================
+   Оформление сайта AutoSwipe AI.
+
+   Один файл на все страницы — витрину, кабинет, экраны после оплаты и правовые
+   документы. Три копии одних и тех же цветов в трёх страницах однажды разошлись
+   бы, и сайт стал бы выглядеть собранным из разных кусков.
+
+   Логика оформления: светлый фон, много воздуха, крупный текст, одна синяя
+   кнопка на экран. Синим красится только то, что человек должен нажать —
+   «Скачать» и «Оплатить». Всё остальное серое, поэтому нужное видно сразу.
+   ============================================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --bg:        #ffffff;
+  --bg-soft:   #f5f5f7;
+  --bg-tint:   #fbfbfd;
+  --card:      #ffffff;
+
+  --text:      #1d1d1f;
+  --text-2:    #55565a;
+  --text-3:    #86868b;
+
+  --line:      rgba(0, 0, 0, .11);
+  --line-soft: rgba(0, 0, 0, .07);
+
+  --accent:      #0071e3;
+  --accent-hi:   #0077ed;
+  --accent-text: #0066cc;
+  --accent-soft: rgba(0, 113, 227, .09);
+
+  --ok:    #14804a;
+  --warn:  #a45c00;
+  --err:   #c9182b;
+
+  --fill:      rgba(0, 0, 0, .05);
+  --fill-hi:   rgba(0, 0, 0, .09);
+  --header-bg: rgba(255, 255, 255, .8);
+  --shadow:    0 2px 8px rgba(0, 0, 0, .04), 0 12px 40px rgba(0, 0, 0, .07);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, .05), 0 6px 20px rgba(0, 0, 0, .05);
+
+  --radius:    18px;
+  --radius-lg: 28px;
+  --pill:      980px;
+
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        #000000;
+    --bg-soft:   #101012;
+    --bg-tint:   #08080a;
+    --card:      #161618;
+
+    --text:      #f5f5f7;
+    --text-2:    #b4b4b8;
+    --text-3:    #8a8a8f;
+
+    --line:      rgba(255, 255, 255, .14);
+    --line-soft: rgba(255, 255, 255, .09);
+
+    --accent:      #0a84ff;
+    --accent-hi:   #3395ff;
+    --accent-text: #2997ff;
+    --accent-soft: rgba(41, 151, 255, .14);
+
+    --ok:   #41d17e;
+    --warn: #ecab3d;
+    --err:  #ff7b83;
+
+    --fill:      rgba(255, 255, 255, .08);
+    --fill-hi:   rgba(255, 255, 255, .14);
+    --header-bg: rgba(0, 0, 0, .74);
+    --shadow:    0 12px 44px rgba(0, 0, 0, .6);
+    --shadow-sm: 0 6px 22px rgba(0, 0, 0, .5);
+  }
+}
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.5;
+  letter-spacing: -.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent-text); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+img, svg { max-width: 100%; }
+[hidden] { display: none !important; }
+
+/* Клавиатурный фокус видимый — по нему ходят и без мыши. */
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+/* ------------------------------- сетка ------------------------------- */
+
+.wrap { width: 100%; max-width: 1024px; margin: 0 auto; padding: 0 22px; }
+.wrap.narrow { max-width: 720px; }
+
+section { padding: 88px 0; }
+section.soft { background: var(--bg-soft); }
+
+/* Липкая шапка перекрывала бы заголовок, к которому только что перешли по
+   ссылке из меню, — отступ отдаёт ей её же высоту. */
+[id] { scroll-margin-top: 74px; }
+
+.center { text-align: center; }
+
+/* ------------------------------ типографика ------------------------------ */
+
+h1, h2, h3 { letter-spacing: -.02em; font-weight: 600; margin: 0; }
+
+.display {
+  font-size: clamp(38px, 6.4vw, 68px);
+  line-height: 1.06;
+  letter-spacing: -.03em;
+  font-weight: 700;
+}
+
+.title { font-size: clamp(28px, 4vw, 44px); line-height: 1.1; margin: 0 0 14px; }
+.title-sm { font-size: clamp(22px, 3vw, 30px); line-height: 1.15; margin: 0 0 10px; }
+
+.lead {
+  font-size: clamp(18px, 2vw, 22px);
+  line-height: 1.42;
+  color: var(--text-2);
+  margin: 20px auto 0;
+  max-width: 660px;
+}
+
+.sub { color: var(--text-3); font-size: 17px; margin: 0 auto 42px; max-width: 620px; }
+
+.eyebrow {
+  display: inline-block;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: var(--accent-text);
+  margin: 0 0 14px;
+}
+
+.tiny { font-size: 13px; line-height: 1.45; color: var(--text-3); }
+
+/* ------------------------------- кнопки ------------------------------- */
+
+/* Всего два вида: синяя — то, ради чего человек пришёл; серая — всё остальное.
+   Третий цвет заставил бы выбирать между кнопками, а выбирать тут нечего. */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  padding: 13px 26px;
+  border: 1px solid transparent;
+  border-radius: var(--pill);
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit; font-size: 17px; font-weight: 500; line-height: 1.2;
+  letter-spacing: -.01em;
+  text-decoration: none; text-align: center; white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .18s ease, transform .12s ease, border-color .18s ease, color .18s ease;
+}
+.btn:hover { background: var(--accent-hi); color: #fff; text-decoration: none; }
+.btn:active { transform: scale(.97); }
+
+.btn.ghost { background: transparent; border-color: var(--accent); color: var(--accent-text); }
+.btn.ghost:hover { background: var(--accent-soft); color: var(--accent-text); }
+
+.btn.plain { background: var(--fill); color: var(--text); }
+.btn.plain:hover { background: var(--fill-hi); color: var(--text); }
+
+.btn.lg { padding: 16px 34px; font-size: 19px; font-weight: 600; }
+.btn.sm { padding: 8px 17px; font-size: 15px; }
+.btn.block { display: flex; width: 100%; }
+
+.btn[aria-disabled="true"], .btn:disabled { opacity: .45; pointer-events: none; }
+.btn svg { flex: none; }
+
+/* Текстовая ссылка-кнопка со стрелкой — как у Apple под блоками. */
+.link {
+  display: inline-flex; align-items: center; gap: 5px;
+  color: var(--accent-text); font-size: 17px; text-decoration: none;
+}
+.link:hover { text-decoration: underline; }
+.link::after { content: '›'; font-size: 19px; line-height: 1; }
+
+.btns { display: flex; flex-wrap: wrap; gap: 14px; }
+.btns.center { justify-content: center; }
+
+/* --------------------------------- шапка --------------------------------- */
+
+/* Липкая: «Скачать» и «Оплатить» остаются на виду на любом экране страницы,
+   а не только там, куда человек доскроллил. */
+.site-head {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--header-bg);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--line-soft);
+}
+.site-head .bar { display: flex; align-items: center; gap: 18px; height: 56px; }
+
+.logo {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 17px; font-weight: 600; letter-spacing: -.01em;
+  color: var(--text); text-decoration: none; white-space: nowrap;
+}
+.logo:hover { text-decoration: none; }
+.logo .mark {
+  width: 24px; height: 24px; border-radius: 7px; flex: none;
+  background: linear-gradient(140deg, #ff4d67, #ff2d55 45%, #d5006d);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 13px; line-height: 1;
+}
+
+.site-nav { display: flex; align-items: center; gap: 22px; margin: 0 auto 0 14px; }
+.site-nav a { color: var(--text-2); font-size: 15px; text-decoration: none; }
+.site-nav a:hover { color: var(--text); text-decoration: none; }
+
+.head-cta { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+
+@media (max-width: 900px) {
+  .site-nav { display: none; }
+  .head-cta { margin-left: auto; }
+}
+@media (max-width: 430px) {
+  .site-head .bar { gap: 10px; }
+  .logo span { display: none; }
+  .head-cta .btn { padding: 8px 13px; font-size: 14px; }
+}
+
+/* Простая шапка правовых страниц. */
+.back { margin-left: auto; color: var(--text-2); font-size: 15px; text-decoration: none; }
+.back:hover { color: var(--text); text-decoration: none; }
+
+/* -------------------------------- карточки -------------------------------- */
+
+.cards { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-lg);
+  padding: 30px 28px;
+  box-shadow: var(--shadow-sm);
+}
+section.soft .card { box-shadow: none; border-color: var(--line-soft); }
+.card h3 { font-size: 21px; margin: 0 0 10px; }
+.card p { color: var(--text-2); font-size: 16px; margin: 0; }
+
+.icon {
+  width: 46px; height: 46px; border-radius: 14px; margin-bottom: 18px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-soft); color: var(--accent-text);
+  font-size: 22px; font-weight: 600;
+}
+
+.checks { margin: 0; padding: 0; list-style: none; }
+.checks li {
+  position: relative; padding: 9px 0 9px 30px;
+  color: var(--text-2); font-size: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+.checks li:first-child { border-top: 0; }
+.checks li::before {
+  content: '✓'; position: absolute; left: 2px; top: 9px;
+  color: var(--ok); font-weight: 700;
+}
+.checks li b { color: var(--text); font-weight: 600; }
+
+.badge {
+  display: inline-block; vertical-align: middle;
+  padding: 3px 9px; border-radius: var(--pill);
+  background: var(--accent-soft); color: var(--accent-text);
+  font-size: 12px; font-weight: 600; letter-spacing: .02em;
+}
+
+/* --------------------------------- тарифы --------------------------------- */
+
+.plans {
+  display: grid; gap: 20px; max-width: 720px; margin: 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.plan {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px 28px;
+  text-align: center;
+  display: flex; flex-direction: column;
+  box-shadow: var(--shadow-sm);
+}
+.plan.best { border-color: var(--accent); border-width: 2px; padding: 31px 27px 27px; }
+.plan .name { font-size: 17px; font-weight: 600; }
+.plan .amount { font-size: 52px; font-weight: 700; letter-spacing: -.03em; line-height: 1.1; margin: 10px 0 2px; }
+.plan .per { color: var(--text-3); font-size: 15px; margin-bottom: 22px; }
+.plan .btn { margin-top: auto; }
+.plan .save { color: var(--ok); font-size: 14px; font-weight: 500; margin-top: 12px; min-height: 20px; }
+.plan .ribbon {
+  align-self: center; margin-bottom: 10px;
+  padding: 4px 12px; border-radius: var(--pill);
+  background: var(--accent); color: #fff; font-size: 12px; font-weight: 600;
+}
+
+/* --------------------------------- вопросы --------------------------------- */
+
+details.faq { border-bottom: 1px solid var(--line-soft); }
+details.faq summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 20px 2px; cursor: pointer;
+  font-size: 18px; font-weight: 500; list-style: none;
+}
+details.faq summary::-webkit-details-marker { display: none; }
+details.faq summary::after {
+  content: '+'; flex: none; color: var(--accent-text);
+  font-size: 26px; font-weight: 400; line-height: 1;
+  transition: transform .2s ease;
+}
+details.faq[open] summary::after { content: '–'; }
+details.faq p { color: var(--text-2); font-size: 16.5px; margin: 0 0 20px; padding-right: 34px; }
+
+/* ------------------------------- полоса CTA ------------------------------- */
+
+.cta-band { text-align: center; padding: 92px 0; background: var(--bg-soft); }
+
+/* --------------------------- нижняя панель на телефоне --------------------------- */
+
+/* На телефоне кнопки шапки уезжают вверх вместе со скроллом мелких экранов —
+   панель внизу держит оба действия под большим пальцем. */
+.buybar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  display: none; gap: 10px; padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  background: var(--header-bg);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid var(--line-soft);
+}
+.buybar .btn { flex: 1; padding: 12px 10px; font-size: 16px; }
+
+/* Панель и место под неё появляются одним правилом: разведи их по разным
+   условиям — и на широком экране под подвалом повисла бы пустая полоса. */
+@media (max-width: 720px) {
+  .buybar { display: flex; }
+  body.has-buybar { padding-bottom: 82px; }
+  section { padding: 64px 0; }
+  .cta-band { padding: 68px 0; }
+}
+
+/* --------------------------------- подвал --------------------------------- */
+
+.site-foot {
+  border-top: 1px solid var(--line-soft);
+  padding: 34px 0 54px;
+  color: var(--text-3); font-size: 13px;
+}
+.flinks { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-bottom: 14px; }
+.flinks a { color: var(--text-3); text-decoration: none; }
+.flinks a:hover { color: var(--text); text-decoration: underline; }
+
+/* ============================ страницы-карточки ============================
+   Кабинет, «оплата принята», «почта подтверждена» — одна колонка по центру.
+   ========================================================================== */
+
+body.sheet {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 32px 18px 48px;
+  background: var(--bg-soft);
+}
+
+.panel {
+  width: 100%; max-width: 460px;
+  background: var(--card);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-lg);
+  padding: 34px 32px;
+  box-shadow: var(--shadow);
+}
+.panel h1 { font-size: 27px; margin: 0 0 8px; text-align: center; }
+.panel > p { color: var(--text-2); font-size: 16px; margin: 0 0 8px; text-align: center; }
+
+.panel .logo { justify-content: center; display: flex; margin: 0 auto 22px; }
+
+.field { margin-top: 16px; }
+.field label { display: block; font-size: 14px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+
+input[type="email"], input[type="password"], input[type="text"] {
+  width: 100%; padding: 13px 15px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--bg); color: var(--text);
+  font-family: inherit; font-size: 17px; line-height: 1.3;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.panel .btn { margin-top: 18px; }
+
+.msg { font-size: 14px; line-height: 1.45; margin-top: 12px; min-height: 18px; text-align: center; }
+.msg.err { color: var(--err); }
+.msg.ok  { color: var(--ok); }
+
+/* Вкладки «Вход» / «Регистрация» — сегментами, как в iOS. */
+.tabs {
+  display: flex; gap: 3px; padding: 3px; margin-bottom: 20px;
+  background: var(--fill); border-radius: 12px;
+}
+.tab {
+  flex: 1; padding: 9px; border: 0; border-radius: 9px;
+  background: transparent; color: var(--text-2);
+  font-family: inherit; font-size: 15px; font-weight: 500; cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+.tab.on { background: var(--card); color: var(--text); box-shadow: var(--shadow-sm); }
+
+.line {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid var(--line-soft);
+  font-size: 15px;
+}
+.line span { color: var(--text-3); flex: none; }
+.line b { font-weight: 500; text-align: right; word-break: break-word; }
+.line b.ok { color: var(--ok); }
+.line b.warn { color: var(--warn); }
+
+.what { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line-soft); color: var(--text-3); font-size: 14px; }
+.what b { color: var(--text-2); }
+.what ul { margin: 10px 0 0; padding-left: 20px; }
+.what li { margin: 6px 0; }
+
+.save { color: var(--ok); font-size: 14px; text-align: center; margin-top: 10px; }
+
+/* Индикатор надёжности пароля: четыре деления — видно, сколько осталось. */
+.pwbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; height: 5px; margin: 10px 0 6px; }
+.pwbar i { background: var(--fill-hi); border-radius: 3px; }
+.pwbar i.on { background: var(--pw, var(--err)); }
+.pwhint { font-size: 13px; line-height: 1.4; color: var(--text-3); }
+
+.mailhint { font-size: 13px; color: var(--text-3); font-weight: 500; margin-top: 6px; }
+
+/* Кружок с галочкой на экранах «готово». */
+.mark {
+  width: 62px; height: 62px; margin: 0 auto 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; background: rgba(20, 128, 74, .12); color: var(--ok);
+}
+.bad .mark { background: rgba(201, 24, 43, .12); color: var(--err); }
+
+.steps { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line-soft); text-align: left; }
+.steps b { font-size: 15px; }
+.steps ol { margin: 10px 0 0; padding-left: 20px; color: var(--text-2); font-size: 15px; }
+.steps li { margin: 7px 0; }
+
+/* ============================ правовые страницы ============================ */
+
+.doc { padding-bottom: 30px; }
+.doc h1 { font-size: clamp(30px, 5vw, 44px); margin: 52px 0 8px; letter-spacing: -.02em; }
+.doc .updated { color: var(--text-3); font-size: 15px; margin: 0 0 38px; }
+
+.doc h2 {
+  font-size: 23px; margin: 44px 0 12px;
+  padding-top: 26px; border-top: 1px solid var(--line-soft);
+}
+.doc h3 { font-size: 18px; margin: 26px 0 8px; }
+
+.doc p, .doc li { color: var(--text-2); font-size: 17px; line-height: 1.6; }
+.doc p { margin: 0 0 14px; }
+.doc ul, .doc ol { margin: 0 0 16px; padding-left: 24px; }
+.doc li { margin: 8px 0; }
+.doc b, .doc strong { color: var(--text); font-weight: 600; }
+
+.doc table { width: 100%; border-collapse: collapse; margin: 16px 0 22px; font-size: 15.5px; }
+.doc th, .doc td { text-align: left; padding: 12px 12px 12px 0; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+.doc th { color: var(--text-3); font-weight: 500; }
+.doc td { color: var(--text-2); }
+
+.note {
+  background: var(--bg-soft);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  padding: 20px 22px; margin: 24px 0;
+}
+.note p:last-child { margin-bottom: 0; }
+
+/* Место, куда нужно вписать реквизиты: незаполненный плейсхолдер в правовом
+   документе хуже его отсутствия, поэтому он должен резать глаз. */
+.todo {
+  background: rgba(164, 92, 0, .12); color: var(--warn);
+  border-radius: 6px; padding: 1px 8px; font-size: 15px; font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .card { padding: 26px 22px; }
+  .panel { padding: 28px 22px; }
+  .doc p, .doc li { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; animation: none !important; }
+}
