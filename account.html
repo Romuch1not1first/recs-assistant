@@ -216,6 +216,47 @@ const writeSession = (s) => {
   else localStorage.removeItem(SESSION_KEY);
 };
 
+/** Ответ Supabase с токенами → то, что храним. */
+const toSession = (data) => ({
+  access_token: data.access_token,
+  refresh_token: data.refresh_token ?? null,
+  // Запас в минуту: иначе токен мог истечь между проверкой и самим запросом.
+  expires_at: Date.now() + ((Number(data.expires_in) || 3600) - 60) * 1000,
+  user_id: data.user.id,
+  email: data.user.email,
+});
+
+/**
+ * Живой токен: истёкший обновляем по refresh-токену.
+ *
+ * Без этого сессия жила ровно час, а потом кнопки оплаты молча переставали
+ * работать — человек видел «не удалось создать счёт» и не понимал, что нужно
+ * просто войти заново. Расширение так умело с самого начала, страница — нет.
+ */
+async function freshToken() {
+  const s = readSession();
+  if (!s) return null;
+  if (s.expires_at && s.expires_at > Date.now()) return s.access_token;
+
+  if (!s.refresh_token) {
+    writeSession(null);
+    return null;
+  }
+
+  try {
+    const data = await api('/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      body: { refresh_token: s.refresh_token },
+    });
+    writeSession(toSession(data));
+    return data.access_token;
+  } catch {
+    // Refresh-токен тоже недействителен — сессия закончилась.
+    writeSession(null);
+    return null;
+  }
+}
+
 async function api(path, { method = 'GET', body, token } = {}) {
   const res = await fetch(`${CONFIG.supabaseUrl}${path}`, {
     method,
@@ -271,13 +312,14 @@ const STATUS_TEXT = {
 };
 
 async function loadPlan() {
+  const token = await freshToken();
   const session = readSession();
-  if (!session) return show(null);
+  if (!token || !session) return show(null);
 
   let sub = null;
   try {
     const rows = await api('/rest/v1/subscriptions?select=status,current_period_end&limit=1', {
-      token: session.access_token,
+      token,
     });
     sub = rows?.[0] ?? null;
   } catch (e) {
@@ -430,7 +472,7 @@ async function doSignIn(email, password) {
     method: 'POST',
     body: { email, password },
   });
-  writeSession({ access_token: data.access_token, user_id: data.user.id, email: data.user.email });
+  writeSession(toSession(data));
   say('authMsg', '');
   $('password').value = '';
   await loadPlan();
@@ -532,17 +574,25 @@ $('signOut').addEventListener('click', () => {
  * платить криптой или картой с конвертацией.
  */
 async function openCheckout(planId) {
-  const session = readSession();
   const plan = planById(planId);
-  if (!session || !plan) return;
+  if (!plan) return;
 
   say('planMsg', 'Готовлю счёт…');
+
+  // Токен берём живой: сохранённый живёт час, и через час кнопка молча
+  // переставала бы работать.
+  const token = await freshToken();
+  if (!token) {
+    show(null);
+    return say('authMsg', 'Сессия закончилась — войдите заново', 'err');
+  }
+
   try {
     const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/nowpayments-checkout`, {
       method: 'POST',
       headers: {
         apikey: CONFIG.supabaseKey,
-        Authorization: `Bearer ${session.access_token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ plan: plan.id }),
