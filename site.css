@@ -252,8 +252,12 @@ h1, h2, h3 { letter-spacing: -.02em; font-weight: 600; margin: 0; }
   background-position: right 12px center;
   transition: border-color .18s ease;
 }
-/* Строки списка красим отдельно: часть браузеров не наследует их у поля. */
-.lang option { background-color: var(--card); color: var(--text); }
+/* Строки раскрытого списка красим системными цветами, а не своими.
+   Список рисует браузер, и красит он его по `color-scheme`; свой светлый текст
+   попадал там на светлую подложку и пропадал. `Field` и `FieldText` — это и
+   есть пара «поле ввода / текст в нём» из той же схемы, поэтому разъехаться
+   они не могут по определению. */
+.lang option { background-color: Field; color: FieldText; }
 /* Наведение — рамкой, а не фоном: менять фон нельзя, от него зависит список. */
 .lang:hover { border-color: var(--text-3); }
 .site-foot .lang { font-size: 14px; padding: 7px 28px 7px 12px; }
