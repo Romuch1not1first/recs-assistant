@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy policy — AutoSwipe AI</title>
+<meta name="description" content="What data AutoSwipe AI collects, where it goes and how to delete it.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="/site.css">
+<link rel="alternate" hreflang="ru" href="/privacy.html">
+<link rel="alternate" hreflang="uk" href="/privacy-uk.html">
+<link rel="alternate" hreflang="en" href="/privacy-en.html">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="logo" href="/"><span class="mark">◆</span> <span>AutoSwipe AI</span></a>
+    <a class="back" href="/" data-i18n="common.back">Home</a>
+    <div class="head-cta" style="margin-left:18px">
+      <span data-lang></span>
+      <a class="btn sm" href="/#download" data-i18n="common.download">Download</a>
+      <a class="btn sm ghost" href="/#price" data-i18n="common.pay">Subscribe</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap narrow doc">
+  <h1>Privacy policy</h1>
+  <p class="updated">In effect from 15 August 2026</p>
+
+  <p>
+    This document describes what data the AutoSwipe AI extension and the autoswipeai.com site
+    collect, what it is needed for, who it is shared with and how to delete it.
+  </p>
+
+  <p class="tiny">
+    This document was originally written in Russian. This translation is provided for
+    convenience; in case of any discrepancy the <a href="/privacy.html">Russian version</a>
+    prevails.
+  </p>
+
+  <div class="note">
+    <p>
+      <b>In short.</b> We store only your email and the state of your subscription. Filter
+      settings stay in your browser. Profile photos from the Tinder feed are sent to an
+      external model for scoring and are not kept by us. Tinder chats are never read.
+    </p>
+  </div>
+
+  <h2>1. Who processes the data</h2>
+  <p>
+    The controller is Roman Tkachenko, Ukraine, trading as AutoSwipe AI.
+    For any question about your data write to
+    <a href="mailto:support@autoswipeai.com">support@autoswipeai.com</a>; a postal address is
+    available on request.
+  </p>
+
+  <h2>2. What we collect</h2>
+
+  <table>
+    <tr><th>Data</th><th>What for</th><th>Where it is stored</th></tr>
+    <tr>
+      <td>Email address</td>
+      <td>Signing in, linking the subscription, confirmation and password-reset emails</td>
+      <td>Supabase</td>
+    </tr>
+    <tr>
+      <td>Password</td>
+      <td>Signing in</td>
+      <td>Supabase, as an irreversible hash. We never see your password and cannot recover it</td>
+    </tr>
+    <tr>
+      <td>Subscription state, end date and payment identifier</td>
+      <td>Unlocking the paid features for whoever paid</td>
+      <td>Supabase</td>
+    </tr>
+    <tr>
+      <td>Filter settings and stop-words</td>
+      <td>Running the extension</td>
+      <td>In your browser only (<code>chrome.storage</code>). Never sent to our servers</td>
+    </tr>
+    <tr>
+      <td>Session token</td>
+      <td>So you do not have to sign in every time</td>
+      <td>In your browser: local storage of the extension and of the site</td>
+    </tr>
+  </table>
+
+  <h3>What we do not collect</h3>
+  <ul>
+    <li>Tinder chats — the extension does not read them.</li>
+    <li>Your Tinder login and password — the extension works inside the session you already
+      opened.</li>
+    <li>Card details and your wallet addresses — payment happens on the payment provider's
+      side and never reaches us.</li>
+    <li>Browsing history, geolocation, contacts.</li>
+  </ul>
+
+  <h2>3. Profile photos</h2>
+  <p>
+    To filter profiles by looks and body type, the extension sends photos from the open Tinder
+    card to an external image-processing service. This is a deliberate trade-off: a photo
+    cannot be scored without being sent.
+  </p>
+  <ul>
+    <li>What is sent are photos of <b>other people's profiles</b> that Tinder showed you in the
+      feed — not yours.</li>
+    <li>Images are downscaled before sending and travel over a secure connection.</li>
+    <li>We store neither the images nor the scores: the model's answer is used to make the
+      decision and stays only in the panel log in your browser until you reload the page.</li>
+    <li>The processing is done by a third-party model provider; on their side the data is kept
+      according to their own policy.</li>
+  </ul>
+  <p>
+    If you would rather not send photos, turn off the looks and body filters in the panel. The
+    other conditions (age, height, distance, stop-words) are evaluated without sending
+    anything.
+  </p>
+
+  <h2>4. Who the data is shared with</h2>
+  <table>
+    <tr><th>Recipient</th><th>What they receive</th><th>What for</th></tr>
+    <tr>
+      <td>Supabase</td>
+      <td>Email, password hash, subscription state</td>
+      <td>Accounts and database</td>
+    </tr>
+    <tr>
+      <td>NOWPayments</td>
+      <td>The payment amount and an internal identifier of your account with us; for card payments, the data you enter on their form</td>
+      <td>Accepting crypto payments and card conversion</td>
+    </tr>
+    <tr>
+      <td>Image-processing model provider</td>
+      <td>Profile photos from your feed</td>
+      <td>Scoring looks and body type</td>
+    </tr>
+    <tr>
+      <td>GitHub Pages</td>
+      <td>Technical data of the request to the site</td>
+      <td>Page hosting</td>
+    </tr>
+  </table>
+  <p>We do not sell data and do not share it for advertising.</p>
+
+  <h2>5. How long we keep it</h2>
+  <ul>
+    <li>Account data — for as long as the account exists.</li>
+    <li>Payment records — for as long as payment-system rules and accounting require.</li>
+    <li>Settings in the browser — until you delete them along with the extension.</li>
+  </ul>
+
+  <h2>6. Your rights</h2>
+  <p>Write to <a href="mailto:support@autoswipeai.com">support@autoswipeai.com</a> to:</p>
+  <ul>
+    <li>get a copy of the data we hold;</li>
+    <li>correct data that is wrong;</li>
+    <li>delete your account with all its data;</li>
+    <li>withdraw consent to processing — which stops the service working.</li>
+  </ul>
+  <p>We answer within 30 days.</p>
+
+  <h2>7. Children</h2>
+  <p>
+    The service is not intended for anyone under 18, as it works with a dating app that has
+    the same restriction.
+  </p>
+
+  <h2>8. Changes</h2>
+  <p>
+    For material changes we will update the date at the top of this page and notify you at the
+    email address on your account.
+  </p>
+
+  <footer class="site-foot">
+    <div class="flinks">
+      <a href="/" data-i18n="common.home">Home</a>
+      <a data-i18n-doc="terms" href="/terms-en.html" data-i18n="common.footTerms">Terms of use</a>
+      <a data-i18n-doc="refund" href="/refund-en.html" data-i18n="common.footRefund">Refunds</a>
+      <a href="mailto:support@autoswipeai.com">support@autoswipeai.com</a>
+    </div>
+    <div id="copy">© 2026 AutoSwipe AI</div>
+  </footer>
+</div>
+
+<script type="module">
+import { initI18n, t, whenLangChanges } from './i18n.js';
+whenLangChanges(() => {
+  document.getElementById('copy').textContent = t('common.copy', { year: new Date().getFullYear() });
+});
+initI18n();
+</script>
+</body>
+</html>

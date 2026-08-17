@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AutoSwipe AI — расширение Chrome для Tinder</title>
-<meta name="description" content="Расширение Chrome, которое само листает рекомендации Tinder по вашим условиям: возраст, рост, расстояние, стоп-слова в описании и оценка фотографий моделью.">
+<title data-i18n="index.title">AutoSwipe AI — расширение Chrome для Tinder</title>
+<meta name="description" data-i18n-attr="content:index.desc" content="Расширение Chrome, которое само листает рекомендации Tinder по вашим условиям: возраст, рост, расстояние, стоп-слова в описании и оценка фотографий моделью.">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <link rel="stylesheet" href="/site.css">
@@ -92,7 +92,6 @@
   }
 
   /* Три шага: крупная цифра, короткая фраза. */
-  .steps-grid { counter-reset: step; }
   .step .n {
     width: 38px; height: 38px; border-radius: 50%; margin-bottom: 16px;
     display: flex; align-items: center; justify-content: center;
@@ -108,14 +107,15 @@
   <div class="wrap bar">
     <a class="logo" href="/"><span class="mark">◆</span> <span>AutoSwipe AI</span></a>
     <nav class="site-nav">
-      <a href="#how">Как работает</a>
-      <a href="#what">Возможности</a>
-      <a href="#price">Цена</a>
-      <a href="#faq">Вопросы</a>
+      <a href="#how" data-i18n="index.navHow">Как работает</a>
+      <a href="#what" data-i18n="index.navWhat">Возможности</a>
+      <a href="#price" data-i18n="index.navPrice">Цена</a>
+      <a href="#faq" data-i18n="index.navFaq">Вопросы</a>
     </nav>
     <div class="head-cta">
-      <a class="btn sm js-install" href="#download">Скачать</a>
-      <a class="btn sm ghost" href="#price">Оплатить</a>
+      <span data-lang></span>
+      <a class="btn sm js-install" href="#download" data-i18n="common.download">Скачать</a>
+      <a class="btn sm ghost" href="#price" data-i18n="common.pay">Оплатить</a>
     </div>
   </div>
 </header>
@@ -125,9 +125,9 @@
   <!-- Первый экран: что это и две кнопки, ради которых сюда приходят. -->
   <div class="hero" id="download">
     <div class="wrap">
-      <p class="eyebrow">Расширение для браузера Chrome</p>
-      <h1 class="display">Tinder листает<br>себя сам</h1>
-      <p class="lead">
+      <p class="eyebrow" data-i18n="index.heroEyebrow">Расширение для браузера Chrome</p>
+      <h1 class="display" data-i18n-html="index.heroTitle">Tinder листает<br>себя сам</h1>
+      <p class="lead" data-i18n="index.heroLead">
         Вы один раз задаёте условия — возраст, рост, расстояние, стоп-слова.
         Дальше расширение само открывает анкеты, оценивает фотографии
         и ставит Like или Nope.
@@ -139,19 +139,19 @@
             <path d="M10 2.5v11m0 0 4-4m-4 4-4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M3 14v2.5A1.5 1.5 0 0 0 4.5 18h11a1.5 1.5 0 0 0 1.5-1.5V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
-          <span class="js-install-label">Скачать расширение</span>
+          <span class="js-install-label" data-i18n="index.btnDownloadFull">Скачать расширение</span>
         </a>
-        <a class="btn lg ghost" href="#price">Оплатить подписку</a>
+        <a class="btn lg ghost" href="#price" data-i18n="index.btnPayFull">Оплатить подписку</a>
       </div>
 
-      <p class="tiny under" id="installNote">Бесплатно · Chrome 116 и новее · установка в один клик</p>
+      <p class="tiny under" id="installNote" data-i18n="index.heroNote">Бесплатно · Chrome 116 и новее · установка в один клик</p>
     </div>
 
     <div class="shot" aria-hidden="true">
       <div class="face">
-        <div class="score">Оценка модели 8,4 / 10</div>
-        <div class="nm">Анна, 26</div>
-        <div class="meta">168 см · 4 км от вас · 5 фото</div>
+        <div class="score" data-i18n="index.mockScore">Оценка модели 8,4 / 10</div>
+        <div class="nm" data-i18n="index.mockName">Анна, 26</div>
+        <div class="meta" data-i18n="index.mockMeta">168 см · 4 км от вас · 5 фото</div>
       </div>
 
       <div class="mock">
@@ -160,12 +160,12 @@
           <span class="who">AutoSwipe AI</span>
           <span class="badge">PRO</span>
         </div>
-        <div class="mock-row"><span>Возраст</span> <b>22 – 30</b></div>
-        <div class="mock-row"><span>Рост</span> <b>160 – 180 см</b></div>
-        <div class="mock-row"><span>Расстояние</span> <b>до 15 км</b></div>
-        <div class="mock-row"><span>Внешность</span> <b>7 – 10</b></div>
-        <div class="mock-start">Старт</div>
-        <div class="mock-log">
+        <div class="mock-row"><span data-i18n="index.mockAge">Возраст</span> <b>22 – 30</b></div>
+        <div class="mock-row"><span data-i18n="index.mockHeight">Рост</span> <b data-i18n="index.mockHeightVal">160 – 180 см</b></div>
+        <div class="mock-row"><span data-i18n="index.mockDistance">Расстояние</span> <b data-i18n="index.mockDistanceVal">до 15 км</b></div>
+        <div class="mock-row"><span data-i18n="index.mockLooks">Внешность</span> <b>7 – 10</b></div>
+        <div class="mock-start" data-i18n="index.mockStart">Старт</div>
+        <div class="mock-log" data-i18n-html="index.mockLog">
           <i class="y">♥</i> Like — оценка 8,4<br>
           <i class="n">✕</i> Nope — стоп-слово «сети»<br>
           <i class="y">♥</i> Like — оценка 7,1<br>
@@ -179,30 +179,30 @@
   <section id="how" class="soft">
     <div class="wrap">
       <div class="center">
-        <h2 class="title">Три шага — и дальше само</h2>
-        <p class="sub">Ничего настраивать в браузере не нужно: панель открывается прямо поверх Tinder.</p>
+        <h2 class="title" data-i18n="index.howTitle">Три шага — и дальше само</h2>
+        <p class="sub" data-i18n="index.howSub">Ничего настраивать в браузере не нужно: панель открывается прямо поверх Tinder.</p>
       </div>
 
-      <div class="cards steps-grid">
+      <div class="cards">
         <div class="card step">
           <div class="n">1</div>
-          <h3>Установите</h3>
-          <p>Нажмите «Скачать расширение» и подтвердите установку в Chrome. Занимает полминуты.</p>
+          <h3 data-i18n="index.step1Title">Установите</h3>
+          <p data-i18n="index.step1Text">Нажмите «Скачать расширение» и подтвердите установку в Chrome. Занимает полминуты.</p>
         </div>
         <div class="card step">
           <div class="n">2</div>
-          <h3>Задайте условия</h3>
-          <p>Возраст, рост, расстояние, минимум фотографий, стоп-слова в описании. Ползунки и галочки, писать ничего не нужно.</p>
+          <h3 data-i18n="index.step2Title">Задайте условия</h3>
+          <p data-i18n="index.step2Text">Возраст, рост, расстояние, минимум фотографий, стоп-слова в описании. Ползунки и галочки, писать ничего не нужно.</p>
         </div>
         <div class="card step">
           <div class="n">3</div>
-          <h3>Нажмите «Старт»</h3>
-          <p>Расширение листает ленту само. Кто подошёл и почему — видно в логе панели, счётчики свайпов рядом.</p>
+          <h3 data-i18n="index.step3Title">Нажмите «Старт»</h3>
+          <p data-i18n="index.step3Text">Расширение листает ленту само. Кто подошёл и почему — видно в логе панели, счётчики свайпов рядом.</p>
         </div>
       </div>
 
       <div class="center" style="margin-top:36px">
-        <a class="btn lg js-install js-install-main" href="#download"><span class="js-install-label">Скачать расширение</span></a>
+        <a class="btn lg js-install js-install-main" href="#download"><span class="js-install-label" data-i18n="index.btnDownloadFull">Скачать расширение</span></a>
       </div>
     </div>
   </section>
@@ -211,34 +211,34 @@
   <section id="what">
     <div class="wrap">
       <div class="center">
-        <h2 class="title">Что входит</h2>
-        <p class="sub">Фильтры по анкете работают сразу и бесплатно. Оценка по фотографиям открывается подпиской.</p>
+        <h2 class="title" data-i18n="index.whatTitle">Что входит</h2>
+        <p class="sub" data-i18n="index.whatSub">Фильтры по анкете работают сразу и бесплатно. Оценка по фотографиям открывается подпиской.</p>
       </div>
 
       <div class="cards">
         <div class="card">
           <div class="icon">✓</div>
-          <h3>Бесплатно, сразу после установки</h3>
+          <h3 data-i18n="index.freeTitle">Бесплатно, сразу после установки</h3>
           <ul class="checks">
-            <li>Возраст, рост, расстояние</li>
-            <li>Минимум фотографий в анкете</li>
-            <li>Стоп-слова в описании, в том числе регулярные выражения</li>
-            <li>Только с отметкой Verified или недавно активные</li>
-            <li>Лимит свайпов за сессию и доля отказов</li>
-            <li>Интерфейс на русском, українською и English</li>
+            <li data-i18n="index.free1">Возраст, рост, расстояние</li>
+            <li data-i18n="index.free2">Минимум фотографий в анкете</li>
+            <li data-i18n="index.free3">Стоп-слова в описании, в том числе регулярные выражения</li>
+            <li data-i18n="index.free4">Только с отметкой Verified или недавно активные</li>
+            <li data-i18n="index.free5">Лимит свайпов за сессию и доля отказов</li>
+            <li data-i18n="index.free6">Интерфейс на русском, українською и English</li>
           </ul>
         </div>
 
         <div class="card">
           <div class="icon">★</div>
-          <h3>По подписке <span class="badge">AI</span></h3>
+          <h3 data-i18n-html="index.proTitle">По подписке <span class="badge">AI</span></h3>
           <ul class="checks">
-            <li><b>Фильтр по внешности</b> — оценка модели от 1 до 10 и отбор по диапазону</li>
-            <li><b>Фильтр по телосложению</b> — рост и вес по фотографиям, диапазон ИМТ</li>
-            <li>Отбор по тому, что видно на снимке, а не только по заполненным полям анкеты</li>
+            <li data-i18n-html="index.pro1"><b>Фильтр по внешности</b> — оценка модели от 1 до 10 и отбор по диапазону</li>
+            <li data-i18n-html="index.pro2"><b>Фильтр по телосложению</b> — рост и вес по фотографиям, диапазон ИМТ</li>
+            <li data-i18n-html="index.pro3">Отбор по тому, что видно на снимке, а не только по заполненным полям анкеты</li>
           </ul>
           <div style="margin-top:22px">
-            <a class="btn block" href="#price">Оплатить подписку</a>
+            <a class="btn block" href="#price" data-i18n="index.btnPayFull">Оплатить подписку</a>
           </div>
         </div>
       </div>
@@ -249,8 +249,8 @@
   <section id="price" class="soft">
     <div class="wrap">
       <div class="center">
-        <h2 class="title">Цена</h2>
-        <p class="sub">
+        <h2 class="title" data-i18n="index.priceTitle">Цена</h2>
+        <p class="sub" data-i18n="index.priceSub">
           Оплата криптовалютой или картой с конвертацией. Автопродления нет —
           вы платите за выбранный срок, и он не спишется сам.
         </p>
@@ -258,26 +258,26 @@
 
       <div class="plans">
         <div class="plan">
-          <div class="name">Месяц</div>
+          <div class="name" data-i18n="index.planMonth">Месяц</div>
           <div class="amount" id="priceMonthly">—</div>
-          <div class="per">за 1 месяц доступа</div>
-          <a class="btn block" href="/account.html?plan=monthly">Оплатить месяц</a>
+          <div class="per" data-i18n="index.planMonthPer">за 1 месяц доступа</div>
+          <a class="btn block" href="/account.html?plan=monthly" data-i18n="index.planMonthBtn">Оплатить месяц</a>
           <div class="save"></div>
         </div>
 
         <div class="plan best">
-          <div class="ribbon">Выгоднее</div>
-          <div class="name">Год</div>
+          <div class="ribbon" data-i18n="index.ribbon">Выгоднее</div>
+          <div class="name" data-i18n="index.planYear">Год</div>
           <div class="amount" id="priceYearly">—</div>
-          <div class="per">за 12 месяцев доступа</div>
-          <a class="btn block" href="/account.html?plan=yearly">Оплатить год</a>
+          <div class="per" data-i18n="index.planYearPer">за 12 месяцев доступа</div>
+          <a class="btn block" href="/account.html?plan=yearly" data-i18n="index.planYearBtn">Оплатить год</a>
           <div class="save" id="save"></div>
         </div>
       </div>
 
-      <p class="tiny center" style="margin-top:26px">
+      <p class="tiny center" style="margin-top:26px" data-i18n-html="index.priceFoot">
         Оплата открывается в кабинете: нужен аккаунт — тот же, с которым вы входите в расширении.
-        <br><a href="/refund.html">Условия возврата</a>
+        <br><a data-i18n-doc="refund" href="/refund.html">Условия возврата</a>
       </p>
     </div>
   </section>
@@ -286,33 +286,33 @@
   <section id="faq">
     <div class="wrap narrow">
       <div class="center">
-        <h2 class="title">Частые вопросы</h2>
-        <p class="sub">Коротко о том, что спрашивают до покупки.</p>
+        <h2 class="title" data-i18n="index.faqTitle">Частые вопросы</h2>
+        <p class="sub" data-i18n="index.faqSub">Коротко о том, что спрашивают до покупки.</p>
       </div>
 
       <details class="faq">
-        <summary>Нужен ли аккаунт?</summary>
-        <p>Да. Расширение работает под аккаунтом — он же связывает вас с подпиской. Регистрация по почте и паролю, прямо в окне расширения или здесь на сайте.</p>
+        <summary data-i18n="index.q1">Нужен ли аккаунт?</summary>
+        <p data-i18n="index.a1">Да. Расширение работает под аккаунтом — он же связывает вас с подпиской. Регистрация по почте и паролю, прямо в окне расширения или здесь на сайте.</p>
       </details>
 
       <details class="faq">
-        <summary>Куда уходят мои фотографии и переписки?</summary>
-        <p>Переписки не читаются вовсе. Фотографии профилей из ленты отправляются во внешнюю модель для оценки телосложения и внешности — без этого фильтры по снимкам работать не могут. Ваши собственные данные Tinder никуда не передаются.</p>
+        <summary data-i18n="index.q2">Куда уходят мои фотографии и переписки?</summary>
+        <p data-i18n="index.a2">Переписки не читаются вовсе. Фотографии профилей из ленты отправляются во внешнюю модель для оценки телосложения и внешности — без этого фильтры по снимкам работать не могут. Ваши собственные данные Tinder никуда не передаются.</p>
       </details>
 
       <details class="faq">
-        <summary>Насколько точна оценка по фотографии?</summary>
-        <p>Это прикидка. Ракурс, одежда и обработка сдвигают её, а оценка внешности вдобавок отражает предвзятость данных, на которых модель обучалась. Число будет стабильным, но считать его объективным не стоит.</p>
+        <summary data-i18n="index.q3">Насколько точна оценка по фотографии?</summary>
+        <p data-i18n="index.a3">Это прикидка. Ракурс, одежда и обработка сдвигают её, а оценка внешности вдобавок отражает предвзятость данных, на которых модель обучалась. Число будет стабильным, но считать его объективным не стоит.</p>
       </details>
 
       <details class="faq">
-        <summary>Как устроена оплата и можно ли отменить?</summary>
-        <p>Вы покупаете доступ на срок: месяц или год. Автосписания нет — с криптовалютой его технически не существует, поэтому отменять нечего. Не продлили — доступ просто закончился в оплаченную дату. Продлили раньше срока — новый период прибавится к остатку, ничего не сгорает.</p>
+        <summary data-i18n="index.q4">Как устроена оплата и можно ли отменить?</summary>
+        <p data-i18n="index.a4">Вы покупаете доступ на срок: месяц или год. Автосписания нет — с криптовалютой его технически не существует, поэтому отменять нечего. Не продлили — доступ просто закончился в оплаченную дату. Продлили раньше срока — новый период прибавится к остатку, ничего не сгорает.</p>
       </details>
 
       <details class="faq">
-        <summary>Это разрешено правилами Tinder?</summary>
-        <p>Нет. Правила Tinder запрещают автоматизацию действий в приложении, и аккаунт за это могут ограничить или заблокировать. Расширение делает паузы между свайпами и держит долю отказов, чтобы поведение не выглядело машинным, но гарантий это не даёт. Решение и риск — ваши.</p>
+        <summary data-i18n="index.q5">Это разрешено правилами Tinder?</summary>
+        <p data-i18n="index.a5">Нет. Правила Tinder запрещают автоматизацию действий в приложении, и аккаунт за это могут ограничить или заблокировать. Расширение делает паузы между свайпами и держит долю отказов, чтобы поведение не выглядело машинным, но гарантий это не даёт. Решение и риск — ваши.</p>
       </details>
     </div>
   </section>
@@ -320,11 +320,11 @@
   <!-- Последний экран: те же две кнопки, чтобы не искать их наверху -->
   <div class="cta-band">
     <div class="wrap">
-      <h2 class="title">Готовы попробовать?</h2>
-      <p class="sub">Установка бесплатна. Подписка нужна только для оценки по фотографиям.</p>
+      <h2 class="title" data-i18n="index.bandTitle">Готовы попробовать?</h2>
+      <p class="sub" data-i18n="index.bandSub">Установка бесплатна. Подписка нужна только для оценки по фотографиям.</p>
       <div class="btns center">
-        <a class="btn lg js-install js-install-main" href="#download"><span class="js-install-label">Скачать расширение</span></a>
-        <a class="btn lg ghost" href="/account.html?plan=monthly">Оплатить подписку</a>
+        <a class="btn lg js-install js-install-main" href="#download"><span class="js-install-label" data-i18n="index.btnDownloadFull">Скачать расширение</span></a>
+        <a class="btn lg ghost" href="/account.html?plan=monthly" data-i18n="index.btnPayFull">Оплатить подписку</a>
       </div>
     </div>
   </div>
@@ -334,20 +334,23 @@
 <footer class="site-foot">
   <div class="wrap">
     <div class="flinks">
-      <a href="/account.html">Личный кабинет</a>
-      <a href="/terms.html">Условия использования</a>
-      <a href="/privacy.html">Конфиденциальность</a>
-      <a href="/refund.html">Возврат средств</a>
+      <a href="/account.html" data-i18n="common.footAccount">Личный кабинет</a>
+      <a data-i18n-doc="terms" href="/terms.html" data-i18n="common.footTerms">Условия использования</a>
+      <a data-i18n-doc="privacy" href="/privacy.html" data-i18n="common.footPrivacy">Конфиденциальность</a>
+      <a data-i18n-doc="refund" href="/refund.html" data-i18n="common.footRefund">Возврат средств</a>
       <a href="mailto:support@autoswipeai.com">support@autoswipeai.com</a>
     </div>
-    <div>© <span id="year">2026</span> AutoSwipe AI · не связаны с Tinder и Match Group</div>
+    <div id="copy">© 2026 AutoSwipe AI</div>
+    <!-- Переключатель и внизу тоже: до подвала доходят те, кто ищет
+         языки и правовые документы там, где их кладут все остальные. -->
+    <div style="margin-top:16px" data-lang></div>
   </div>
 </footer>
 
 <!-- На телефоне оба действия всегда под большим пальцем. -->
 <div class="buybar">
-  <a class="btn js-install" href="#download"><span class="js-install-label">Скачать</span></a>
-  <a class="btn ghost" href="#price">Оплатить</a>
+  <a class="btn js-install" href="#download"><span class="js-install-label" data-i18n="common.download">Скачать</span></a>
+  <a class="btn ghost" href="#price" data-i18n="common.pay">Оплатить</a>
 </div>
 
 <script type="module">
@@ -357,6 +360,7 @@
  * был бы спор с покупателем, а не опечатка.
  */
 import { planById, priceLabel, yearlySavings } from './plans.js';
+import { initI18n, t, whenLangChanges } from './i18n.js';
 
 /**
  * Ссылка на расширение в Chrome Web Store. Пока пусто — кнопки честно говорят,
@@ -367,36 +371,48 @@ const CHROME_STORE_URL = '';
 
 const $ = (id) => document.getElementById(id);
 
-for (const [id, node] of [['monthly', 'priceMonthly'], ['yearly', 'priceYearly']]) {
-  const plan = planById(id);
-  if (plan) $(node).textContent = priceLabel(plan);
-}
-
-const saved = yearlySavings();
-$('save').textContent = saved ? `экономия ${saved}%` : '';
-
 /**
- * Кнопки «Скачать» — их на странице пять штук: шапка, первый экран, шаги,
- * нижняя полоса и панель на телефоне. Появится ссылка — все ведут в магазин.
- *
- * Пока её нет, крупные кнопки (`js-install-main`) честно говорят, что магазина
- * ещё нет, и нажать их нельзя. Мелкие — в шапке и на нижней панели — остаются
- * рабочими и ведут на первый экран: там это объяснение и лежит. Погасить и их
- * значило бы оставить человека с двумя серыми кнопками и без причины.
+ * То, что страница пишет сама: цены, выгода, год и подписи кнопок «Скачать».
+ * Вызывается заново при смене языка — иначе после переключения соседние
+ * строки были бы на новом языке, а эти остались бы на старом.
  */
-if (CHROME_STORE_URL) {
-  for (const el of document.querySelectorAll('.js-install')) el.href = CHROME_STORE_URL;
-} else {
+function render() {
+  for (const [id, node] of [['monthly', 'priceMonthly'], ['yearly', 'priceYearly']]) {
+    const plan = planById(id);
+    if (plan) $(node).textContent = priceLabel(plan);
+  }
+
+  const saved = yearlySavings();
+  $('save').textContent = saved ? t('index.save', { n: saved }) : '';
+
+  $('copy').textContent = t('common.copy', { year: new Date().getFullYear() });
+
+  /**
+   * Кнопки «Скачать» — их на странице пять штук: шапка, первый экран, шаги,
+   * нижняя полоса и панель на телефоне. Появится ссылка — все ведут в магазин.
+   *
+   * Пока её нет, крупные кнопки (`js-install-main`) честно говорят, что
+   * магазина ещё нет, и нажать их нельзя. Мелкие — в шапке и на нижней
+   * панели — остаются рабочими и ведут на первый экран: там это объяснение и
+   * лежит. Погасить и их значило бы оставить человека с двумя серыми кнопками
+   * и без причины.
+   */
+  if (CHROME_STORE_URL) {
+    for (const el of document.querySelectorAll('.js-install')) el.href = CHROME_STORE_URL;
+    return;
+  }
+
   for (const el of document.querySelectorAll('.js-install-main')) {
     const label = el.querySelector('.js-install-label') ?? el;
-    label.textContent = 'Скоро в Chrome Web Store';
+    label.textContent = t('index.soon');
     el.setAttribute('aria-disabled', 'true');
     el.removeAttribute('href');
   }
-  $('installNote').textContent = 'Расширение проходит проверку в Chrome Web Store. Кабинет и оплата уже работают.';
+  $('installNote').textContent = t('index.soonNote');
 }
 
-$('year').textContent = new Date().getFullYear();
+whenLangChanges(render);
+initI18n();
 </script>
 </body>
 </html>

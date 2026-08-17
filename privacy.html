@@ -8,16 +8,21 @@
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <link rel="stylesheet" href="/site.css">
+<!-- Переводы документа: по ним работает переключатель языка. -->
+<link rel="alternate" hreflang="ru" href="/privacy.html">
+<link rel="alternate" hreflang="uk" href="/privacy-uk.html">
+<link rel="alternate" hreflang="en" href="/privacy-en.html">
 </head>
 <body>
 
 <header class="site-head">
   <div class="wrap bar">
     <a class="logo" href="/"><span class="mark">◆</span> <span>AutoSwipe AI</span></a>
-    <a class="back" href="/">На главную</a>
+    <a class="back" href="/" data-i18n="common.back">На главную</a>
     <div class="head-cta" style="margin-left:18px">
-      <a class="btn sm" href="/#download">Скачать</a>
-      <a class="btn sm ghost" href="/#price">Оплатить</a>
+      <span data-lang></span>
+      <a class="btn sm" href="/#download" data-i18n="common.download">Скачать</a>
+      <a class="btn sm ghost" href="/#price" data-i18n="common.pay">Оплатить</a>
     </div>
   </div>
 </header>
@@ -163,15 +168,21 @@
 
   <footer class="site-foot">
     <div class="flinks">
-      <a href="/">Главная</a>
-      <a href="/terms.html">Условия использования</a>
-      <a href="/refund.html">Возврат средств</a>
+      <a href="/" data-i18n="common.home">Главная</a>
+      <a data-i18n-doc="terms" href="/terms.html" data-i18n="common.footTerms">Условия использования</a>
+      <a data-i18n-doc="refund" href="/refund.html" data-i18n="common.footRefund">Возврат средств</a>
       <a href="mailto:support@autoswipeai.com">support@autoswipeai.com</a>
     </div>
-    <div>© <span id="year">2026</span> AutoSwipe AI</div>
+    <div id="copy">© 2026 AutoSwipe AI</div>
   </footer>
 </div>
 
-<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script type="module">
+import { initI18n, t, whenLangChanges } from './i18n.js';
+whenLangChanges(() => {
+  document.getElementById('copy').textContent = t('common.copy', { year: new Date().getFullYear() });
+});
+initI18n();
+</script>
 </body>
 </html>

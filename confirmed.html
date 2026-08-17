@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>AutoSwipe AI — почта подтверждена</title>
+<title data-i18n="confirmed.title">AutoSwipe AI — почта подтверждена</title>
 <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <link rel="stylesheet" href="/site.css">
@@ -17,23 +17,25 @@
     <a class="logo" href="/"><span class="mark">◆</span> <span>AutoSwipe AI</span></a>
 
     <div class="mark" id="mark">✓</div>
-    <h1 id="title">Почта подтверждена</h1>
-    <p id="text">Аккаунт готов. Откройте расширение и войдите.</p>
+    <h1 id="title" data-i18n="confirmed.okTitle">Почта подтверждена</h1>
+    <p id="text" data-i18n="confirmed.okText">Аккаунт готов. Откройте расширение и войдите.</p>
     <p class="email" id="email"></p>
 
-    <a class="btn block" id="cta" href="https://tinder.com/app/recs">Перейти в Tinder</a>
+    <a class="btn block" id="cta" href="https://tinder.com/app/recs" data-i18n="confirmed.cta">Перейти в Tinder</a>
 
     <div class="steps" id="steps">
-      <b>Что дальше</b>
+      <b data-i18n="confirmed.next">Что дальше</b>
       <ol>
-        <li>Нажмите иконку расширения в панели Chrome.</li>
-        <li>Введите ту же почту и пароль — теперь вход пройдёт.</li>
-        <li>Нажмите «Старт».</li>
+        <li data-i18n="confirmed.s1">Нажмите иконку расширения в панели Chrome.</li>
+        <li data-i18n="confirmed.s2">Введите ту же почту и пароль — теперь вход пройдёт.</li>
+        <li data-i18n="confirmed.s3">Нажмите «Старт».</li>
       </ol>
     </div>
+
+    <div style="margin-top:24px" data-lang></div>
   </div>
 
-<script>
+<script type="module">
 /**
  * Supabase кладёт результат во фрагмент адреса: при успехе — токены сессии,
  * при просроченной ссылке — error/error_description.
@@ -41,38 +43,7 @@
  * Токены отсюда сразу вычищаются: фрагмент иначе остаётся в истории браузера
  * и в заголовке вкладки, а это полноценные ключи от аккаунта.
  */
-const LANGS = {
-  ru: {
-    okTitle: 'Почта подтверждена', okText: 'Аккаунт готов. Откройте расширение и войдите.',
-    badTitle: 'Ссылка не сработала',
-    badText: 'Скорее всего, она устарела. Запросите новое письмо в расширении.',
-    cta: 'Перейти в Tinder', next: 'Что дальше',
-    s1: 'Нажмите иконку расширения в панели Chrome.',
-    s2: 'Введите ту же почту и пароль — теперь вход пройдёт.',
-    s3: 'Нажмите «Старт».',
-  },
-  uk: {
-    okTitle: 'Пошту підтверджено', okText: 'Акаунт готовий. Відкрийте розширення та увійдіть.',
-    badTitle: 'Посилання не спрацювало',
-    badText: 'Найімовірніше, воно застаріло. Запросіть новий лист у розширенні.',
-    cta: 'Перейти в Tinder', next: 'Що далі',
-    s1: 'Натисніть іконку розширення на панелі Chrome.',
-    s2: 'Введіть ту саму пошту й пароль — тепер вхід пройде.',
-    s3: 'Натисніть «Старт».',
-  },
-  en: {
-    okTitle: 'Email confirmed', okText: 'Your account is ready. Open the extension and sign in.',
-    badTitle: 'That link did not work',
-    badText: 'It has most likely expired. Request a new email from the extension.',
-    cta: 'Go to Tinder', next: 'What next',
-    s1: 'Click the extension icon in the Chrome toolbar.',
-    s2: 'Enter the same email and password — sign-in will work now.',
-    s3: 'Press Start.',
-  },
-};
-
-const lang = LANGS[(navigator.language || 'en').slice(0, 2).toLowerCase()] || LANGS.en;
-document.documentElement.lang = Object.keys(LANGS).find((k) => LANGS[k] === lang);
+import { initI18n } from './i18n.js';
 
 const params = new URLSearchParams(location.hash.slice(1));
 const failed = params.has('error') || params.has('error_code');
@@ -82,23 +53,36 @@ const email = readEmail(params.get('access_token'));
 if (location.hash) history.replaceState(null, '', location.pathname + location.search);
 
 const $ = (id) => document.getElementById(id);
-$('cta').textContent = lang.cta;
-$('steps').querySelector('b').textContent = lang.next;
-[...$('steps').querySelectorAll('li')].forEach((li, i) => { li.textContent = lang['s' + (i + 1)]; });
 
 if (failed) {
   // Класс `bad` перекрашивает кружок в красный — оформление карточки задаёт
   // общий site.css, поэтому базовые классы здесь сохраняем.
   $('card').className = 'panel center bad';
   $('mark').textContent = '!';
-  $('title').textContent = lang.badTitle;
-  $('text').textContent = params.get('error_description') || lang.badText;
   $('steps').hidden = true;
-} else {
-  $('title').textContent = lang.okTitle;
-  $('text').textContent = lang.okText;
-  if (email) $('email').textContent = email;
+
+  // Меняем не текст, а ключ перевода: тогда смена языка перерисует сообщение
+  // об ошибке сама, а не вернёт заголовок «Почта подтверждена» на страницу,
+  // где ничего не подтвердилось.
+  $('title').dataset.i18n = 'confirmed.badTitle';
+  $('text').dataset.i18n = 'confirmed.badText';
+
+  // И вкладка тоже: «почта подтверждена» в её заголовке спорило бы с тем, что
+  // человек читает на странице.
+  document.querySelector('title').dataset.i18n = 'confirmed.badTitle';
+
+  // Причину, если сервер её назвал, показываем как есть: она точнее общей
+  // фразы, но переводить её нечем — это текст Supabase.
+  const why = params.get('error_description');
+  if (why) {
+    delete $('text').dataset.i18n;
+    $('text').textContent = why;
+  }
+} else if (email) {
+  $('email').textContent = email;
 }
+
+initI18n();
 
 /** Достаёт почту из полезной нагрузки токена — только чтобы показать её. */
 function readEmail(jwt) {

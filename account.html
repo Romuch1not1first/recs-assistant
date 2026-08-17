@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>AutoSwipe AI — подписка</title>
+<title data-i18n="account.title">AutoSwipe AI — подписка</title>
 <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <link rel="stylesheet" href="/site.css">
@@ -25,32 +25,34 @@
 
     <!-- Пришли из расширения со ссылкой на оплату: вход не нужен -->
     <div id="payBox" hidden>
-      <h1>Оплата подписки</h1>
-      <p id="payText">Открываю форму оплаты…</p>
+      <h1 data-i18n="account.payTitle">Оплата подписки</h1>
+      <p id="payText" data-i18n="account.payText">Открываю форму оплаты…</p>
       <div class="msg" id="payMsg"></div>
-      <a class="btn block" id="backToTinder" href="https://tinder.com/app/recs" hidden>Вернуться в Tinder</a>
+      <a class="btn block" id="backToTinder" href="https://tinder.com/app/recs" hidden data-i18n="account.backToTinder">Вернуться в Tinder</a>
     </div>
 
     <!-- Не вошёл -->
     <div id="authBox">
-      <div class="flow"><b>1. Вход</b> <i>→</i> <span>2. Оплата</span></div>
-
-      <h1 id="authTitle">Вход в аккаунт</h1>
-      <div class="tabs">
-        <button class="tab on" id="tabIn">Вход</button>
-        <button class="tab" id="tabUp">Регистрация</button>
+      <div class="flow">
+        <b data-i18n="account.flow1">1. Вход</b> <i>→</i> <span data-i18n="account.flow2">2. Оплата</span>
       </div>
-      <p id="authLead">Та же почта и пароль, что и в расширении.</p>
+
+      <h1 id="authTitle" data-i18n="account.signInTitle">Вход в аккаунт</h1>
+      <div class="tabs">
+        <button class="tab on" id="tabIn" data-i18n="account.tabIn">Вход</button>
+        <button class="tab" id="tabUp" data-i18n="account.tabUp">Регистрация</button>
+      </div>
+      <p id="authLead" data-i18n="account.leadIn">Та же почта и пароль, что и в расширении.</p>
 
       <div class="field">
-        <label for="email">Почта</label>
+        <label for="email" data-i18n="account.email">Почта</label>
         <input type="email" id="email" autocomplete="username" placeholder="you@example.com">
         <!-- Узнанный по домену почтовый сервис: видно, что адрес разобран верно. -->
         <div class="mailhint" id="mailHint" hidden></div>
       </div>
 
       <div class="field">
-        <label for="password">Пароль</label>
+        <label for="password" data-i18n="account.password">Пароль</label>
         <input type="password" id="password" autocomplete="current-password">
       </div>
 
@@ -60,15 +62,15 @@
         <div class="pwhint" id="pwHint"></div>
       </div>
       <div class="field" id="pw2Row" hidden>
-        <label for="password2">Пароль ещё раз</label>
+        <label for="password2" data-i18n="account.password2">Пароль ещё раз</label>
         <input type="password" id="password2" autocomplete="new-password">
       </div>
 
-      <button class="btn block" id="submit">Войти</button>
+      <button class="btn block" id="submit" data-i18n="account.submitIn">Войти</button>
       <div class="msg" id="authMsg"></div>
 
       <!-- Почта не подтверждена: письмо могло не дойти или устареть. -->
-      <button class="btn block plain" id="resend" hidden>Отправить письмо ещё раз</button>
+      <button class="btn block plain" id="resend" hidden data-i18n="account.resend">Отправить письмо ещё раз</button>
 
       <!-- После регистрации: куда идти за письмом. «Проверьте почту» без
            кнопки заканчивается тем, что человек уходит искать вкладку. -->
@@ -77,41 +79,44 @@
 
     <!-- Вошёл -->
     <div id="planBox" hidden>
-      <h1>Подписка</h1>
-      <div class="line"><span>Аккаунт</span><b id="who">—</b></div>
-      <div class="line"><span>Состояние</span><b id="status">—</b></div>
-      <div class="line" id="untilLine" hidden><span>Оплачена до</span><b id="until">—</b></div>
+      <h1 data-i18n="account.subTitle">Подписка</h1>
+      <div class="line"><span data-i18n="account.rowAccount">Аккаунт</span><b id="who">—</b></div>
+      <div class="line"><span data-i18n="account.rowStatus">Состояние</span><b id="status">—</b></div>
+      <div class="line" id="untilLine" hidden><span data-i18n="account.rowUntil">Оплачена до</span><b id="until">—</b></div>
 
       <!-- Тарифы видны всегда: оплата продлеваемая, отменять нечего. -->
       <div id="planPick">
-        <h2 class="title-sm center" style="margin:26px 0 4px">Выберите срок</h2>
-        <p class="tiny center" style="margin:0 0 6px">Нажмите — откроется форма оплаты.</p>
+        <h2 class="title-sm center" style="margin:26px 0 4px" data-i18n="account.pickTitle">Выберите срок</h2>
+        <p class="tiny center" style="margin:0 0 6px" data-i18n="account.pickHint">Нажмите — откроется форма оплаты.</p>
         <button class="btn block" id="planMonthly"></button>
         <button class="btn block" id="planYearly"></button>
         <div class="save" id="planSave" hidden></div>
-        <p class="tiny center" style="margin-top:14px">
+        <p class="tiny center" style="margin-top:14px" data-i18n="account.payNote">
           Криптовалютой или картой с конвертацией. Автосписания нет — срок
           продлеваете сами, новый период прибавляется к оплаченному.
         </p>
       </div>
 
-      <button class="btn block plain" id="signOut">Выйти</button>
+      <button class="btn block plain" id="signOut" data-i18n="account.signOut">Выйти</button>
       <div class="msg" id="planMsg"></div>
 
       <div class="what">
-        <b>Что открывает подписка</b>
+        <b data-i18n="account.whatTitle">Что открывает подписка</b>
         <ul>
-          <li><b>Фильтр по внешности</b> — отбор по оценке модели 1–10, а не по анкетным полям.</li>
-          <li><b>Фильтр по телосложению</b> — диапазон ИМТ по фотографиям.</li>
+          <li data-i18n-html="account.what1"><b>Фильтр по внешности</b> — отбор по оценке модели 1–10, а не по анкетным полям.</li>
+          <li data-i18n-html="account.what2"><b>Фильтр по телосложению</b> — диапазон ИМТ по фотографиям.</li>
         </ul>
-        <p style="margin-top:10px">Остальные фильтры — возраст, рост, расстояние, стоп-слова — работают без подписки.</p>
+        <p style="margin-top:10px" data-i18n="account.what3">Остальные фильтры — возраст, рост, расстояние, стоп-слова — работают без подписки.</p>
         <p style="margin-top:12px">
-          <a href="/terms.html">Условия</a> ·
-          <a href="/refund.html">Возврат</a> ·
-          <a href="/privacy.html">Конфиденциальность</a>
+          <a data-i18n-doc="terms" href="/terms.html" data-i18n="account.linkTerms">Условия</a> ·
+          <a data-i18n-doc="refund" href="/refund.html" data-i18n="account.linkRefund">Возврат</a> ·
+          <a data-i18n-doc="privacy" href="/privacy.html" data-i18n="account.linkPrivacy">Конфиденциальность</a>
         </p>
       </div>
     </div>
+
+    <!-- Язык — под карточкой, общий для всех трёх её состояний. -->
+    <div class="center" style="margin-top:24px" data-lang></div>
   </div>
 
 <script type="module">
@@ -121,6 +126,7 @@
 import { scorePassword } from './password.js';
 import { mailProvider } from './mail-providers.js';
 import { planById, priceLabel, yearlySavings } from './plans.js';
+import { initI18n, t, lang, whenLangChanges } from './i18n.js';
 
 /**
  * Страница подписки.
@@ -221,19 +227,22 @@ async function api(path, { method = 'GET', body, token } = {}) {
 }
 
 /**
- * Ошибки Supabase приходят по-английски — показываем свои по коду.
- * Незнакомый код оставляет текст сервера: он хотя бы точен.
+ * Ошибки Supabase приходят по-английски — показываем свои по коду, на языке
+ * страницы. Незнакомый код оставляет текст сервера: он хотя бы точен.
  */
 const ERRORS = {
-  invalid_credentials: 'Неверная почта или пароль',
-  email_not_confirmed: 'Почта не подтверждена — перейдите по ссылке из письма',
-  weak_password: 'Пароль короче 6 символов',
-  email_exists: 'Такая почта уже зарегистрирована',
-  user_already_exists: 'Такая почта уже зарегистрирована',
-  validation_failed: 'Проверьте введённые данные',
-  over_email_send_rate_limit: 'Слишком часто — подождите минуту',
-  over_request_rate_limit: 'Слишком часто — подождите минуту',
+  invalid_credentials: 'account.errInvalid',
+  email_not_confirmed: 'account.errNotConfirmed',
+  weak_password: 'account.errWeak',
+  email_exists: 'account.errExists',
+  user_already_exists: 'account.errExists',
+  validation_failed: 'account.errValidation',
+  over_email_send_rate_limit: 'account.errRate',
+  over_request_rate_limit: 'account.errRate',
 };
+
+/** Текст ошибки: свой по коду, иначе — что прислал сервер. */
+const errorText = (e) => (ERRORS[e.code] ? t(ERRORS[e.code]) : e.message);
 
 /* ------------------------------ экраны ------------------------------ */
 
@@ -244,25 +253,30 @@ const say = (el, text, tone = '') => {
 };
 
 const STATUS_TEXT = {
-  active: ['активна', 'ok'],
-  trialing: ['пробный период', 'ok'],
-  past_due: ['платёж не прошёл', 'warn'],
-  paused: ['приостановлена', 'warn'],
-  canceled: ['отменена', 'warn'],
-  none: ['нет', 'warn'],
+  active: ['account.stActive', 'ok'],
+  trialing: ['account.stTrialing', 'ok'],
+  past_due: ['account.stPastDue', 'warn'],
+  paused: ['account.stPaused', 'warn'],
+  canceled: ['account.stCanceled', 'warn'],
+  none: ['account.stNone', 'warn'],
 };
+
+// Последнее, что мы знаем об аккаунте. Держим отдельно, чтобы перерисовать
+// экран при смене языка, не ходя за подпиской в сеть заново.
+let session = null;
+let sub = null;
 
 async function loadPlan() {
   const token = await freshToken();
-  const session = readSession();
-  if (!token || !session) return show(null);
+  const saved = readSession();
+  if (!token || !saved) return show(null);
 
-  let sub = null;
+  let row = null;
   try {
     const rows = await api('/rest/v1/subscriptions?select=status,current_period_end&limit=1', {
       token,
     });
-    sub = rows?.[0] ?? null;
+    row = rows?.[0] ?? null;
   } catch (e) {
     // Токен протух — просим войти заново, а не показываем непонятную ошибку.
     if (String(e.message).includes('401')) {
@@ -273,13 +287,23 @@ async function loadPlan() {
     // разговор с владельцем сайта, а не с покупателем. Ему — человеческая
     // строка, подробности уходят в консоль, где их и ищут.
     console.error('подписка не прочиталась:', e.code || '', e.message);
-    say('planMsg', 'Не удалось проверить подписку. Обновите страницу или напишите нам.', 'err');
+    say('planMsg', t('account.errSubLoad'), 'err');
   }
 
-  show(session, sub);
+  show(saved, row);
 }
 
-function show(session, sub) {
+function show(next, nextSub) {
+  session = next ?? null;
+  sub = nextSub ?? null;
+  paint();
+
+  // Пришли с витрины с выбранным тарифом — открываем счёт сразу.
+  if (session) usePendingPlan();
+}
+
+/** Перерисовать экран по тому, что уже известно. Зовётся и при смене языка. */
+function paint() {
   $('payBox').hidden = true;
   $('authBox').hidden = !!session;
   $('planBox').hidden = !session;
@@ -288,20 +312,19 @@ function show(session, sub) {
   $('who').textContent = session.email;
 
   const status = sub?.status ?? 'none';
-  const [text, tone] = STATUS_TEXT[status] ?? [status, 'warn'];
-  $('status').textContent = text;
+  const [key, tone] = STATUS_TEXT[status] ?? [null, 'warn'];
+  $('status').textContent = key ? t(key) : status;
   $('status').className = tone;
 
   const until = sub?.current_period_end ? new Date(sub.current_period_end) : null;
   $('untilLine').hidden = !until || Number.isNaN(+until);
-  if (until && !Number.isNaN(+until)) $('until').textContent = until.toLocaleDateString('ru-RU');
+  // Дата в формате языка страницы: 17.09.2026 против 17/09/2026 — это не
+  // мелочь, из даты 03.04 и 04/03 получаются разные дни.
+  if (until && !Number.isNaN(+until)) $('until').textContent = until.toLocaleDateString(lang());
 
   // Тарифы показываем всегда: подписка продлеваемая, и оплатить следующий
   // период человек должен сам — срок прибавится к текущему.
   renderPlans();
-
-  // Пришли с витрины с выбранным тарифом — открываем счёт сразу.
-  usePendingPlan();
 }
 
 /**
@@ -311,15 +334,17 @@ function show(session, sub) {
  * к оплате, а не переключает тариф где-то на странице.
  */
 function renderPlans() {
-  for (const [id, button] of [['monthly', 'planMonthly'], ['yearly', 'planYearly']]) {
+  for (const [id, button, key] of [
+    ['monthly', 'planMonthly', 'account.payMonth'],
+    ['yearly', 'planYearly', 'account.payYear'],
+  ]) {
     const plan = planById(id);
-    if (!plan) continue;
-    $(button).textContent = `Оплатить ${id === 'yearly' ? 'год' : 'месяц'} — ${priceLabel(plan)}`;
+    if (plan) $(button).textContent = t(key, { price: priceLabel(plan) });
   }
 
   const saved = yearlySavings();
   $('planSave').hidden = !saved;
-  $('planSave').textContent = saved ? `годовая выгоднее на ${saved}%` : '';
+  $('planSave').textContent = saved ? t('account.saveYear', { n: saved }) : '';
 }
 
 /* ------------------------- вход и регистрация ------------------------- */
@@ -329,12 +354,12 @@ let mode = 'signIn'; // signIn | signUp
 const PW_COLORS = ['#c9182b', '#c9182b', '#a45c00', '#14804a', '#14804a'];
 
 const PW_TEXT = {
-  short: 'коротковат: нужно хотя бы 8 символов',
-  common: 'этот пароль есть в списках для подбора',
-  plain: 'одни буквы или одни цифры — добавьте разного',
-  2: 'сойдёт',
-  3: 'хороший',
-  4: 'надёжный',
+  short: 'account.pwShort',
+  common: 'account.pwCommon',
+  plain: 'account.pwPlain',
+  2: 'account.pw2',
+  3: 'account.pw3',
+  4: 'account.pw4',
 };
 
 /**
@@ -350,9 +375,8 @@ function renderStrength() {
   for (let i = 0; i < cells.length; i++) cells[i].classList.toggle('on', i < level);
   $('pwBar').style.setProperty('--pw', PW_COLORS[level]);
 
-  $('pwHint').textContent = value
-    ? (PW_TEXT[issue] ?? PW_TEXT[level] ?? '')
-    : 'от 8 символов, буквы и цифры';
+  const key = PW_TEXT[issue] ?? PW_TEXT[level];
+  $('pwHint').textContent = value ? (key ? t(key) : '') : t('account.pwEmpty');
   $('pwHint').style.color = !value || ok ? '' : 'var(--warn)';
 }
 
@@ -379,7 +403,7 @@ function showMailButton(email) {
   $('openMail').hidden = !provider;
   if (!provider) return;
 
-  $('openMail').textContent = `Открыть ${provider.name}`;
+  $('openMail').textContent = t('account.openMail', { name: provider.name });
   $('openMail').href = provider.url;
 }
 
@@ -394,11 +418,9 @@ function setMode(next) {
 
   $('tabIn').classList.toggle('on', !signUp);
   $('tabUp').classList.toggle('on', signUp);
-  $('authTitle').textContent = signUp ? 'Регистрация' : 'Вход в аккаунт';
-  $('authLead').textContent = signUp
-    ? 'Этой же почтой и паролем вы будете входить в расширении.'
-    : 'Та же почта и пароль, что и в расширении.';
-  $('submit').textContent = signUp ? 'Зарегистрироваться' : 'Войти';
+  $('authTitle').textContent = t(signUp ? 'account.signUpTitle' : 'account.signInTitle');
+  $('authLead').textContent = t(signUp ? 'account.leadUp' : 'account.leadIn');
+  $('submit').textContent = t(signUp ? 'account.submitUp' : 'account.submitIn');
   $('password').autocomplete = signUp ? 'new-password' : 'current-password';
 
   // Повтор пароля и индикатор нужны там, где пароль придумывают. При входе он
@@ -433,36 +455,36 @@ async function doSignIn(email, password) {
  * отправит.
  */
 async function doSignUp(email, password) {
-  if (password !== $('password2').value) throw new Error('Пароли не совпадают');
-  if (!scorePassword(password).ok) throw new Error('Пароль слишком простой — его подберут');
+  if (password !== $('password2').value) throw new Error(t('account.errMismatch'));
+  if (!scorePassword(password).ok) throw new Error(t('account.errSimple'));
 
   const data = await api('/auth/v1/signup', { method: 'POST', body: { email, password } });
 
   if (Array.isArray(data?.identities) && data.identities.length === 0) {
     setMode('signIn');
-    throw new Error('Такая почта уже зарегистрирована — войдите или восстановите пароль');
+    throw new Error(t('account.errTaken'));
   }
 
   setMode('signIn');
   $('password').value = '';
   $('password2').value = '';
-  say('authMsg', 'Аккаунт создан. Проверьте почту и перейдите по ссылке из письма — потом войдите здесь.', 'ok');
+  say('authMsg', t('account.msgSignedUp'), 'ok');
   showMailButton(email);
 }
 
 async function submitAuth() {
   const email = $('email').value.trim();
   const password = $('password').value;
-  if (!email || !password) return say('authMsg', 'Введите почту и пароль', 'err');
+  if (!email || !password) return say('authMsg', t('account.errEmpty'), 'err');
 
   const signUp = mode === 'signUp';
   $('submit').disabled = true;
-  if (!signUp) say('authMsg', 'Минуту…');
+  if (!signUp) say('authMsg', t('account.msgWait'));
 
   try {
     await (signUp ? doSignUp(email, password) : doSignIn(email, password));
   } catch (e) {
-    say('authMsg', ERRORS[e.code] ?? e.message, 'err');
+    say('authMsg', errorText(e), 'err');
 
     // Пароль верный, но по ссылке из письма не переходили. Тупик, если не дать
     // отсюда же выслать письмо заново: старое могло не дойти или устареть.
@@ -482,13 +504,13 @@ $('resend').addEventListener('click', async () => {
   if (!email) return;
 
   $('resend').disabled = true;
-  say('authMsg', 'Отправляю…');
+  say('authMsg', t('account.msgSending'));
   try {
     await api('/auth/v1/resend', { method: 'POST', body: { type: 'signup', email } });
-    say('authMsg', 'Письмо отправлено. Перейдите по ссылке из него, затем войдите.', 'ok');
+    say('authMsg', t('account.msgSent'), 'ok');
     $('resend').hidden = true;
   } catch (e) {
-    say('authMsg', ERRORS[e.code] ?? e.message, 'err');
+    say('authMsg', errorText(e), 'err');
   } finally {
     $('resend').disabled = false;
   }
@@ -523,14 +545,14 @@ async function openCheckout(planId) {
   const plan = planById(planId);
   if (!plan) return;
 
-  say('planMsg', 'Готовлю счёт…');
+  say('planMsg', t('account.msgInvoice'));
 
   // Токен берём живой: сохранённый живёт час, и через час кнопка молча
   // переставала бы работать.
   const token = await freshToken();
   if (!token) {
     show(null);
-    return say('authMsg', 'Сессия закончилась — войдите заново', 'err');
+    return say('authMsg', t('account.errSession'), 'err');
   }
 
   try {
@@ -551,7 +573,7 @@ async function openCheckout(planId) {
     location.href = data.url;
   } catch (e) {
     console.error('счёт не создался:', e.message);
-    say('planMsg', 'Не удалось создать счёт. Попробуйте ещё раз или напишите нам.', 'err');
+    say('planMsg', t('account.errInvoice'), 'err');
   }
 }
 
@@ -578,6 +600,15 @@ function usePendingPlan() {
 
 /* ------------------------------ запуск ------------------------------ */
 
+// Смена языка перерисовывает и то, что страница пишет сама: заголовки вкладок,
+// подписи тарифов, состояние подписки. Иначе половина карточки осталась бы на
+// прежнем языке.
+whenLangChanges(() => {
+  setMode(mode);
+  paint();
+});
+
+initI18n();
 loadPlan();
 </script>
 </body>

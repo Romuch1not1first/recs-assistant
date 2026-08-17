@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Refunds — AutoSwipe AI</title>
+<meta name="description" content="AutoSwipe AI refund terms: deadlines, the procedure and how renewal works.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="/site.css">
+<link rel="alternate" hreflang="ru" href="/refund.html">
+<link rel="alternate" hreflang="uk" href="/refund-uk.html">
+<link rel="alternate" hreflang="en" href="/refund-en.html">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="logo" href="/"><span class="mark">◆</span> <span>AutoSwipe AI</span></a>
+    <a class="back" href="/" data-i18n="common.back">Home</a>
+    <div class="head-cta" style="margin-left:18px">
+      <span data-lang></span>
+      <a class="btn sm" href="/#download" data-i18n="common.download">Download</a>
+      <a class="btn sm ghost" href="/#price" data-i18n="common.pay">Subscribe</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap narrow doc">
+  <h1>Refunds</h1>
+  <p class="updated">In effect from 15 August 2026</p>
+
+  <div class="note">
+    <p>
+      <b>In short.</b> If it is not for you, write to us within <b>14 days</b> of the payment
+      and we will refund it in full. No need to explain why.
+    </p>
+  </div>
+
+  <p class="tiny">
+    This document was originally written in Russian. This translation is provided for
+    convenience; in case of any discrepancy the <a href="/refund.html">Russian version</a>
+    prevails.
+  </p>
+
+  <h2>1. Full refund within 14 days</h2>
+  <p>
+    If the extension did not suit you, write to
+    <a href="mailto:support@autoswipeai.com">support@autoswipeai.com</a> within 14 days of the
+    payment date. We will return the full amount. You do not have to give a reason.
+  </p>
+  <p>
+    The rule applies to both the monthly and the yearly subscription, and covers the first
+    payment as well as an automatic renewal, if you forgot to cancel and noticed the charge.
+  </p>
+
+  <h2>2. After 14 days</h2>
+  <p>
+    Payment for a period that has already started is not refunded: the subscription is
+    cancelled and access remains until the end of the term you paid for. Unused days within a
+    period are not recalculated.
+  </p>
+  <p>Exceptions, where we refund later as well:</p>
+  <ul>
+    <li>the service was down through our fault for more than <b>7 days in a row</b>;</li>
+    <li>you were charged twice for the same period;</li>
+    <li>the payment was made from your card without your knowledge.</li>
+  </ul>
+
+  <h2>3. When no refund is given</h2>
+  <ul>
+    <li>Your Tinder account was limited or banned. That risk is described in the
+      <a data-i18n-doc="terms" href="/terms-en.html">terms of use</a> and is outside our
+      control.</li>
+    <li>You found the model's score inaccurate. The limits of the score are described in
+      advance — on the home page and in the terms.</li>
+    <li>Tinder changed its site and we released a fix within a reasonable time.</li>
+    <li>The account was blocked for breaching the terms of use.</li>
+  </ul>
+
+  <h2>4. How to get a refund</h2>
+  <ol>
+    <li>Write to <a href="mailto:support@autoswipeai.com">support@autoswipeai.com</a> from the
+      email address the account is registered to.</li>
+    <li>Give the payment date and the wallet address you paid from — that is how we find the
+      transaction.</li>
+    <li>We answer within 3 working days.</li>
+  </ol>
+  <p>
+    We send the refund ourselves, to the same wallet the payment came from — there is no other
+    way to confirm the recipient.
+  </p>
+  <div class="note">
+    <p>
+      <b>A note on crypto payments.</b> We return the same amount in dollar terms as you paid.
+      The coin's rate may have moved either way in the meantime — in coins you may receive more
+      or less than you sent. The network fee for the transfer is deducted from the refund:
+      sending a transaction for free is not possible.
+    </p>
+    <p>
+      If you paid by card with conversion, the refund still arrives in cryptocurrency: the
+      payment service has no conversion back to a card.
+    </p>
+  </div>
+
+  <h2>5. There is nothing to cancel</h2>
+  <p>
+    We have no automatic renewal: you pay for a term, and when it ends access stops by itself.
+    Nothing is ever charged without you, so there is no subscription to cancel — simply do not
+    pay for the next period.
+  </p>
+  <p>
+    The current term is shown in your <a href="/account.html">account</a> and in the extension
+    itself, in the “Subscription” row.
+  </p>
+
+  <footer class="site-foot">
+    <div class="flinks">
+      <a href="/" data-i18n="common.home">Home</a>
+      <a data-i18n-doc="terms" href="/terms-en.html" data-i18n="common.footTerms">Terms of use</a>
+      <a data-i18n-doc="privacy" href="/privacy-en.html" data-i18n="common.footPrivacy">Privacy</a>
+      <a href="mailto:support@autoswipeai.com">support@autoswipeai.com</a>
+    </div>
+    <div id="copy">© 2026 AutoSwipe AI</div>
+  </footer>
+</div>
+
+<script type="module">
+import { initI18n, t, whenLangChanges } from './i18n.js';
+whenLangChanges(() => {
+  document.getElementById('copy').textContent = t('common.copy', { year: new Date().getFullYear() });
+});
+initI18n();
+</script>
+</body>
+</html>

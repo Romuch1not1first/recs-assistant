@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>AutoSwipe AI — оплата принята</title>
+<title data-i18n="paid.title">AutoSwipe AI — оплата принята</title>
 <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <link rel="stylesheet" href="/site.css">
@@ -14,28 +14,35 @@
     <a class="logo" href="/"><span class="mark">◆</span> <span>AutoSwipe AI</span></a>
 
     <div class="mark">✓</div>
-    <h1>Оплата принята</h1>
-    <p>
+    <h1 data-i18n="paid.h1">Оплата принята</h1>
+    <p data-i18n="paid.text">
       Платёж отправлен в сеть. Доступ откроется, как только транзакцию подтвердят —
       обычно это занимает от одной до нескольких минут.
     </p>
 
-    <a class="btn block" href="/account.html">Проверить состояние подписки</a>
-    <a class="btn block plain" href="https://tinder.com/app/recs">Перейти в Tinder</a>
+    <a class="btn block" href="/account.html" data-i18n="paid.btnCheck">Проверить состояние подписки</a>
+    <a class="btn block plain" href="https://tinder.com/app/recs" data-i18n="paid.btnTinder">Перейти в Tinder</a>
 
     <div class="steps">
-      <b>Что дальше</b>
+      <b data-i18n="paid.next">Что дальше</b>
       <ol>
-        <li>Дождитесь подтверждения сети — обновите страницу кабинета через пару минут.</li>
-        <li>Откройте расширение: в строке «Подписка» появится дата, до которой оплачено.</li>
-        <li>Фильтры внешности и телосложения в панели разблокируются.</li>
+        <li data-i18n="paid.s1">Дождитесь подтверждения сети — обновите страницу кабинета через пару минут.</li>
+        <li data-i18n="paid.s2">Откройте расширение: в строке «Подписка» появится дата, до которой оплачено.</li>
+        <li data-i18n="paid.s3">Фильтры внешности и телосложения в панели разблокируются.</li>
       </ol>
-      <p class="tiny" style="margin-top:14px">
+      <p class="tiny" style="margin-top:14px" data-i18n-html="paid.support">
         Если через полчаса доступ не открылся — напишите на
         <a href="mailto:support@autoswipeai.com">support@autoswipeai.com</a>,
         приложив адрес кошелька, с которого платили.
       </p>
     </div>
+
+    <div style="margin-top:24px" data-lang></div>
   </div>
+
+<script type="module">
+import { initI18n } from './i18n.js';
+initI18n();
+</script>
 </body>
 </html>
