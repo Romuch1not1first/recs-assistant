@@ -144,12 +144,16 @@
       <div class="line"><span>Состояние</span><b id="status">—</b></div>
       <div class="line" id="untilLine" hidden><span>Оплачена до</span><b id="until">—</b></div>
 
+      <!-- Тарифы видны всегда: оплата продлеваемая, отменять нечего. -->
       <div id="planPick">
         <button class="btn pro" id="planMonthly"></button>
         <button class="btn pro" id="planYearly"></button>
         <div class="save" id="planSave" hidden></div>
+        <div class="what" style="margin-top:12px;padding-top:0;border:0">
+          Оплата криптой или картой с конвертацией. Автосписания нет —
+          срок продлеваете сами, новый период прибавляется к оплаченному.
+        </div>
       </div>
-      <button class="btn ghost" id="manage" hidden>Управление подпиской</button>
       <button class="btn ghost" id="signOut">Выйти</button>
       <div class="msg" id="planMsg"></div>
 
@@ -169,7 +173,6 @@
     </div>
   </div>
 
-<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
 <script type="module">
 // Правило надёжности пароля — из общего файла, а не переписанное здесь заново:
 // иначе сайт и расширение однажды разошлись бы в том, какой пароль считать
@@ -181,30 +184,20 @@ import { planById, priceLabel, yearlySavings } from './plans.js';
 /**
  * Страница подписки.
  *
- * Здесь нет и не должно быть серверного ключа Paddle (`pdl_live_apikey_…`):
- * страница открыта любому. Внизу — только client-side token, он для того и
- * выдан, чтобы лежать в браузере.
+ * Платёжных ключей здесь нет: счёт создаёт Edge Function по токену вошедшего,
+ * а страница только показывает результат. Всё, что лежит ниже, — публичное.
  *
  * Вход отдельный от расширения намеренно: тянуть сюда токены из расширения
  * через адресную строку — значит оставить ключи от аккаунта в истории браузера.
  */
 
-/* ------------------------- что нужно заполнить ------------------------- */
-
 const CONFIG = {
   supabaseUrl: 'https://scghlieavejohghkuozu.supabase.co',
   supabaseKey: 'sb_publishable_tVIZPhzT4ZS2vBG2cqjMkw_ea2BXSB3',
-
-  // Paddle → Developer Tools → Authentication → Client-side tokens.
-  // Он для того и выдан, чтобы лежать в браузере. НЕ `pdl_live_apikey_…`.
-  paddleToken: 'live_249e7769529bc31e36f197a7f57',
-
-  // 'sandbox' на время проверки, 'production' — когда пойдут живые деньги.
-  paddleEnv: 'production',
 };
 
-// Цены продукта AI Swapper лежат в plans.js — общем с расширением, чтобы popup
-// и эта страница не разошлись в том, сколько стоит подписка.
+// Цены лежат в plans.js — общем с расширением, чтобы popup и эта страница
+// не разошлись в том, сколько стоит подписка.
 
 /* ---------------------------- Supabase ---------------------------- */
 
@@ -320,14 +313,11 @@ function show(session, sub) {
   $('untilLine').hidden = !until || Number.isNaN(+until);
   if (until && !Number.isNaN(+until)) $('until').textContent = until.toLocaleDateString('ru-RU');
 
-  // Тарифы не нужны тому, у кого подписка уже есть, — ему нужна кнопка
-  // управления. Показываем что-то одно.
-  const live = status === 'active' || status === 'trialing' || status === 'past_due';
-  $('planPick').hidden = live;
-  $('manage').hidden = !live;
-  if (!live) renderPlans();
+  // Тарифы показываем всегда: подписка продлеваемая, и оплатить следующий
+  // период человек должен сам — срок прибавится к текущему.
+  renderPlans();
 
-  // Пришли с витрины с выбранным тарифом — открываем его форму.
+  // Пришли с витрины с выбранным тарифом — открываем счёт сразу.
   usePendingPlan();
 }
 
@@ -534,25 +524,39 @@ $('signOut').addEventListener('click', () => {
   show(null);
 });
 
-/** Открывает форму оплаты выбранного тарифа. */
-function openCheckout(planId) {
+/**
+ * Открывает счёт на оплату выбранного тарифа.
+ *
+ * Сумму и срок задаёт сервер: отсюда уходит только имя тарифа, иначе год
+ * покупался бы по цене месяца. На странице счёта покупатель сам выберет,
+ * платить криптой или картой с конвертацией.
+ */
+async function openCheckout(planId) {
   const session = readSession();
   const plan = planById(planId);
   if (!session || !plan) return;
 
-  // Скрипт Paddle грузится со стороннего домена: его режут и блокировщики, и
-  // корпоративные сети. Без этой проверки клик молча падал бы в консоль.
-  if (typeof Paddle === 'undefined') {
-    return say('planMsg', 'Форма оплаты не загрузилась — отключите блокировщик рекламы и обновите страницу.', 'err');
-  }
+  say('planMsg', 'Готовлю счёт…');
+  try {
+    const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/nowpayments-checkout`, {
+      method: 'POST',
+      headers: {
+        apikey: CONFIG.supabaseKey,
+        Authorization: `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ plan: plan.id }),
+    });
 
-  // user_id уезжает в Paddle и возвращается в вебхуке — по нему сервер и
-  // понимает, чью подписку записывать.
-  Paddle.Checkout.open({
-    items: [{ priceId: plan.priceId, quantity: 1 }],
-    customer: { email: session.email },
-    customData: { user_id: session.user_id, plan: plan.id },
-  });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.url) throw new Error(data?.error || `HTTP ${res.status}`);
+
+    say('planMsg', '');
+    location.href = data.url;
+  } catch (e) {
+    console.error('счёт не создался:', e.message);
+    say('planMsg', 'Не удалось создать счёт. Попробуйте ещё раз или напишите нам.', 'err');
+  }
 }
 
 for (const [button, plan] of [['planMonthly', 'monthly'], ['planYearly', 'yearly']]) {
@@ -569,107 +573,16 @@ for (const [button, plan] of [['planMonthly', 'monthly'], ['planYearly', 'yearly
 let pendingPlan = planById(new URLSearchParams(location.search).get('plan'))?.id ?? null;
 
 function usePendingPlan() {
-  if (!pendingPlan || $('planPick').hidden) return;
+  if (!pendingPlan) return;
 
   const plan = pendingPlan;
   pendingPlan = null; // один раз: закрыл форму — сам решает, открывать ли снова
   openCheckout(plan);
 }
 
-/**
- * Управление подпиской — портал Paddle. Ссылку выдаёт только их API по
- * серверному ключу, поэтому её создаёт Edge Function, а не эта страница.
- */
-$('manage').addEventListener('click', async () => {
-  const session = readSession();
-  if (!session) return;
-
-  $('manage').disabled = true;
-  say('planMsg', 'Открываю портал…');
-  try {
-    const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/paddle-portal`, {
-      method: 'POST',
-      headers: { apikey: CONFIG.supabaseKey, Authorization: `Bearer ${session.access_token}` },
-    });
-    const data = await res.json();
-    if (!res.ok || !data.url) throw new Error(data.error || `HTTP ${res.status}`);
-
-    say('planMsg', '');
-    location.href = data.url;
-  } catch (e) {
-    say('planMsg', `Портал недоступен: ${e.message}`, 'err');
-  } finally {
-    $('manage').disabled = false;
-  }
-});
-
 /* ------------------------------ запуск ------------------------------ */
 
-/**
- * Оплата прошла. Дальше два разных случая: пришли из расширения (сессии на
- * странице нет — просто говорим «готово») или вошли здесь сами (тогда есть что
- * обновить на экране).
- */
-function onPaid() {
-  if (!readSession()) {
-    $('payText').textContent = 'Оплата прошла.';
-    say('payMsg', 'Вернитесь в расширение — фильтры внешности и телосложения уже открыты.', 'ok');
-    $('backToTinder').hidden = false;
-    return;
-  }
-
-  // Вебхук идёт своим путём и приходит через секунду-другую: перечитываем
-  // подписку несколько раз, иначе человек увидит «нет» сразу после оплаты.
-  say('planMsg', 'Оплата прошла. Обновляю состояние…', 'ok');
-  let left = 6;
-  const timer = setInterval(async () => {
-    await loadPlan();
-
-    const active = !$('manage').hidden; // кнопку управления показывают только живой подписке
-    if (active || --left <= 0) clearInterval(timer);
-    say(
-      'planMsg',
-      active
-        ? 'Готово. Откройте расширение — фильтры уже доступны.'
-        : 'Оплата прошла, подписка ещё записывается…',
-      'ok'
-    );
-  }, 2000);
-}
-
-const paddleReady = !CONFIG.paddleToken.includes('CHANGE_ME');
-if (paddleReady) {
-  if (CONFIG.paddleEnv === 'sandbox') Paddle.Environment.set('sandbox');
-  Paddle.Initialize({
-    token: CONFIG.paddleToken,
-    eventCallback: (e) => {
-      if (e.name === 'checkout.completed') onPaid();
-    },
-  });
-}
-
-/**
- * `_ptxn` в адресе — транзакция, созданная сервером для вошедшего в расширении.
- * Вход здесь в этом случае не нужен и не показывается: кто уже вошёл в
- * расширении, тот уже опознан, а второй логин перед оплатой только отпугивает.
- */
-const ptxn = new URLSearchParams(location.search).get('_ptxn');
-
-if (!ptxn) {
-  loadPlan();
-} else {
-  $('payBox').hidden = false;
-  $('authBox').hidden = true;
-  $('planBox').hidden = true;
-
-  if (!paddleReady) {
-    say('payMsg', 'Оплата ещё не настроена: в CONFIG не заполнен paddleToken.', 'err');
-  } else if (typeof Paddle === 'undefined') {
-    say('payMsg', 'Форма оплаты не загрузилась — отключите блокировщик рекламы и обновите страницу.', 'err');
-  } else {
-    Paddle.Checkout.open({ transactionId: ptxn });
-  }
-}
+loadPlan();
 </script>
 </body>
 </html>
