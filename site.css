@@ -241,15 +241,21 @@ h1, h2, h3 { letter-spacing: -.02em; font-weight: 600; margin: 0; }
   appearance: none; -webkit-appearance: none;
   padding: 8px 31px 8px 14px;
   border: 1px solid var(--line); border-radius: var(--pill);
-  background-color: transparent; color: var(--text);
+  /* Фон обязан быть непрозрачным. Раскрытый список браузер рисует цветом фона
+     самого поля, и с `transparent` он получал белую подложку — а текст на ней
+     оставался светлым, из-за чего в тёмной теме невыбранные языки пропадали. */
+  background-color: var(--card); color: var(--text);
   font-family: inherit; font-size: 15px; line-height: 1.2;
   cursor: pointer;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
-  transition: background-color .18s ease, border-color .18s ease;
+  transition: border-color .18s ease;
 }
-.lang:hover { background-color: var(--fill); }
+/* Строки списка красим отдельно: часть браузеров не наследует их у поля. */
+.lang option { background-color: var(--card); color: var(--text); }
+/* Наведение — рамкой, а не фоном: менять фон нельзя, от него зависит список. */
+.lang:hover { border-color: var(--text-3); }
 .site-foot .lang { font-size: 14px; padding: 7px 28px 7px 12px; }
 
 @media (max-width: 900px) {
