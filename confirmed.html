@@ -82,7 +82,7 @@ if (failed) {
   $('email').textContent = email;
 }
 
-initI18n();
+await initI18n();
 
 /** Достаёт почту из полезной нагрузки токена — только чтобы показать её. */
 function readEmail(jwt) {

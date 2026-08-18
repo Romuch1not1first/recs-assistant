@@ -1,14 +1,17 @@
 /**
  * Язык сайта.
  *
- * Берётся из браузера: человеку, у которого система на украинском, не нужно
+ * Берётся из браузера: человеку, у которого система на испанском, не нужно
  * искать переключатель — страница уже открылась так, как ему удобно. Выбранный
  * руками язык запоминается и с этого момента главнее браузерного: раз человек
  * переключил, значит браузер угадал неверно, и переспрашивать его на каждой
  * странице было бы невежливо.
  *
- * Тексты лежат в strings.js — общем файле на все страницы. Разметка помечает
- * места, куда их подставить:
+ * Тексты лежат по файлу на язык в lang/ и **подгружаются по одному**. Одиннадцать
+ * словарей в одном файле — это около 120 КБ, которые качал бы каждый посетитель
+ * ради одного нужного ему языка.
+ *
+ * Разметка помечает места, куда подставить строки:
  *
  *   data-i18n="ключ"                  — заменить текст элемента
  *   data-i18n-html="ключ"             — то же, но строка со ссылками и <b>
@@ -21,18 +24,32 @@
  * Правовые документы переводом в словаре не занимаются: это отдельные файлы
  * (terms.html, terms-uk.html, terms-en.html), потому что договор должен
  * читаться и без работающего JavaScript, и поисковиком, и платёжным сервисом.
- * Такие страницы связаны между собой через <link rel="alternate" hreflang>, и
- * переключатель на них не перекрашивает текст, а уводит на нужный файл.
+ * Переведены они не на все языки — см. DOC_LANGS.
  */
-
-import { STRINGS } from './strings.js';
 
 /** Языки в том порядке, в каком они стоят в переключателе. */
 export const LANGS = [
+  { id: 'en', name: 'English' },
   { id: 'ru', name: 'Русский' },
   { id: 'uk', name: 'Українська' },
-  { id: 'en', name: 'English' },
+  { id: 'de', name: 'Deutsch' },
+  { id: 'es', name: 'Español' },
+  { id: 'fr', name: 'Français' },
+  { id: 'it', name: 'Italiano' },
+  { id: 'nl', name: 'Nederlands' },
+  { id: 'pl', name: 'Polski' },
+  { id: 'pt', name: 'Português' },
+  { id: 'tr', name: 'Türkçe' },
 ];
+
+/**
+ * Языки, на которые переведены правовые документы.
+ *
+ * Их меньше, чем языков интерфейса, и намеренно: договор, переведённый машинно
+ * и не вычитанный никем из команды, — это обязательство, за которое некому
+ * отвечать. Остальным языкам показывается английская версия.
+ */
+export const DOC_LANGS = ['ru', 'uk', 'en'];
 
 /** Язык, на котором говорим с тем, чей браузер настроен на что-то ещё. */
 const FALLBACK = 'en';
@@ -64,8 +81,8 @@ const writeChoice = (id) => {
  *
  * Сначала выбранный руками, потом браузерный. `navigator.languages` — это весь
  * список предпочтений человека, а не только первый: у того, у кого стоит
- * «польский, украинский, русский», мы возьмём украинский, а не уйдём в
- * запасной английский, потому что польского у нас нет.
+ * «датский, немецкий, английский», мы возьмём немецкий, а не уйдём сразу в
+ * английский, потому что датского у нас нет.
  */
 export function pickLang() {
   const chosen = readChoice();
@@ -81,6 +98,29 @@ export function pickLang() {
 
 let current = pickLang();
 
+/** Загруженные словари: язык страницы и английский про запас. */
+const dicts = new Map();
+
+async function load(id) {
+  if (dicts.has(id)) return dicts.get(id);
+  try {
+    const mod = await import(`./lang/${id}.js`);
+    dicts.set(id, mod.default);
+  } catch {
+    // Файл не доехал до сайта или сеть подвела. Пустой словарь честнее
+    // исключения: сработает запасной английский, а страница откроется.
+    console.error('словарь не загрузился:', id);
+    dicts.set(id, {});
+  }
+  return dicts.get(id);
+}
+
+/** Готовит словарь текущего языка и английский, если он не тот же. */
+async function ready() {
+  await load(current);
+  if (current !== FALLBACK) await load(FALLBACK);
+}
+
 /** Текущий язык — для кода, которому нужно знать его самому. */
 export const lang = () => current;
 
@@ -91,14 +131,25 @@ export const lang = () => current;
  * берём английскую, её нет — ключ виден в разметке, и пропажу сразу заметно.
  */
 export function t(key, vars) {
-  let s = STRINGS[current]?.[key] ?? STRINGS[FALLBACK]?.[key];
+  let s = dicts.get(current)?.[key] ?? dicts.get(FALLBACK)?.[key];
   if (s == null) return key;
   if (vars) for (const [name, value] of Object.entries(vars)) s = s.split(`{${name}}`).join(value);
   return s;
 }
 
-/** Адрес правового документа на текущем языке. Русский лежит без суффикса. */
-export const docUrl = (name) => (current === 'ru' ? `/${name}.html` : `/${name}-${current}.html`);
+/**
+ * Адрес правового документа. Русский лежит без суффикса; язык, на который
+ * договор не переведён, ведёт на английскую версию.
+ */
+const docLang = () => (DOC_LANGS.includes(current) ? current : FALLBACK);
+
+export function docUrl(name) {
+  const id = docLang();
+  return id === 'ru' ? `/${name}.html` : `/${name}-${id}.html`;
+}
+
+/** Правовая страница узнаётся по ссылкам на свои переводы. */
+const isDocPage = () => !!document.querySelector('link[rel="alternate"][hreflang]');
 
 const onApply = [];
 
@@ -106,14 +157,18 @@ const onApply = [];
 export const whenLangChanges = (fn) => onApply.push(fn);
 
 function apply() {
-  document.documentElement.lang = current;
+  // На правовой странице `lang` обязан описывать сам документ, а не выбранный
+  // язык интерфейса: испанцу мы показываем английский договор, и `lang="es"`
+  // на английском тексте — прямая ложь читалке и поисковику. Кнопки в шапке
+  // при этом остаются испанскими, и это правильно.
+  document.documentElement.lang = isDocPage() ? docLang() : current;
 
   for (const el of document.querySelectorAll('[data-i18n]')) {
     el.textContent = t(el.dataset.i18n);
   }
 
-  // innerHTML здесь безопасен: строки свои, из strings.js, снаружи в них
-  // ничего не попадает.
+  // innerHTML здесь безопасен: строки свои, из lang/, снаружи в них ничего
+  // не попадает.
   for (const el of document.querySelectorAll('[data-i18n-html]')) {
     el.innerHTML = t(el.dataset.i18nHtml);
   }
@@ -138,22 +193,33 @@ function apply() {
 }
 
 /**
+ * Ссылка на этот же документ на другом языке.
+ *
+ * Нет перевода — отдаём английский: у правовых страниц языков меньше, чем у
+ * интерфейса, и уводить испанца в никуда нельзя.
+ */
+const altFor = (id) =>
+  document.querySelector(`link[rel="alternate"][hreflang="${id}"]`) ??
+  document.querySelector(`link[rel="alternate"][hreflang="${FALLBACK}"]`);
+
+/**
  * Сменить язык.
  *
  * На правовых страницах перекрашивать нечего — там текст лежит в отдельном
  * файле, и переключатель просто уводит на него.
  */
-export function setLang(id) {
+export async function setLang(id) {
   if (!known(id) || id === current) return;
   writeChoice(id);
 
-  const alt = document.querySelector(`link[rel="alternate"][hreflang="${id}"]`);
+  const alt = altFor(id);
   if (alt) {
     location.href = alt.href;
     return;
   }
 
   current = id;
+  await ready();
   apply();
 }
 
@@ -164,7 +230,7 @@ export function setLang(id) {
  * которая тут же снова себя заменяет, и выйти назад было бы невозможно.
  */
 function redirectDocPage() {
-  const alt = document.querySelector(`link[rel="alternate"][hreflang="${current}"]`);
+  const alt = altFor(current);
   if (!alt) return false;
 
   const there = new URL(alt.href, location.href);
@@ -192,9 +258,13 @@ function mountSwitch() {
   }
 }
 
-/** Запуск: вызывается страницей после того, как она подписалась на смену языка. */
-export function initI18n() {
+/**
+ * Запуск. Ждать обязательно: словарь приходит по сети, и код страницы,
+ * позвавший `t()` раньше времени, получил бы вместо строк голые ключи.
+ */
+export async function initI18n() {
   if (redirectDocPage()) return;
+  await ready();
   mountSwitch();
   apply();
 }

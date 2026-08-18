@@ -123,7 +123,7 @@ import { initI18n, t, whenLangChanges } from './i18n.js';
 whenLangChanges(() => {
   document.getElementById('copy').textContent = t('common.copy', { year: new Date().getFullYear() });
 });
-initI18n();
+await initI18n();
 </script>
 </body>
 </html>
