@@ -63,6 +63,7 @@
 
   /* Карточка ленты рядом с панелью — только силуэт, лиц и фото тут нет. */
   .face {
+    position: relative; overflow: hidden;
     width: 236px; flex: none;
     border-radius: 22px 22px 0 0;
     background: linear-gradient(180deg, #ffd2dc 0%, #ffb3c6 40%, #ff8fa8 100%);
@@ -70,6 +71,12 @@
     padding: 16px; display: flex; flex-direction: column; justify-content: flex-end;
     min-height: 330px; color: #3b0d1c;
   }
+  .face .fig {
+    position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+    width: 92%; height: 78%; color: rgba(255,255,255,.5);
+  }
+  @media (prefers-color-scheme: dark) { .face .fig { color: rgba(255,255,255,.16); } }
+  .face > *:not(.fig) { position: relative; z-index: 1; }
   @media (prefers-color-scheme: dark) {
     .face { background: linear-gradient(180deg, #7c2b45 0%, #4a1930 100%); color: #ffe3ea; }
   }
@@ -91,6 +98,86 @@
     .mock { width: 100%; max-width: 330px; }
   }
 
+  /* ------------------------- Карточки анкет -------------------------
+     Вместо фотографий — силуэты на градиенте. Снимок настоящего человека
+     на рекламе сервиса автоматизации Tinder требовал бы и лицензии, и его
+     согласия, а заодно намекал бы, что он этим сервисом пользуется.
+     Силуэт ничего такого не обещает и показывает главное — что именно
+     расширение делает с каждой карточкой. */
+  .cards-row {
+    display: grid; gap: 18px; margin-top: 8px;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .pcard {
+    position: relative; aspect-ratio: 3 / 4; overflow: hidden;
+    border-radius: 24px; padding: 16px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    color: #2a0b16;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05), 0 16px 40px rgba(0,0,0,.1);
+  }
+  .pcard.g1 { background: linear-gradient(155deg, #ffd6e0 0%, #ff9ab1 52%, #ec5f86 100%); }
+  .pcard.g2 { background: linear-gradient(155deg, #ffe0c6 0%, #ffab84 52%, #ef7060 100%); }
+  .pcard.g3 { background: linear-gradient(155deg, #e0dcff 0%, #b1a3f2 52%, #8069d8 100%); }
+  .pcard.g4 { background: linear-gradient(155deg, #cdefff 0%, #8ccdf0 52%, #559ad4 100%); }
+  @media (prefers-color-scheme: dark) {
+    .pcard { color: #ffe6ed; }
+    .pcard.g1 { background: linear-gradient(155deg, #8a3050 0%, #5d1c38 100%); }
+    .pcard.g2 { background: linear-gradient(155deg, #8a4130 0%, #5a2320 100%); }
+    .pcard.g3 { background: linear-gradient(155deg, #453a86 0%, #251d52 100%); }
+    .pcard.g4 { background: linear-gradient(155deg, #24567e 0%, #14304a 100%); }
+  }
+
+  /* Силуэт занимает верхние две трети карточки: ниже идут имя и вердикт. */
+  .pcard .fig {
+    position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+    width: 88%; height: 82%;
+    color: rgba(255, 255, 255, .5);
+  }
+  @media (prefers-color-scheme: dark) {
+    .pcard .fig { color: rgba(255, 255, 255, .17); }
+  }
+
+  /* Затемнение под подписями: на светлом низу градиента текст иначе тонет. */
+  .pcard::after {
+    content: ''; position: absolute; inset: auto 0 0 0; height: 55%;
+    background: linear-gradient(180deg, transparent, rgba(60, 8, 26, .42));
+    pointer-events: none;
+  }
+  .pcard > * { position: relative; z-index: 1; }
+
+  .pcard .score {
+    position: absolute; top: 14px; left: 14px; z-index: 1;
+    background: rgba(255, 255, 255, .9); color: #1d1d1f;
+    border-radius: var(--pill); padding: 5px 11px;
+    font-size: 13px; font-weight: 600;
+  }
+  .pcard .nm { font-size: 19px; font-weight: 700; letter-spacing: -.02em; color: #fff; }
+  .pcard .meta { font-size: 13px; color: rgba(255, 255, 255, .82); margin-top: 1px; }
+  .pcard .tag {
+    display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+    margin-top: 12px; padding: 6px 12px; border-radius: var(--pill);
+    font-size: 12.5px; font-weight: 600;
+    background: rgba(255, 255, 255, .92);
+  }
+  .pcard .tag.yes { color: #14804a; }
+  .pcard .tag.no { color: #c9182b; }
+
+  @media (max-width: 900px) { .cards-row { grid-template-columns: repeat(2, 1fr); } }
+
+  /* На телефоне карточки едут лентой вбок, а не встают столбиком: четыре
+     штуки в высоту — это полторы тысячи пикселей прокрутки ради примера.
+     Отрицательные поля выводят ленту к краям экрана, как это делает Apple. */
+  @media (max-width: 700px) {
+    .cards-row {
+      display: flex; gap: 14px;
+      overflow-x: auto; scroll-snap-type: x mandatory;
+      margin: 8px -22px 0; padding: 0 22px 10px;
+      scrollbar-width: none;
+    }
+    .cards-row::-webkit-scrollbar { display: none; }
+    .pcard { flex: 0 0 62%; scroll-snap-align: center; }
+  }
+
   /* Три шага: крупная цифра, короткая фраза. */
   .step .n {
     width: 38px; height: 38px; border-radius: 50%; margin-bottom: 16px;
@@ -102,6 +189,39 @@
 <!-- Класс держит место под нижней панелью — она появляется на узких экранах,
      и там же в site.css добавляется отступ, чтобы подвал не уезжал под неё. -->
 <body class="has-buybar">
+
+<!-- Силуэты для карточек анкет. Лежат один раз и вставляются через <use>:
+     четыре копии одних и тех же путей в разметке разошлись бы при первой
+     правке. Рисунок нейтральный — узнаваемого человека в нём нет. -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <g id="fig-long" fill="currentColor">
+      <path d="M32 240c4-46 32-76 68-76s64 30 68 76z"/>
+      <rect x="88" y="126" width="24" height="46" rx="12"/>
+      <path d="M100 30c-30 0-48 20-48 48 0 16 2 30-1 44-3 18-8 36-15 58h34c-6-24-8-46-5-64 6 12 18 20 35 20s29-8 35-20c3 18 1 40-5 64h34c-7-22-12-40-15-58-3-14-1-28-1-44 0-28-18-48-48-48z"/>
+      <ellipse cx="100" cy="88" rx="30" ry="37"/>
+    </g>
+    <g id="fig-wave" fill="currentColor">
+      <path d="M32 240c4-46 32-76 68-76s64 30 68 76z"/>
+      <rect x="88" y="126" width="24" height="46" rx="12"/>
+      <path d="M100 28c-32 0-50 21-50 50 0 18 3 32-2 48-4 14-11 28-20 42h36c-8-20-10-42-6-60 7 13 20 21 42 21s35-8 42-21c4 18 2 40-6 60h36c-9-14-16-28-20-42-5-16-2-30-2-48 0-29-18-50-50-50z"/>
+      <ellipse cx="100" cy="88" rx="30" ry="37"/>
+    </g>
+    <g id="fig-bob" fill="currentColor">
+      <path d="M32 240c4-46 32-76 68-76s64 30 68 76z"/>
+      <rect x="88" y="126" width="24" height="46" rx="12"/>
+      <path d="M100 32c-28 0-46 19-46 46 0 15 2 28-1 40-2 10-5 20-9 32h30c-4-14-6-27-4-38 7 11 18 18 30 18s23-7 30-18c2 11 0 24-4 38h30c-4-12-7-22-9-32-3-12-1-25-1-40 0-27-18-46-46-46z"/>
+      <ellipse cx="100" cy="90" rx="29" ry="36"/>
+    </g>
+    <g id="fig-up" fill="currentColor">
+      <path d="M32 240c4-46 32-76 68-76s64 30 68 76z"/>
+      <rect x="88" y="128" width="24" height="46" rx="12"/>
+      <circle cx="100" cy="30" r="15"/>
+      <path d="M100 38c-26 0-42 18-42 42 0 10 1 18 0 26h84c-1-8 0-16 0-26 0-24-16-42-42-42z"/>
+      <ellipse cx="100" cy="92" rx="29" ry="36"/>
+    </g>
+  </defs>
+</svg>
 
 <header class="site-head">
   <div class="wrap bar">
@@ -149,6 +269,7 @@
 
     <div class="shot" aria-hidden="true">
       <div class="face">
+        <svg class="fig" viewBox="0 0 200 240" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><use href="#fig-long"/></svg>
         <div class="score" data-i18n="index.mockScore">Оценка модели 8,4 / 10</div>
         <div class="nm" data-i18n="index.mockName">Анна, 26</div>
         <div class="meta" data-i18n="index.mockMeta">168 см · 4 км от вас · 5 фото</div>
@@ -204,6 +325,50 @@
       <div class="center" style="margin-top:36px">
         <a class="btn lg js-install js-install-main" href="#download"><span class="js-install-label" data-i18n="index.btnDownloadFull">Скачать расширение</span></a>
       </div>
+    </div>
+  </section>
+
+  <!-- Как выглядит отбор: четыре карточки с оценкой и решением -->
+  <section id="show">
+    <div class="wrap">
+      <div class="center">
+        <h2 class="title" data-i18n="index.showTitle">Видно, кого и почему</h2>
+        <p class="sub" data-i18n="index.showSub">Каждая карточка получает оценку и решение. Ни одного «почему-то не подошёл».</p>
+      </div>
+
+      <div class="cards-row">
+        <div class="pcard g1">
+          <svg class="fig" viewBox="0 0 200 240" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><use href="#fig-long"/></svg>
+          <span class="score">8,4</span>
+          <div class="nm" data-i18n="index.p1Name">Анна, 26</div>
+          <div class="meta" data-i18n="index.p1Meta">168 см · 4 км от вас</div>
+          <span class="tag yes" data-i18n="index.p1Tag">Like · оценка 8,4</span>
+        </div>
+
+        <div class="pcard g2">
+          <svg class="fig" viewBox="0 0 200 240" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><use href="#fig-wave"/></svg>
+          <span class="score">7,6</span>
+          <div class="nm" data-i18n="index.p2Name">Марина, 24</div>
+          <div class="meta" data-i18n="index.p2Meta">172 см · 9 км от вас</div>
+          <span class="tag yes" data-i18n="index.p2Tag">Like · оценка 7,6</span>
+        </div>
+
+        <div class="pcard g3">
+          <svg class="fig" viewBox="0 0 200 240" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><use href="#fig-bob"/></svg>
+          <div class="nm" data-i18n="index.p3Name">Кристина, 29</div>
+          <div class="meta" data-i18n="index.p3Meta">160 см · 31 км от вас</div>
+          <span class="tag no" data-i18n="index.p3Tag">Nope · слишком далеко</span>
+        </div>
+
+        <div class="pcard g4">
+          <svg class="fig" viewBox="0 0 200 240" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><use href="#fig-up"/></svg>
+          <div class="nm" data-i18n="index.p4Name">Ольга, 22</div>
+          <div class="meta" data-i18n="index.p4Meta">175 см · 6 км от вас</div>
+          <span class="tag no" data-i18n="index.p4Tag">Nope · стоп-слово в описании</span>
+        </div>
+      </div>
+
+      <p class="tiny center" style="margin-top:22px" data-i18n="index.showFoot">Карточки — пример работы, а не настоящие анкеты.</p>
     </div>
   </section>
 
