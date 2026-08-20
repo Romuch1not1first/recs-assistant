@@ -51,6 +51,19 @@ export const LANGS = [
  */
 export const DOC_LANGS = ['ru', 'uk', 'en'];
 
+/**
+ * Документы, у которых версия одна — английская.
+ *
+ * Политику конфиденциальности держали на трёх языках, и три текста об одном и
+ * том же расходились молча: правка в одном файле не заставляет вспомнить про
+ * два других, а противоречие между версиями одного документа — это уже не
+ * опечатка, а обязательство, которое нельзя исполнить. Осталась одна редакция,
+ * на неё же ссылается карточка расширения в Chrome Web Store.
+ *
+ * Договор и возвраты остаются переведёнными: их читают перед покупкой.
+ */
+const EN_ONLY = new Set(['privacy']);
+
 /** Язык, на котором говорим с тем, чей браузер настроен на что-то ещё. */
 const FALLBACK = 'en';
 
@@ -141,10 +154,11 @@ export function t(key, vars) {
  * Адрес правового документа. Русский лежит без суффикса; язык, на который
  * договор не переведён, ведёт на английскую версию.
  */
-const docLang = () => (DOC_LANGS.includes(current) ? current : FALLBACK);
+const docLang = (name) =>
+  !EN_ONLY.has(name) && DOC_LANGS.includes(current) ? current : FALLBACK;
 
 export function docUrl(name) {
-  const id = docLang();
+  const id = docLang(name);
   return id === 'ru' ? `/${name}.html` : `/${name}-${id}.html`;
 }
 
