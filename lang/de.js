@@ -19,7 +19,7 @@ export default {
   "index.navFaq": "Fragen",
   "index.heroEyebrow": "Erweiterung für den Chrome-Browser",
   "index.heroTitle": "Tinder wischt<br>von allein",
-  "index.heroLead": "Sie legen die Bedingungen einmal fest — Alter, Größe, Entfernung, Stoppwörter. Danach öffnet die Erweiterung die Profile selbst, bewertet die Fotos und gibt Like oder Nope.",
+  "index.heroLead": "Auto-Swipe- und Auto-Like-Bot mit smarten KI-Filtern — mehr Matches bei Tinder.",
   "index.btnDownloadFull": "Erweiterung laden",
   "index.btnPayFull": "Abo abschließen",
   "index.heroNote": "Kostenlos · Chrome 116 oder neuer · Installation mit einem Klick",

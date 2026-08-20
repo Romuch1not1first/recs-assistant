@@ -19,7 +19,7 @@ export default {
   "index.navFaq": "Dúvidas",
   "index.heroEyebrow": "Extensão para o navegador Chrome",
   "index.heroTitle": "O Tinder desliza<br>sozinho",
-  "index.heroLead": "Você define as condições uma vez: idade, altura, distância, palavras proibidas. A partir daí a extensão abre os perfis sozinha, avalia as fotos e dá Like ou Nope.",
+  "index.heroLead": "Bot de auto-swipe e auto-like com filtros de IA inteligentes: mais matches no Tinder.",
   "index.btnDownloadFull": "Baixar a extensão",
   "index.btnPayFull": "Assinar",
   "index.heroNote": "Grátis · Chrome 116 ou mais novo · instala em um clique",

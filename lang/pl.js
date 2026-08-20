@@ -19,7 +19,7 @@ export default {
   "index.navFaq": "Pytania",
   "index.heroEyebrow": "Rozszerzenie do przeglądarki Chrome",
   "index.heroTitle": "Tinder przewija<br>się sam",
-  "index.heroLead": "Raz ustawiasz warunki — wiek, wzrost, odległość, słowa zakazane. Dalej rozszerzenie samo otwiera profile, ocenia zdjęcia i daje Like albo Nope.",
+  "index.heroLead": "Bot auto-swipe i auto-like z inteligentnymi filtrami AI — więcej dopasowań na Tinderze.",
   "index.btnDownloadFull": "Pobierz rozszerzenie",
   "index.btnPayFull": "Wykup subskrypcję",
   "index.heroNote": "Za darmo · Chrome 116 lub nowszy · instalacja jednym kliknięciem",

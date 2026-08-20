@@ -19,7 +19,7 @@ export default {
   "index.navFaq": "Sorular",
   "index.heroEyebrow": "Chrome tarayıcısı için eklenti",
   "index.heroTitle": "Tinder kendi<br>kendine kaydırır",
-  "index.heroLead": "Koşulları bir kez belirlersiniz: yaş, boy, mesafe, yasak kelimeler. Sonrasında eklenti profilleri kendi açar, fotoğrafları puanlar ve Like ya da Nope verir.",
+  "index.heroLead": "Akıllı yapay zekâ filtreleriyle otomatik kaydırma ve otomatik beğeni botu — Tinder’da daha fazla eşleşme.",
   "index.btnDownloadFull": "Eklentiyi indir",
   "index.btnPayFull": "Aboneliği al",
   "index.heroNote": "Ücretsiz · Chrome 116 ve üzeri · tek tıkla kurulur",

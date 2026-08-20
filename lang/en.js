@@ -19,7 +19,7 @@ export default {
   "index.navFaq": "FAQ",
   "index.heroEyebrow": "Extension for the Chrome browser",
   "index.heroTitle": "Tinder swipes<br>itself",
-  "index.heroLead": "You set the rules once — age, height, distance, stop-words. From there the extension opens profiles on its own, scores the photos and hits Like or Nope.",
+  "index.heroLead": "Auto-swipe & auto-like bot with smart AI filters get more matches on Tinder.",
   "index.btnDownloadFull": "Download extension",
   "index.btnPayFull": "Get a subscription",
   "index.heroNote": "Free · Chrome 116 or newer · installs in one click",

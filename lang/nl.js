@@ -19,7 +19,7 @@ export default {
   "index.navFaq": "Vragen",
   "index.heroEyebrow": "Extensie voor de browser Chrome",
   "index.heroTitle": "Tinder swipet<br>zichzelf",
-  "index.heroLead": "Je stelt de voorwaarden één keer in: leeftijd, lengte, afstand, verboden woorden. Daarna opent de extensie de profielen zelf, beoordeelt de foto’s en geeft Like of Nope.",
+  "index.heroLead": "Auto-swipe- en auto-like-bot met slimme AI-filters — meer matches op Tinder.",
   "index.btnDownloadFull": "Extensie downloaden",
   "index.btnPayFull": "Abonnement nemen",
   "index.heroNote": "Gratis · Chrome 116 of nieuwer · installeert met één klik",

@@ -19,7 +19,7 @@ export default {
   "index.navFaq": "Domande",
   "index.heroEyebrow": "Estensione per il browser Chrome",
   "index.heroTitle": "Tinder scorre<br>da solo",
-  "index.heroLead": "Imposti le condizioni una volta: età, altezza, distanza, parole vietate. Da lì l’estensione apre i profili da sola, valuta le foto e mette Like o Nope.",
+  "index.heroLead": "Bot di auto-swipe e auto-like con filtri IA intelligenti: più match su Tinder.",
   "index.btnDownloadFull": "Scarica l’estensione",
   "index.btnPayFull": "Attiva l’abbonamento",
   "index.heroNote": "Gratis · Chrome 116 o più recente · si installa in un clic",

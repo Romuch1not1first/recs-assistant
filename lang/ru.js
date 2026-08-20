@@ -19,7 +19,7 @@ export default {
   "index.navFaq": "Вопросы",
   "index.heroEyebrow": "Расширение для браузера Chrome",
   "index.heroTitle": "Tinder листает<br>себя сам",
-  "index.heroLead": "Вы один раз задаёте условия — возраст, рост, расстояние, стоп-слова. Дальше расширение само открывает анкеты, оценивает фотографии и ставит Like или Nope.",
+  "index.heroLead": "Бот автосвайпа и автолайка с умными ИИ-фильтрами — больше мэтчей в Tinder.",
   "index.btnDownloadFull": "Скачать расширение",
   "index.btnPayFull": "Оплатить подписку",
   "index.heroNote": "Бесплатно · Chrome 116 и новее · установка в один клик",
