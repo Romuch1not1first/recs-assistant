@@ -566,7 +566,14 @@ import { initI18n, t, whenLangChanges } from './i18n.js';
  * что магазина ещё нет, вместо того чтобы вести в никуда. Появится ссылка —
  * достаточно вписать её сюда, и все кнопки «Скачать» на странице оживут.
  */
-const CHROME_STORE_URL = '';
+/**
+ * Адрес в Chrome Web Store — без «хвоста», с которым его копируют из браузера.
+ * `hl=en-US` заставил бы магазин открыться по-английски у всех, включая тех,
+ * кто читает сайт на своём языке; `utm_source=ext_sidebar` — метка боковой
+ * панели самого Chrome, к переходу с сайта отношения не имеющая.
+ */
+const CHROME_STORE_URL =
+  'https://chromewebstore.google.com/detail/autoswipe-ai/ajknckdmfjejnmmjepoommocfhnllagk';
 
 const $ = (id) => document.getElementById(id);
 
@@ -597,7 +604,14 @@ function render() {
    * и без причины.
    */
   if (CHROME_STORE_URL) {
-    for (const el of document.querySelectorAll('.js-install')) el.href = CHROME_STORE_URL;
+    for (const el of document.querySelectorAll('.js-install')) {
+      el.href = CHROME_STORE_URL;
+      // Магазин открываем соседней вкладкой: витрина с кнопкой оплаты
+      // остаётся на месте, и человеку не приходится возвращаться назад
+      // после установки. `noopener` — обязательная пара к `_blank`.
+      el.target = '_blank';
+      el.rel = 'noopener';
+    }
     return;
   }
 
