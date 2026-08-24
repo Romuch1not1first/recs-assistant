@@ -67,6 +67,16 @@ const EN_ONLY = new Set(['privacy']);
 /** Язык, на котором говорим с тем, чей браузер настроен на что-то ещё. */
 const FALLBACK = 'en';
 
+/**
+ * Версия словарей — метка в адресе файла.
+ *
+ * Имена файлов не меняются, а содержимое правится часто, и браузер держит их
+ * в кеше до десяти минут: после правки человек ещё четверть часа читал бы
+ * старые строки и решил бы, что изменения не доехали. **Поправили что-то в
+ * lang/ — увеличьте число.**
+ */
+const DICT_VERSION = 2;
+
 const KEY = 'site_lang';
 
 const known = (id) => LANGS.some((l) => l.id === id);
@@ -117,7 +127,7 @@ const dicts = new Map();
 async function load(id) {
   if (dicts.has(id)) return dicts.get(id);
   try {
-    const mod = await import(`./lang/${id}.js`);
+    const mod = await import(`./lang/${id}.js?v=${DICT_VERSION}`);
     dicts.set(id, mod.default);
   } catch {
     // Файл не доехал до сайта или сеть подвела. Пустой словарь честнее
@@ -162,8 +172,15 @@ export function docUrl(name) {
   return id === 'ru' ? `/${name}.html` : `/${name}-${id}.html`;
 }
 
-/** Правовая страница узнаётся по ссылкам на свои переводы. */
-const isDocPage = () => !!document.querySelector('link[rel="alternate"][hreflang]');
+/**
+ * Правовая страница — по метке `data-doc` на `<html>`.
+ *
+ * Раньше признаком служили ссылки на переводы, и это сломалось на политике
+ * конфиденциальности: у неё редакция одна, переводов нет, ссылаться не на что —
+ * и страница переставала считаться правовой. Метка ставится в самом файле и от
+ * числа переводов не зависит.
+ */
+const isDocPage = () => document.documentElement.hasAttribute('data-doc');
 
 const onApply = [];
 
@@ -175,7 +192,12 @@ function apply() {
   // язык интерфейса: испанцу мы показываем английский договор, и `lang="es"`
   // на английском тексте — прямая ложь читалке и поисковику. Кнопки в шапке
   // при этом остаются испанскими, и это правильно.
-  document.documentElement.lang = isDocPage() ? docLang() : current;
+  // На правовой странице `lang` не трогаем: файл объявил его сам, и объявил
+  // верно — терминал `terms-uk.html` знает, что он украинский, а
+  // `privacy-en.html` знает, что английский. Выбранный язык интерфейса тут
+  // подставлять нельзя: политика одна, английская, и `lang="ru"` над её
+  // текстом — прямая ложь читалке и поисковику.
+  if (!isDocPage()) document.documentElement.lang = current;
 
   for (const el of document.querySelectorAll('[data-i18n]')) {
     el.textContent = t(el.dataset.i18n);
