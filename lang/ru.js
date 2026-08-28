@@ -16,7 +16,7 @@ export default {
   "index.navPrice": "Цены",
   "index.navFaq": "Частые вопросы",
   "index.heroEyebrow": "Расширение для браузера Chrome",
-  "index.heroTitle": "Свайпает<br>само",
+  "index.heroTitle": "Свайпает само",
   "index.heroLead": "Бот для автосвайпов и автолайков с умными ИИ-фильтрами поможет получать больше мэтчей.",
   "index.btnDownloadFull": "Скачать расширение",
   "index.btnPayFull": "Оформить подписку",
