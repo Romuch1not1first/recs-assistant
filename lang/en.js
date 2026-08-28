@@ -18,7 +18,7 @@ export default {
   "index.navPrice": "Price",
   "index.navFaq": "FAQ",
   "index.heroEyebrow": "Extension for the Chrome browser",
-  "index.heroTitle": "Swipes<br>itself",
+  "index.heroTitle": "Swipes itself",
   "index.heroLead": "Auto-swipe & auto-like bot with smart AI filters get more matches.",
   "index.btnDownloadFull": "Download extension",
   "index.btnPayFull": "Get a subscription",
