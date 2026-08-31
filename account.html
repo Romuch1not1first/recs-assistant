@@ -28,38 +28,59 @@
   .flow i { font-style: normal; }
   .flow b { color: var(--text); font-weight: 600; }
 
-  /* Кнопка срока делится на две кнопки способа — ровно на своём месте.
-     Половины схлопываются и раскрываются по высоте, поэтому соседи по странице
-     едут плавно, а не прыгают. Высоту ставит скрипт замером: приём с сеткой
-     `0fr ↔ 1fr` здесь не годится — обрезка `overflow: hidden` обнуляет
-     минимальный вклад содержимого, и раскрытой строке нечем задать размер. */
-  .pick .term,
+  /* Кнопка срока делится на две половины — вдоль, на своём же месте.
+     Кнопка срока остаётся в потоке и задаёт высоту ряда, а пара способов лежит
+     поверх неё: поэтому при делении по вертикали не сдвигается ничего, и
+     соседям по странице некуда прыгать. */
+  .pick { position: relative; }
+  /* Отступ ряда держит сама половина со сроком, а не поле кнопки внутри: поле
+     схлопнулось бы наружу через край блока, ряд стал бы на 18px короче, и пара
+     способов легла бы мимо — поверх соседней кнопки. */
+  .pick .term { padding-top: 18px; }
+  .pick .term .btn { margin-top: 0; }
   .pick .ways {
-    overflow: hidden;
-    transition: height var(--split) var(--split-ease);
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    top: 18px;                 /* поле кнопки срока — из общего стиля панели */
+    pointer-events: none;      /* закрытая пара не должна ловить нажатия */
   }
+  .pick.open .ways { pointer-events: auto; }
+  .pick.open .term { pointer-events: none; }
 
-  /* Собственно деление. В закрытом виде обе кнопки стоят точно друг на друге —
-     это и есть та одна кнопка; раскрываясь, они расходятся от общего центра.
-     Сдвиг в процентах от своей высоты плюс половина зазора: центры сходятся
-     при любом размере шрифта и длине подписи. */
+  /* Обе половины начинают во всю ширину и точно друг на друге — это и есть та
+     одна кнопка. Раскрываясь, каждая отдаёт свою сторону: левая упирается
+     правым краем в середину, правая — левым. Скругление у них своё, общее для
+     всех кнопок, поэтому половины остаются такими же скруглёнными. */
   .pick .ways .btn {
+    position: absolute;
+    top: 0; bottom: 0; left: 0; right: 0;
+    width: auto;
+    /* Поле кнопок панели здесь лишнее: при заданных top и bottom оно сдвигает
+       половину вниз и на столько же укорачивает. */
+    margin: 0;
+    padding-left: 12px; padding-right: 12px;
+    font-size: 16px;
     opacity: 0;
     transition:
-      transform var(--split) var(--split-ease),
-      opacity calc(var(--split) * .55) ease-out;
+      left var(--split) var(--split-ease),
+      right var(--split) var(--split-ease),
+      opacity calc(var(--split) * .35) ease-out;
   }
-  .pick .ways .btn:first-child { transform: translateY(calc(50% + 9px)); }
-  .pick .ways .btn:last-child  { transform: translateY(calc(-50% - 9px)); }
-  .pick.open .ways .btn { opacity: 1; transform: none; }
+  /* Карта поверх крипты: пока половины совпадают, ряд обязан выглядеть той же
+     синей кнопкой, что и был, — иначе в начале деления он серел бы. */
+  .pick .ways .btn:first-child { z-index: 2; }
+  .pick .ways .btn:last-child  { z-index: 1; }
 
-  /* Кнопка срока гаснет быстрее, чем схлопывается: иначе видно, как её режет
-     краем половины. */
-  .pick .term .btn { transition: opacity calc(var(--split) * .45) ease-out; }
+  .pick.open .ways .btn { opacity: 1; }
+  .pick.open .ways .btn:first-child { right: calc(50% + 6px); }
+  .pick.open .ways .btn:last-child  { left:  calc(50% + 6px); }
+
+  /* Кнопка срока гаснет за то же короткое время, за которое проявляются
+     половины: подписи не должны читаться одна сквозь другую. */
+  .pick .term .btn { transition: opacity calc(var(--split) * .35) ease-out; }
   .pick.open .term .btn { opacity: 0; }
 
   @media (prefers-reduced-motion: reduce) {
-    .pick .term, .pick .ways,
     .pick .ways .btn, .pick .term .btn { transition: none; }
   }
 </style>
@@ -187,7 +208,7 @@
 import { scorePassword } from './password.js';
 import { mailProvider } from './mail-providers.js';
 import { planById, priceLabel, yearlySavings } from './plans.js';
-import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=4';
+import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=5';
 
 /**
  * Страница подписки.
@@ -394,18 +415,17 @@ function paint() {
  * Глагол в кнопке, а не только срок: человек должен видеть, что нажатие ведёт
  * к оплате, а не переключает тариф где-то на странице.
  *
- * Цена повторена и в кнопках способа оплаты: раскрывшись, кнопка срока
- * прячется, и без цены рядом человек платил бы, не видя суммы.
+ * В кнопках способа цены нет: в половину ширины она не помещается. Сумму
+ * человек видит на кнопке срока — на той самой, которую и нажимает.
  */
 function renderPlans() {
   for (const pick of PICKS) {
     const plan = planById(pick.id);
     if (!plan) continue;
 
-    const price = priceLabel(plan);
-    $(pick.plan).textContent = t(pick.key, { price });
-    $(pick.card).textContent = t('account.payCard', { price });
-    $(pick.crypto).textContent = t('account.payCrypto', { price });
+    $(pick.plan).textContent = t(pick.key, { price: priceLabel(plan) });
+    $(pick.card).textContent = t('account.payCard');
+    $(pick.crypto).textContent = t('account.payCrypto');
 
     // Раскрытый срок переживает перерисовку: смена языка не должна закрывать
     // уже сделанный выбор.
@@ -413,19 +433,11 @@ function renderPlans() {
     $(pick.box).classList.toggle('open', open);
     $(pick.plan).setAttribute('aria-expanded', String(open));
 
-    // Высота — числом, иначе переход анимировать нечего. `scrollHeight` знает
-    // размер содержимого и у схлопнутой половины, разворачивать её для замера
-    // не нужно. Считаем каждый раз заново: от языка длина подписи меняется, а
-    // с ней и число строк на узком экране.
-    const term = $(pick.term);
-    const ways = $(pick.ways);
-    term.style.height = open ? '0px' : `${term.scrollHeight}px`;
-    ways.style.height = open ? `${ways.scrollHeight}px` : '0px';
-
-    // Спрятанная половина обрезана, но с клавиатуры на неё всё ещё можно
-    // попасть табом: `inert` убирает её из обхода вместе с фокусом.
-    term.inert = open;
-    ways.inert = !open;
+    // Скрытая половина только прозрачна, из потока она никуда не делась: с
+    // клавиатуры на её кнопки всё ещё можно попасть табом. `inert` убирает их
+    // из обхода вместе с фокусом.
+    $(pick.term).inert = open;
+    $(pick.ways).inert = !open;
   }
 
   const saved = yearlySavings();
@@ -723,12 +735,6 @@ async function openCheckout(planId, method) {
     say('planMsg', t('account.errInvoice'), 'err');
   }
 }
-
-// Ширина изменилась — подписи могли перенестись на другую строку, и замеренная
-// высота половин устарела. Без пересчёта раскрытая пара обрезалась бы по старой.
-addEventListener('resize', () => {
-  if (!$('planBox').hidden) renderPlans();
-});
 
 for (const pick of PICKS) {
   $(pick.plan).addEventListener('click', () => openWays(pick.id));
