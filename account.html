@@ -11,6 +11,14 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="/site.css?v=3">
 <style>
+  :root {
+    /* Длительность и кривая деления кнопки. Кривая — та же, по которой ездят
+       листы в iOS: быстрый старт и долгое, мягкое торможение. Ease-out этого
+       не даёт, а без него движение выглядит механическим. */
+    --split: .52s;
+    --split-ease: cubic-bezier(.32, .72, 0, 1);
+  }
+
   /* Шаг «где я и что дальше»: на странице оплаты человек должен видеть, что
      вход — это не конец пути, а первая из двух ступенек. */
   .flow {
@@ -20,15 +28,40 @@
   .flow i { font-style: normal; }
   .flow b { color: var(--text); font-weight: 600; }
 
-  /* Способы оплаты раскрываются на месте кнопки срока. Отдельных отступов у
-     группы нет намеренно: кнопки внутри держат тот же ритм, что и снаружи, —
-     иначе раскрытие выглядело бы прыжком, а не заменой. */
-  .ways { animation: ways-in .16s ease-out; }
-  @keyframes ways-in {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: none; }
+  /* Кнопка срока делится на две кнопки способа — ровно на своём месте.
+     Половины схлопываются и раскрываются по высоте, поэтому соседи по странице
+     едут плавно, а не прыгают. Высоту ставит скрипт замером: приём с сеткой
+     `0fr ↔ 1fr` здесь не годится — обрезка `overflow: hidden` обнуляет
+     минимальный вклад содержимого, и раскрытой строке нечем задать размер. */
+  .pick .term,
+  .pick .ways {
+    overflow: hidden;
+    transition: height var(--split) var(--split-ease);
   }
-  @media (prefers-reduced-motion: reduce) { .ways { animation: none; } }
+
+  /* Собственно деление. В закрытом виде обе кнопки стоят точно друг на друге —
+     это и есть та одна кнопка; раскрываясь, они расходятся от общего центра.
+     Сдвиг в процентах от своей высоты плюс половина зазора: центры сходятся
+     при любом размере шрифта и длине подписи. */
+  .pick .ways .btn {
+    opacity: 0;
+    transition:
+      transform var(--split) var(--split-ease),
+      opacity calc(var(--split) * .55) ease-out;
+  }
+  .pick .ways .btn:first-child { transform: translateY(calc(50% + 9px)); }
+  .pick .ways .btn:last-child  { transform: translateY(calc(-50% - 9px)); }
+  .pick.open .ways .btn { opacity: 1; transform: none; }
+
+  /* Кнопка срока гаснет быстрее, чем схлопывается: иначе видно, как её режет
+     краем половины. */
+  .pick .term .btn { transition: opacity calc(var(--split) * .45) ease-out; }
+  .pick.open .term .btn { opacity: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pick .term, .pick .ways,
+    .pick .ways .btn, .pick .term .btn { transition: none; }
+  }
 </style>
 </head>
 <body class="sheet">
@@ -103,16 +136,16 @@
         <!-- Тариф → способ оплаты. Кнопка срока на месте раскрывается в две:
              карта и крипта. Показывать все четыре сразу значило бы задать два
              вопроса одновременно, а выбирают всё же сначала срок. -->
-        <div class="pick" data-plan="monthly">
-          <button class="btn block" id="planMonthly"></button>
-          <div class="ways" id="waysMonthly" hidden>
+        <div class="pick" id="pickMonthly">
+          <div class="term" id="termMonthly"><button class="btn block" id="planMonthly"></button></div>
+          <div class="ways" id="waysMonthly">
             <button class="btn block" id="cardMonthly"></button>
             <button class="btn block plain" id="cryptoMonthly"></button>
           </div>
         </div>
-        <div class="pick" data-plan="yearly">
-          <button class="btn block" id="planYearly"></button>
-          <div class="ways" id="waysYearly" hidden>
+        <div class="pick" id="pickYearly">
+          <div class="term" id="termYearly"><button class="btn block" id="planYearly"></button></div>
+          <div class="ways" id="waysYearly">
             <button class="btn block" id="cardYearly"></button>
             <button class="btn block plain" id="cryptoYearly"></button>
           </div>
@@ -377,8 +410,22 @@ function renderPlans() {
     // Раскрытый срок переживает перерисовку: смена языка не должна закрывать
     // уже сделанный выбор.
     const open = pick.id === openPlan;
-    $(pick.plan).hidden = open;
-    $(pick.ways).hidden = !open;
+    $(pick.box).classList.toggle('open', open);
+    $(pick.plan).setAttribute('aria-expanded', String(open));
+
+    // Высота — числом, иначе переход анимировать нечего. `scrollHeight` знает
+    // размер содержимого и у схлопнутой половины, разворачивать её для замера
+    // не нужно. Считаем каждый раз заново: от языка длина подписи меняется, а
+    // с ней и число строк на узком экране.
+    const term = $(pick.term);
+    const ways = $(pick.ways);
+    term.style.height = open ? '0px' : `${term.scrollHeight}px`;
+    ways.style.height = open ? `${ways.scrollHeight}px` : '0px';
+
+    // Спрятанная половина обрезана, но с клавиатуры на неё всё ещё можно
+    // попасть табом: `inert` убирает её из обхода вместе с фокусом.
+    term.inert = open;
+    ways.inert = !open;
   }
 
   const saved = yearlySavings();
@@ -596,11 +643,11 @@ $('signOut').addEventListener('click', () => {
  */
 const PICKS = [
   {
-    id: 'monthly', key: 'account.payMonth',
+    id: 'monthly', key: 'account.payMonth', box: 'pickMonthly', term: 'termMonthly',
     plan: 'planMonthly', ways: 'waysMonthly', card: 'cardMonthly', crypto: 'cryptoMonthly',
   },
   {
-    id: 'yearly', key: 'account.payYear',
+    id: 'yearly', key: 'account.payYear', box: 'pickYearly', term: 'termYearly',
     plan: 'planYearly', ways: 'waysYearly', card: 'cardYearly', crypto: 'cryptoYearly',
   },
 ];
@@ -676,6 +723,12 @@ async function openCheckout(planId, method) {
     say('planMsg', t('account.errInvoice'), 'err');
   }
 }
+
+// Ширина изменилась — подписи могли перенестись на другую строку, и замеренная
+// высота половин устарела. Без пересчёта раскрытая пара обрезалась бы по старой.
+addEventListener('resize', () => {
+  if (!$('planBox').hidden) renderPlans();
+});
 
 for (const pick of PICKS) {
   $(pick.plan).addEventListener('click', () => openWays(pick.id));
