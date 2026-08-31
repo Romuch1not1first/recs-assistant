@@ -504,6 +504,18 @@ async function doSignUp(email, password) {
     throw new Error(t('account.errTaken'));
   }
 
+  // Подтверждение почты выключено на сервере — Supabase сразу отдал токены.
+  // Тогда письма не будет вовсе, и звать за ним человека значит отправить его
+  // ждать то, что не придёт. Впускаем сразу, как после входа.
+  if (data?.access_token) {
+    writeSession(toSession(data));
+    say('authMsg', '');
+    $('password').value = '';
+    $('password2').value = '';
+    await loadPlan();
+    return;
+  }
+
   setMode('signIn');
   $('password').value = '';
   $('password2').value = '';
