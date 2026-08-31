@@ -125,7 +125,7 @@ export default {
   "account.payMonth": "Paga un mese — {price}",
   "account.payYear": "Paga un anno — {price}",
   "account.payCard": "Carta",
-  "account.payCrypto": "Criptovaluta",
+  "account.payCrypto": "Cripto",
   "account.saveYear": "l’annuale fa risparmiare il {n} %",
   "account.payNote": "Con carta è un abbonamento che si rinnova da solo; puoi disdirlo quando vuoi. In criptovaluta è un pagamento unico senza addebito ricorrente: il periodo lo rinnovi tu e quello nuovo si somma a quello già pagato.",
   "account.signOut": "Esci",

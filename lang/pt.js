@@ -125,7 +125,7 @@ export default {
   "account.payMonth": "Pagar um mês — {price}",
   "account.payYear": "Pagar um ano — {price}",
   "account.payCard": "Cartão",
-  "account.payCrypto": "Criptomoeda",
+  "account.payCrypto": "Cripto",
   "account.saveYear": "a anual economiza {n}%",
   "account.payNote": "No cartão é uma assinatura que se renova sozinha; pode cancelar quando quiser. Em criptomoeda é um pagamento único sem cobrança recorrente: o prazo você renova, e o novo período soma-se ao já pago.",
   "account.signOut": "Sair",
