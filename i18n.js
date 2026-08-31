@@ -75,7 +75,7 @@ const FALLBACK = 'en';
  * старые строки и решил бы, что изменения не доехали. **Поправили что-то в
  * lang/ — увеличьте число.**
  */
-const DICT_VERSION = 4;
+const DICT_VERSION = 5;
 
 const KEY = 'site_lang';
 

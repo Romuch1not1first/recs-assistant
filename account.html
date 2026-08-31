@@ -28,85 +28,66 @@
   .flow i { font-style: normal; }
   .flow b { color: var(--text); font-weight: 600; }
 
-  /* Кнопка срока делится на две половины — вдоль, на своём же месте.
-     Кнопка срока остаётся в потоке и задаёт высоту ряда, а пара способов лежит
-     поверх неё: поэтому при делении по вертикали не сдвигается ничего, и
-     соседям по странице некуда прыгать. */
-  .pick { position: relative; }
-  /* Отступ ряда держит сама половина со сроком, а не поле кнопки внутри: поле
-     схлопнулось бы наружу через край блока, ряд стал бы на 18px короче, и пара
-     способов легла бы мимо — поверх соседней кнопки. */
-  .pick .term { padding-top: 18px; }
-  .pick .term .btn { margin-top: 0; }
-  .pick .ways {
-    position: absolute;
-    left: 0; right: 0; bottom: 0;
-    top: 18px;                 /* поле кнопки срока — из общего стиля панели */
-    pointer-events: none;      /* закрытая пара не должна ловить нажатия */
+  /* Две грани экрана — выбор срока и выбор способа — лежат на одном месте,
+     одна поверх другой. Высоту держит их общая обёртка: грани вынуты из потока,
+     сами они высоту не дают, поэтому её ставит скрипт замером. */
+  .swap {
+    position: relative;
+    overflow: hidden;                /* уходящая грань не должна вылезать вниз */
+    transition: height var(--split) var(--split-ease);
   }
-  .pick.open .ways { pointer-events: auto; }
-  .pick.open .term { pointer-events: none; }
-
-  /* Обе половины начинают во всю ширину и точно друг на друге — это и есть та
-     одна кнопка. Раскрываясь, каждая отдаёт свою сторону: левая упирается
-     правым краем в середину, правая — левым. Скругление у них своё, общее для
-     всех кнопок, поэтому половины остаются такими же скруглёнными. */
-  .pick .ways .btn {
+  .face {
     position: absolute;
-    top: 0; bottom: 0; left: 0; right: 0;
-    width: auto;
-    /* Поле кнопок панели здесь лишнее: при заданных top и bottom оно сдвигает
-       половину вниз и на столько же укорачивает. */
-    margin: 0;
+    left: 0; right: 0; top: 0;
+    opacity: 0;
+    transform: scale(.98);
+    pointer-events: none;
+    /* Уходящая грань гаснет сразу; приходящая ждёт, пока та погаснет, иначе на
+       середине перехода два набора кнопок читаются один сквозь другой. */
+    transition:
+      opacity calc(var(--split) * .22) ease-out,
+      transform var(--split) var(--split-ease);
+  }
+  .face.on {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    transition:
+      opacity calc(var(--split) * .28) ease-out calc(var(--split) * .22),
+      transform var(--split) var(--split-ease);
+  }
+
+  /* За какой тариф платим — и путь назад. Без него выбранный срок было бы не
+     сменить: кнопок сроков на этой грани уже нет. */
+  .ways-for {
+    display: flex; flex-wrap: wrap;
+    align-items: baseline; justify-content: center; gap: 4px 10px;
+    margin: 18px 0 0;
+    color: var(--text-3); font-size: 15px;
+  }
+  .ways-for span { color: var(--text); font-weight: 600; }
+  .ways-for button {
+    background: none; border: 0; padding: 0;
+    color: var(--accent-text); font: inherit; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+
+  .ways-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-top: 12px;
+  }
+  /* В половину ширины подпись едва помещается, поэтому поля уже общих, а зазор
+     до иконки меньше. Иконка не тянется и не ловит нажатия отдельно от кнопки. */
+  .ways-row .btn {
+    margin-top: 0;
+    gap: 7px;
     padding-left: 12px; padding-right: 12px;
     font-size: 16px;
-    opacity: 0;
-    /* Закрытое состояние — половины уходят: гаснут сразу. */
-    transition:
-      left var(--split) var(--split-ease),
-      right var(--split) var(--split-ease),
-      opacity calc(var(--split) * .22) ease-out;
   }
-  /* Открытое — половины приходят: проявляются с задержкой, ровно после того как
-     подпись срока погасла. Без разведения по времени на середине перехода три
-     текста читаются один сквозь другой. Геометрия при этом продолжает ехать всю
-     длительность: надписи успокаиваются рано, форма — плавно. */
-  .pick.open .ways .btn {
-    transition:
-      left var(--split) var(--split-ease),
-      right var(--split) var(--split-ease),
-      opacity calc(var(--split) * .28) ease-out calc(var(--split) * .22);
-  }
-  /* Карта поверх крипты: пока половины совпадают, ряд обязан выглядеть той же
-     синей кнопкой, что и был, — иначе в начале деления он серел бы. */
-  /* Иконка не тянется и не ловит нажатия отдельно от кнопки. Зазор до подписи
-     меньше общего: в половине ширины каждый пиксель на счету. */
-  .pick .ways .btn { gap: 7px; }
-  .pick .ways .btn img {
-    width: 20px; height: 20px;
-    flex: none;
-    pointer-events: none;
-  }
-
-  .pick .ways .btn:first-child { z-index: 2; }
-  .pick .ways .btn:last-child  { z-index: 1; }
-
-  .pick.open .ways .btn { opacity: 1; }
-  .pick.open .ways .btn:first-child { right: calc(50% + 6px); }
-  .pick.open .ways .btn:last-child  { left:  calc(50% + 6px); }
-
-  /* Кнопка срока — зеркально: уходя гаснет сразу, возвращаясь ждёт, пока
-     погаснут половины. */
-  .pick .term .btn {
-    transition: opacity calc(var(--split) * .28) ease-out calc(var(--split) * .22);
-  }
-  .pick.open .term .btn {
-    opacity: 0;
-    transition: opacity calc(var(--split) * .22) ease-out;
-  }
+  .ways-row .btn img { width: 20px; height: 20px; flex: none; pointer-events: none; }
 
   @media (prefers-reduced-motion: reduce) {
-    .pick .ways .btn, .pick .term .btn { transition: none; }
+    .swap, .face { transition: none; }
   }
 </style>
 </head>
@@ -177,26 +158,31 @@
 
       <!-- Тарифы видны всегда: оплата продлеваемая, отменять нечего. -->
       <div id="planPick">
-        <h2 class="title-sm center" style="margin:26px 0 4px" data-i18n="account.pickTitle">Выберите срок</h2>
-        <p class="tiny center" style="margin:0 0 6px" data-i18n="account.pickHint">Нажмите на срок — дальше выберете способ оплаты.</p>
-        <!-- Тариф → способ оплаты. Кнопка срока на месте раскрывается в две:
-             карта и крипта. Показывать все четыре сразу значило бы задать два
-             вопроса одновременно, а выбирают всё же сначала срок. -->
-        <div class="pick" id="pickMonthly">
-          <div class="term" id="termMonthly"><button class="btn block" id="planMonthly"></button></div>
-          <div class="ways" id="waysMonthly">
-            <button class="btn block" id="cardMonthly"><img src="/img/pay-card.png" alt="" width="20" height="20"><span class="lbl"></span></button>
-            <button class="btn block plain" id="cryptoMonthly"><img src="/img/pay-crypto.png" alt="" width="20" height="20"><span class="lbl"></span></button>
+        <h2 class="title-sm center" style="margin:26px 0 4px" id="pickTitle">Выберите срок</h2>
+        <p class="tiny center" style="margin:0 0 6px" id="pickHint" data-i18n="account.pickHint">Нажмите на срок — дальше выберете способ оплаты.</p>
+
+        <!-- Два состояния на одном месте: сначала сроки, потом способы оплаты.
+             Спрашивать и то и другое сразу значило бы задать два вопроса
+             одновременно, а решают всё-таки сначала «на сколько», потом «чем». -->
+        <div class="swap" id="planSwap">
+          <div class="face on" id="faceTerms">
+            <button class="btn block" id="planMonthly"></button>
+            <button class="btn block" id="planYearly"></button>
+            <div class="save" id="planSave" hidden></div>
+          </div>
+
+          <div class="face" id="faceWays">
+            <p class="ways-for">
+              <span id="waysFor"></span>
+              <button type="button" id="waysBack"></button>
+            </p>
+            <div class="ways-row">
+              <button class="btn block" id="payCard"><img src="/img/pay-card.png" alt="" width="20" height="20"><span class="lbl"></span></button>
+              <button class="btn block plain" id="payCrypto"><img src="/img/pay-crypto.png" alt="" width="20" height="20"><span class="lbl"></span></button>
+            </div>
           </div>
         </div>
-        <div class="pick" id="pickYearly">
-          <div class="term" id="termYearly"><button class="btn block" id="planYearly"></button></div>
-          <div class="ways" id="waysYearly">
-            <button class="btn block" id="cardYearly"><img src="/img/pay-card.png" alt="" width="20" height="20"><span class="lbl"></span></button>
-            <button class="btn block plain" id="cryptoYearly"><img src="/img/pay-crypto.png" alt="" width="20" height="20"><span class="lbl"></span></button>
-          </div>
-        </div>
-        <div class="save" id="planSave" hidden></div>
+
         <p class="tiny center" style="margin-top:14px" data-i18n="account.payNote">
           Картой — подписка с автопродлением, отменить можно в любой момент.
           Криптовалютой — разовый платёж без автосписания: срок продлеваете
@@ -233,7 +219,7 @@
 import { scorePassword } from './password.js';
 import { mailProvider } from './mail-providers.js';
 import { planById, priceLabel, yearlySavings } from './plans.js';
-import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=6';
+import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=7';
 
 /**
  * Страница подписки.
@@ -435,42 +421,66 @@ function paint() {
 }
 
 /**
- * Подписи тарифов: «Оплатить месяц — $20».
+ * Подписи и то, какая грань сейчас на экране.
  *
- * Глагол в кнопке, а не только срок: человек должен видеть, что нажатие ведёт
- * к оплате, а не переключает тариф где-то на странице.
+ * Глагол в кнопках срока, а не только срок: человек должен видеть, что нажатие
+ * ведёт к оплате, а не переключает тариф где-то на странице. В кнопках способа
+ * цены нет — в половину ширины она не помещается; вместо неё над ними подпись,
+ * за какой тариф платят.
  *
- * В кнопках способа цены нет: в половину ширины она не помещается. Сумму
- * человек видит на кнопке срока — на той самой, которую и нажимает. Подписи
- * там короткие: значение несёт иконка, а длинное слово рядом с ней не влезло
- * бы на узком экране.
+ * Зовётся и при смене языка, поэтому пересчитывает всё, включая высоту обёртки:
+ * от языка длина подписей меняется, а с ней и число строк на узком экране.
  */
 function renderPlans() {
-  for (const pick of PICKS) {
-    const plan = planById(pick.id);
-    if (!plan) continue;
+  for (const [id, button, key] of [
+    ['monthly', 'planMonthly', 'account.payMonth'],
+    ['yearly', 'planYearly', 'account.payYear'],
+  ]) {
+    const plan = planById(id);
+    if (plan) $(button).textContent = t(key, { price: priceLabel(plan) });
+  }
 
-    $(pick.plan).textContent = t(pick.key, { price: priceLabel(plan) });
-    // Подпись в своём span: `textContent` у кнопки стёр бы иконку рядом.
-    $(pick.card).querySelector('.lbl').textContent = t('account.payCard');
-    $(pick.crypto).querySelector('.lbl').textContent = t('account.payCrypto');
+  // Подпись в своём span: `textContent` у кнопки стёр бы иконку рядом.
+  $('payCard').querySelector('.lbl').textContent = t('account.payCard');
+  $('payCrypto').querySelector('.lbl').textContent = t('account.payCrypto');
+  $('waysBack').textContent = t('account.changeTerm');
 
-    // Раскрытый срок переживает перерисовку: смена языка не должна закрывать
-    // уже сделанный выбор.
-    const open = pick.id === openPlan;
-    $(pick.box).classList.toggle('open', open);
-    $(pick.plan).setAttribute('aria-expanded', String(open));
-
-    // Скрытая половина только прозрачна, из потока она никуда не делась: с
-    // клавиатуры на её кнопки всё ещё можно попасть табом. `inert` убирает их
-    // из обхода вместе с фокусом.
-    $(pick.term).inert = open;
-    $(pick.ways).inert = !open;
+  const chosen = openPlan ? planById(openPlan) : null;
+  if (chosen) {
+    const key = openPlan === 'yearly' ? 'account.payingYear' : 'account.payingMonth';
+    $('waysFor').textContent = t(key, { price: priceLabel(chosen) });
   }
 
   const saved = yearlySavings();
   $('planSave').hidden = !saved;
   $('planSave').textContent = saved ? t('account.saveYear', { n: saved }) : '';
+
+  // Заголовок обязан меняться вместе с гранью: «Выберите срок» над кнопками
+  // способа противоречило бы тому, что под ним. Подсказка на второй грани
+  // лишняя — там уже написано, за что платим.
+  $('pickTitle').textContent = t(openPlan ? 'account.pickTitleWay' : 'account.pickTitle');
+  $('pickHint').hidden = !!openPlan;
+
+  showFace(openPlan ? 'faceWays' : 'faceTerms');
+}
+
+/**
+ * Показать одну грань, спрятав другую, и подогнать высоту обёртки.
+ *
+ * Грани вынуты из потока и лежат друг на друге, поэтому высоту обёртки нужно
+ * задать числом — иначе переход анимировать нечего, а страница под ней прыгала
+ * бы на всю разницу сразу.
+ */
+function showFace(onId) {
+  for (const id of ['faceTerms', 'faceWays']) {
+    const face = $(id);
+    face.classList.toggle('on', id === onId);
+    // Спрятанная грань только прозрачна, из разметки она никуда не делась: с
+    // клавиатуры на её кнопки всё ещё можно попасть табом. `inert` убирает их
+    // из обхода вместе с фокусом.
+    face.inert = id !== onId;
+  }
+  $('planSwap').style.height = `${$(onId).offsetHeight}px`;
 }
 
 /* ------------------------- вход и регистрация ------------------------- */
@@ -674,36 +684,20 @@ $('signOut').addEventListener('click', () => {
 
 /* ------------------------- выбор способа оплаты ------------------------- */
 
-/**
- * Кнопки тарифов и то, во что они раскрываются.
- *
- * `plan` — кнопка срока, `ways` — пара кнопок способа, встающая на её место.
- * Раскрыт всегда один срок: две пары сразу превратили бы выбор из двух в
- * выбор из четырёх, а решают всё-таки сначала «на сколько», потом «чем».
- */
-const PICKS = [
-  {
-    id: 'monthly', key: 'account.payMonth', box: 'pickMonthly', term: 'termMonthly',
-    plan: 'planMonthly', ways: 'waysMonthly', card: 'cardMonthly', crypto: 'cryptoMonthly',
-  },
-  {
-    id: 'yearly', key: 'account.payYear', box: 'pickYearly', term: 'termYearly',
-    plan: 'planYearly', ways: 'waysYearly', card: 'cardYearly', crypto: 'cryptoYearly',
-  },
-];
-
-/** Срок, у которого сейчас открыты способы оплаты. null — открыт ни один. */
+/** Выбранный срок: null — на экране ещё грань со сроками. */
 let openPlan = null;
 
-/**
- * Раскрыть кнопку срока в две кнопки способа оплаты.
- *
- * Повторное нажатие по тому же сроку сворачивает обратно: нажали не туда —
- * должен быть путь назад, а другой кнопки для этого мы не заводим.
- */
-function openWays(planId) {
-  openPlan = openPlan === planId ? null : planId;
+/** Выбрали срок — показываем способы оплаты за него. */
+function pickTerm(planId) {
+  openPlan = planId;
   // Ошибка от прошлой попытки к новому выбору не относится.
+  say('planMsg', '');
+  renderPlans();
+}
+
+/** Назад к выбору срока. */
+function backToTerms() {
+  openPlan = null;
   say('planMsg', '');
   renderPlans();
 }
@@ -764,17 +758,23 @@ async function openCheckout(planId, method) {
   }
 }
 
-for (const pick of PICKS) {
-  $(pick.plan).addEventListener('click', () => openWays(pick.id));
-  $(pick.card).addEventListener('click', () => openCheckout(pick.id, 'card'));
-  $(pick.crypto).addEventListener('click', () => openCheckout(pick.id, 'crypto'));
-}
+$('planMonthly').addEventListener('click', () => pickTerm('monthly'));
+$('planYearly').addEventListener('click', () => pickTerm('yearly'));
+$('waysBack').addEventListener('click', backToTerms);
+$('payCard').addEventListener('click', () => openPlan && openCheckout(openPlan, 'card'));
+$('payCrypto').addEventListener('click', () => openPlan && openCheckout(openPlan, 'crypto'));
+
+// Ширина изменилась — подписи могли перенестись на другую строку, и замеренная
+// высота грани устарела. Без пересчёта её обрезало бы по старой.
+addEventListener('resize', () => {
+  if (!$('planBox').hidden) renderPlans();
+});
 
 /**
  * Тариф, выбранный на витрине: `/account.html?plan=yearly`.
  *
- * Раскрываем его способы оплаты сразу — срок человек уже выбрал на главной, и
- * второй такой же вопрос здесь был бы переспрашиванием. Открыть форму оплаты
+ * Показываем способы оплаты за него сразу — срок человек уже выбрал на главной,
+ * и второй такой же вопрос здесь был бы переспрашиванием. Открыть форму оплаты
  * за него мы не можем: чем платить, он ещё не сказал. Если он не вошёл,
  * намерение ждёт входа и срабатывает после него.
  */
@@ -784,8 +784,8 @@ function usePendingPlan() {
   if (!pendingPlan) return;
 
   const plan = pendingPlan;
-  pendingPlan = null; // один раз: свернул выбор — сам решает, открывать ли снова
-  openWays(plan);
+  pendingPlan = null; // один раз: вернулся к срокам — сам решает, что дальше
+  pickTerm(plan);
 }
 
 /* ------------------------------ запуск ------------------------------ */

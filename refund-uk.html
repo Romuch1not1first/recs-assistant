@@ -126,7 +126,7 @@
 </div>
 
 <script type="module">
-import { initI18n, t, whenLangChanges } from './i18n.js?v=6';
+import { initI18n, t, whenLangChanges } from './i18n.js?v=7';
 whenLangChanges(() => {
   document.getElementById('copy').textContent = t('common.copy', { year: new Date().getFullYear() });
 });
