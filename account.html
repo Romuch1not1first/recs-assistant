@@ -19,6 +19,16 @@
   }
   .flow i { font-style: normal; }
   .flow b { color: var(--text); font-weight: 600; }
+
+  /* Способы оплаты раскрываются на месте кнопки срока. Отдельных отступов у
+     группы нет намеренно: кнопки внутри держат тот же ритм, что и снаружи, —
+     иначе раскрытие выглядело бы прыжком, а не заменой. */
+  .ways { animation: ways-in .16s ease-out; }
+  @keyframes ways-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .ways { animation: none; } }
 </style>
 </head>
 <body class="sheet">
@@ -89,13 +99,29 @@
       <!-- Тарифы видны всегда: оплата продлеваемая, отменять нечего. -->
       <div id="planPick">
         <h2 class="title-sm center" style="margin:26px 0 4px" data-i18n="account.pickTitle">Выберите срок</h2>
-        <p class="tiny center" style="margin:0 0 6px" data-i18n="account.pickHint">Нажмите — откроется форма оплаты.</p>
-        <button class="btn block" id="planMonthly"></button>
-        <button class="btn block" id="planYearly"></button>
+        <p class="tiny center" style="margin:0 0 6px" data-i18n="account.pickHint">Нажмите на срок — дальше выберете способ оплаты.</p>
+        <!-- Тариф → способ оплаты. Кнопка срока на месте раскрывается в две:
+             карта и крипта. Показывать все четыре сразу значило бы задать два
+             вопроса одновременно, а выбирают всё же сначала срок. -->
+        <div class="pick" data-plan="monthly">
+          <button class="btn block" id="planMonthly"></button>
+          <div class="ways" id="waysMonthly" hidden>
+            <button class="btn block" id="cardMonthly"></button>
+            <button class="btn block plain" id="cryptoMonthly"></button>
+          </div>
+        </div>
+        <div class="pick" data-plan="yearly">
+          <button class="btn block" id="planYearly"></button>
+          <div class="ways" id="waysYearly" hidden>
+            <button class="btn block" id="cardYearly"></button>
+            <button class="btn block plain" id="cryptoYearly"></button>
+          </div>
+        </div>
         <div class="save" id="planSave" hidden></div>
         <p class="tiny center" style="margin-top:14px" data-i18n="account.payNote">
-          Криптовалютой или картой с конвертацией. Автосписания нет — срок
-          продлеваете сами, новый период прибавляется к оплаченному.
+          Картой — подписка с автопродлением, отменить можно в любой момент.
+          Криптовалютой — разовый платёж без автосписания: срок продлеваете
+          сами, новый период прибавляется к оплаченному.
         </p>
       </div>
 
@@ -334,14 +360,25 @@ function paint() {
  *
  * Глагол в кнопке, а не только срок: человек должен видеть, что нажатие ведёт
  * к оплате, а не переключает тариф где-то на странице.
+ *
+ * Цена повторена и в кнопках способа оплаты: раскрывшись, кнопка срока
+ * прячется, и без цены рядом человек платил бы, не видя суммы.
  */
 function renderPlans() {
-  for (const [id, button, key] of [
-    ['monthly', 'planMonthly', 'account.payMonth'],
-    ['yearly', 'planYearly', 'account.payYear'],
-  ]) {
-    const plan = planById(id);
-    if (plan) $(button).textContent = t(key, { price: priceLabel(plan) });
+  for (const pick of PICKS) {
+    const plan = planById(pick.id);
+    if (!plan) continue;
+
+    const price = priceLabel(plan);
+    $(pick.plan).textContent = t(pick.key, { price });
+    $(pick.card).textContent = t('account.payCard', { price });
+    $(pick.crypto).textContent = t('account.payCrypto', { price });
+
+    // Раскрытый срок переживает перерисовку: смена языка не должна закрывать
+    // уже сделанный выбор.
+    const open = pick.id === openPlan;
+    $(pick.plan).hidden = open;
+    $(pick.ways).hidden = !open;
   }
 
   const saved = yearlySavings();
@@ -536,16 +573,63 @@ $('signOut').addEventListener('click', () => {
   show(null);
 });
 
+/* ------------------------- выбор способа оплаты ------------------------- */
+
 /**
- * Открывает счёт на оплату выбранного тарифа.
+ * Кнопки тарифов и то, во что они раскрываются.
+ *
+ * `plan` — кнопка срока, `ways` — пара кнопок способа, встающая на её место.
+ * Раскрыт всегда один срок: две пары сразу превратили бы выбор из двух в
+ * выбор из четырёх, а решают всё-таки сначала «на сколько», потом «чем».
+ */
+const PICKS = [
+  {
+    id: 'monthly', key: 'account.payMonth',
+    plan: 'planMonthly', ways: 'waysMonthly', card: 'cardMonthly', crypto: 'cryptoMonthly',
+  },
+  {
+    id: 'yearly', key: 'account.payYear',
+    plan: 'planYearly', ways: 'waysYearly', card: 'cardYearly', crypto: 'cryptoYearly',
+  },
+];
+
+/** Срок, у которого сейчас открыты способы оплаты. null — открыт ни один. */
+let openPlan = null;
+
+/**
+ * Раскрыть кнопку срока в две кнопки способа оплаты.
+ *
+ * Повторное нажатие по тому же сроку сворачивает обратно: нажали не туда —
+ * должен быть путь назад, а другой кнопки для этого мы не заводим.
+ */
+function openWays(planId) {
+  openPlan = openPlan === planId ? null : planId;
+  // Ошибка от прошлой попытки к новому выбору не относится.
+  say('planMsg', '');
+  renderPlans();
+}
+
+/**
+ * Куда идти за счётом. Две платёжные системы — два разных пути:
+ *
+ * `card` — lava.top: настоящая подписка с автосписанием, карта.
+ * `crypto` — NOWPayments: разовый счёт, следующий период человек платит сам.
+ */
+const CHECKOUT_FN = {
+  card: 'lava-checkout',
+  crypto: 'nowpayments-checkout',
+};
+
+/**
+ * Открывает счёт на оплату выбранного тарифа выбранным способом.
  *
  * Сумму и срок задаёт сервер: отсюда уходит только имя тарифа, иначе год
- * покупался бы по цене месяца. На странице счёта покупатель сам выберет,
- * платить криптой или картой с конвертацией.
+ * покупался бы по цене месяца.
  */
-async function openCheckout(planId) {
+async function openCheckout(planId, method) {
   const plan = planById(planId);
-  if (!plan) return;
+  const fn = CHECKOUT_FN[method];
+  if (!plan || !fn) return;
 
   say('planMsg', t('account.msgInvoice'));
 
@@ -558,14 +642,16 @@ async function openCheckout(planId) {
   }
 
   try {
-    const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/nowpayments-checkout`, {
+    const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/${fn}`, {
       method: 'POST',
       headers: {
         apikey: CONFIG.supabaseKey,
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ plan: plan.id }),
+      // Язык — чтобы форма оплаты открылась на том же, что и страница:
+      // незнакомый язык на шаге с номером карты стоит дороже всего.
+      body: JSON.stringify({ plan: plan.id, lang: lang() }),
     });
 
     const data = await res.json().catch(() => null);
@@ -579,15 +665,18 @@ async function openCheckout(planId) {
   }
 }
 
-for (const [button, plan] of [['planMonthly', 'monthly'], ['planYearly', 'yearly']]) {
-  $(button).addEventListener('click', () => openCheckout(plan));
+for (const pick of PICKS) {
+  $(pick.plan).addEventListener('click', () => openWays(pick.id));
+  $(pick.card).addEventListener('click', () => openCheckout(pick.id, 'card'));
+  $(pick.crypto).addEventListener('click', () => openCheckout(pick.id, 'crypto'));
 }
 
 /**
  * Тариф, выбранный на витрине: `/account.html?plan=yearly`.
  *
- * Открываем его форму сразу — человек уже нажал «Оплатить» на главной, и
- * второй такой же выбор здесь был бы переспрашиванием. Если он ещё не вошёл,
+ * Раскрываем его способы оплаты сразу — срок человек уже выбрал на главной, и
+ * второй такой же вопрос здесь был бы переспрашиванием. Открыть форму оплаты
+ * за него мы не можем: чем платить, он ещё не сказал. Если он не вошёл,
  * намерение ждёт входа и срабатывает после него.
  */
 let pendingPlan = planById(new URLSearchParams(location.search).get('plan'))?.id ?? null;
@@ -596,8 +685,8 @@ function usePendingPlan() {
   if (!pendingPlan) return;
 
   const plan = pendingPlan;
-  pendingPlan = null; // один раз: закрыл форму — сам решает, открывать ли снова
-  openCheckout(plan);
+  pendingPlan = null; // один раз: свернул выбор — сам решает, открывать ли снова
+  openWays(plan);
 }
 
 /* ------------------------------ запуск ------------------------------ */
