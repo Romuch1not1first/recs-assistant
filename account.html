@@ -156,7 +156,16 @@
       <div class="line"><span data-i18n="account.rowStatus">Состояние</span><b id="status">—</b></div>
       <div class="line" id="untilLine" hidden><span data-i18n="account.rowUntil">Оплачена до</span><b id="until">—</b></div>
 
-      <!-- Тарифы видны всегда: оплата продлеваемая, отменять нечего. -->
+      <!-- Подписка уже есть: показывать кнопки покупки незачем, и для карты это
+           прямо опасно — вторая оплата завела бы на lava.top второе списание
+           рядом с первым. Вместо них говорим, как подписка продлевается. -->
+      <div id="planHave" hidden>
+        <p class="tiny center" style="margin:26px 0 0" id="renewNote"></p>
+        <!-- Крипта сама не продлевается, поэтому оплатить заранее — единственный
+             способ не потерять доступ. Карте такая кнопка не нужна и вредна. -->
+        <button class="btn block plain" id="extend" hidden></button>
+      </div>
+
       <div id="planPick">
         <h2 class="title-sm center" style="margin:26px 0 4px" id="pickTitle">Выберите срок</h2>
         <p class="tiny center" style="margin:0 0 6px" id="pickHint" data-i18n="account.pickHint">Нажмите на срок — дальше выберете способ оплаты.</p>
@@ -219,7 +228,7 @@
 import { scorePassword } from './password.js';
 import { mailProvider } from './mail-providers.js';
 import { planById, priceLabel, yearlySavings } from './plans.js';
-import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=8';
+import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=9';
 
 /**
  * Страница подписки.
@@ -367,10 +376,27 @@ function isPro(row) {
   return Number.isNaN(until) ? true : until > Date.now();
 }
 
+/**
+ * Продлевается ли подписка сама.
+ *
+ * Отличить можно по приставке в `paddle_subscription_id`: её ставит вебхук той
+ * системы, которая приняла платёж. Крипта — разовый счёт, там продлевать нужно
+ * руками; карта на lava.top и старый Paddle списывают сами.
+ */
+const renewsItself = (row) => !String(row?.paddle_subscription_id ?? '').startsWith('nowpayments:');
+
 // Последнее, что мы знаем об аккаунте. Держим отдельно, чтобы перерисовать
 // экран при смене языка, не ходя за подпиской в сеть заново.
 let session = null;
 let sub = null;
+
+/**
+ * Нажали «Продлить» — показываем выбор тарифа поверх активной подписки.
+ *
+ * Сбрасывается при каждой перезагрузке подписки: оплатил — и предложение
+ * продлить снова становится неуместным.
+ */
+let extending = false;
 
 async function loadPlan() {
   const token = await freshToken();
@@ -379,9 +405,13 @@ async function loadPlan() {
 
   let row = null;
   try {
-    const rows = await api('/rest/v1/subscriptions?select=status,current_period_end&limit=1', {
-      token,
-    });
+    // `paddle_subscription_id` нужен не для Paddle: по его приставке видно, чем
+    // оплачено — `lava:` продлевается само, `nowpayments:` нет. От этого зависит,
+    // предлагать ли продление вообще.
+    const rows = await api(
+      '/rest/v1/subscriptions?select=status,current_period_end,paddle_subscription_id&limit=1',
+      { token }
+    );
     row = rows?.[0] ?? null;
   } catch (e) {
     // Токен протух — просим войти заново, а не показываем непонятную ошибку.
@@ -402,6 +432,10 @@ async function loadPlan() {
 function show(next, nextSub) {
   session = next ?? null;
   sub = nextSub ?? null;
+  // Подписку перечитали — предложение продлить снова неуместно: могли как раз
+  // оплатить. Заодно возвращаемся к выбору срока, а не к способам оплаты.
+  extending = false;
+  openPlan = null;
   paint();
 
   // Пришли с витрины с выбранным тарифом — открываем счёт сразу.
@@ -430,9 +464,24 @@ function paint() {
   // мелочь, из даты 03.04 и 04/03 получаются разные дни.
   if (until && !Number.isNaN(+until)) $('until').textContent = until.toLocaleDateString(lang());
 
-  // Тарифы показываем всегда: подписка продлеваемая, и оплатить следующий
-  // период человек должен сам — срок прибавится к текущему.
-  renderPlans();
+  // Купить можно только то, чего нет. При живой подписке кнопки оплаты не просто
+  // лишние — для карты они опасны: вторая оплата завела бы на lava.top второе
+  // списание рядом с первым, и человек платил бы дважды.
+  const auto = renewsItself(sub);
+  const buying = !pro || extending;
+
+  $('planPick').hidden = !buying;
+  $('planHave').hidden = buying;
+
+  if (pro) {
+    $('renewNote').textContent = t(auto ? 'account.renewsAuto' : 'account.renewsManual');
+    // Крипте продление нужно заранее: сама она не спишется, и в день окончания
+    // доступ просто пропадёт. Карте кнопка не нужна — она спишет сама.
+    $('extend').hidden = auto;
+    $('extend').textContent = t('account.extend');
+  }
+
+  if (buying) renderPlans();
 }
 
 /**
@@ -773,6 +822,11 @@ async function openCheckout(planId, method) {
   }
 }
 
+$('extend').addEventListener('click', () => {
+  extending = true;
+  paint();
+});
+
 $('planMonthly').addEventListener('click', () => pickTerm('monthly'));
 $('planYearly').addEventListener('click', () => pickTerm('yearly'));
 $('waysBack').addEventListener('click', backToTerms);
@@ -800,6 +854,16 @@ function usePendingPlan() {
 
   const plan = pendingPlan;
   pendingPlan = null; // один раз: вернулся к срокам — сам решает, что дальше
+
+  // Подписка уже есть — намерение с витрины разбирается по способу оплаты.
+  // Крипту продлевают заранее, это законно: открываем выбор с нужным сроком.
+  // Карта же списывает сама, и вторая покупка завела бы второе списание, —
+  // такое намерение молча не исполняем, человек видит свою подписку и решает.
+  if (isPro(sub)) {
+    if (renewsItself(sub)) return;
+    extending = true;
+  }
+
   pickTerm(plan);
 }
 
