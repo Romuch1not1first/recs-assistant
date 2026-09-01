@@ -164,6 +164,10 @@
         <!-- Крипта сама не продлевается, поэтому оплатить заранее — единственный
              способ не потерять доступ. Карте такая кнопка не нужна и вредна. -->
         <button class="btn block plain" id="extend" hidden></button>
+        <!-- Карту менять и отменять нужно у нас: подписку завёл наш ключ, и в
+             своём кабинете lava.top покупатель её не видит. -->
+        <button class="btn block plain" id="switchTerm" hidden></button>
+        <button class="btn block plain" id="cancelSub" hidden></button>
       </div>
 
       <div id="planPick">
@@ -228,7 +232,7 @@
 import { scorePassword } from './password.js';
 import { mailProvider } from './mail-providers.js';
 import { planById, priceLabel, yearlySavings } from './plans.js';
-import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=9';
+import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=10';
 
 /**
  * Страница подписки.
@@ -398,6 +402,53 @@ let sub = null;
  */
 let extending = false;
 
+/**
+ * Нажали «Сменить тариф» — показываем сроки, но способ уже не спрашиваем.
+ *
+ * Менять можно только карту на карту: счёт на неё гасит прежнюю подписку, а
+ * оплата криптой её не тронула бы — осталась бы жить рядом и списывать.
+ */
+let switching = false;
+
+/**
+ * Отмену просим подтвердить вторым нажатием.
+ *
+ * Действие тихое и необратимое: карта просто перестанет списываться, и заметить
+ * промах человек сможет только через месяц, когда доступ не продлится.
+ */
+let cancelArmed = false;
+
+/**
+ * Сколько подписок на карте живо у этого человека по данным lava.top.
+ *
+ * Спрашиваем её саму, потому что своей записи об отмене у нас нет: строку
+ * подписки отмена не меняет — оплаченные дни остаются, — а `subscription.cancelled`
+ * вебхук пропускает намеренно. Без этого числа кабинет обещал бы автосписание
+ * тому, кто уже отменил.
+ */
+let lavaActive = 0;
+
+/** Отменяла ли lava.top автопродление. Ошибку опроса считаем «всё ещё живо». */
+async function probeLava(token) {
+  try {
+    const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/lava-cancel`, {
+      method: 'POST',
+      headers: {
+        apikey: CONFIG.supabaseKey,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ probe: true }),
+    });
+    if (!res.ok) return 1;
+    return Number((await res.json())?.active ?? 1);
+  } catch {
+    // Не дозвонились — обещать «автопродления нет» опаснее, чем промолчать:
+    // человек решил бы, что можно не отменять, и получил бы списание.
+    return 1;
+  }
+}
+
 async function loadPlan() {
   const token = await freshToken();
   const saved = readSession();
@@ -426,6 +477,14 @@ async function loadPlan() {
     say('planMsg', t('account.errSubLoad'), 'err');
   }
 
+  // Спрашиваем до отрисовки, а не после: иначе кабинет успел бы моргнуть
+  // обещанием автосписания и тут же его забрать. Только для карты и только при
+  // живой подписке — остальным спрашивать нечего.
+  lavaActive = 0;
+  if (isPro(row) && String(row?.paddle_subscription_id ?? '').startsWith('lava:')) {
+    lavaActive = await probeLava(token);
+  }
+
   show(saved, row);
 }
 
@@ -435,6 +494,8 @@ function show(next, nextSub) {
   // Подписку перечитали — предложение продлить снова неуместно: могли как раз
   // оплатить. Заодно возвращаемся к выбору срока, а не к способам оплаты.
   extending = false;
+  switching = false;
+  cancelArmed = false;
   openPlan = null;
   paint();
 
@@ -467,8 +528,10 @@ function paint() {
   // Купить можно только то, чего нет. При живой подписке кнопки оплаты не просто
   // лишние — для карты они опасны: вторая оплата завела бы на lava.top второе
   // списание рядом с первым, и человек платил бы дважды.
-  const auto = renewsItself(sub);
-  const buying = !pro || extending;
+  // Автопродление обещаем, только если оно и правда живо: отменённая карточная
+  // подписка выглядит в базе точно так же, как действующая.
+  const auto = renewsItself(sub) && lavaActive > 0;
+  const buying = !pro || extending || switching;
 
   $('planPick').hidden = !buying;
   $('planHave').hidden = buying;
@@ -479,6 +542,11 @@ function paint() {
     // доступ просто пропадёт. Карте кнопка не нужна — она спишет сама.
     $('extend').hidden = auto;
     $('extend').textContent = t('account.extend');
+
+    $('switchTerm').hidden = !auto;
+    $('switchTerm').textContent = t('account.switchTerm');
+    $('cancelSub').hidden = !auto;
+    $('cancelSub').textContent = t(cancelArmed ? 'account.cancelAsk' : 'account.cancelSub');
   }
 
   if (buying) renderPlans();
@@ -753,9 +821,14 @@ let openPlan = null;
 
 /** Выбрали срок — показываем способы оплаты за него. */
 function pickTerm(planId) {
-  openPlan = planId;
   // Ошибка от прошлой попытки к новому выбору не относится.
   say('planMsg', '');
+
+  // Меняем тариф на карте — способ спрашивать нечего: он уже карта, и только
+  // счёт на неё погасит прежнюю подписку.
+  if (switching) return openCheckout(planId, 'card');
+
+  openPlan = planId;
   renderPlans();
 }
 
@@ -825,6 +898,50 @@ async function openCheckout(planId, method) {
 $('extend').addEventListener('click', () => {
   extending = true;
   paint();
+});
+
+$('switchTerm').addEventListener('click', () => {
+  switching = true;
+  paint();
+});
+
+$('cancelSub').addEventListener('click', async () => {
+  if (!cancelArmed) {
+    cancelArmed = true;
+    paint();
+    return;
+  }
+
+  cancelArmed = false;
+  say('planMsg', t('account.cancelWait'));
+
+  const token = await freshToken();
+  if (!token) {
+    writeSession(null);
+    show(null);
+    return say('authMsg', t('account.errSession'), 'err');
+  }
+
+  try {
+    const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/lava-cancel`, {
+      method: 'POST',
+      headers: {
+        apikey: CONFIG.supabaseKey,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    // Строку подписки не трогаем намеренно: оплаченные дни остаются, и статус
+    // должен остаться Pro Plan до конца срока. Перечитываем — вдруг за это
+    // время что-то изменилось, — и заново рисуем кнопки.
+    await loadPlan();
+    say('planMsg', t('account.cancelDone'), 'ok');
+  } catch (e) {
+    console.error(e);
+    say('planMsg', t('account.cancelErr'), 'err');
+  }
 });
 
 $('planMonthly').addEventListener('click', () => pickTerm('monthly'));
