@@ -219,7 +219,7 @@
 import { scorePassword } from './password.js';
 import { mailProvider } from './mail-providers.js';
 import { planById, priceLabel, yearlySavings } from './plans.js';
-import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=7';
+import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=8';
 
 /**
  * Страница подписки.
@@ -345,14 +345,27 @@ const say = (el, text, tone = '') => {
   $(el).className = `msg ${tone}`;
 };
 
-const STATUS_TEXT = {
-  active: ['account.stActive', 'ok'],
-  trialing: ['account.stTrialing', 'ok'],
-  past_due: ['account.stPastDue', 'warn'],
-  paused: ['account.stPaused', 'warn'],
-  canceled: ['account.stCanceled', 'warn'],
-  none: ['account.stNone', 'warn'],
-};
+/**
+ * Статусы, при которых доступ открыт.
+ *
+ * Список и правило ниже повторяют `planActive` из расширения (src/subscription.js)
+ * намеренно: разойдись они — истёкшая подписка называлась бы здесь Pro Plan, а
+ * в панели Free Plan, и человек не понял бы, кому верить.
+ */
+const LIVE = new Set(['active', 'trialing', 'past_due']);
+
+/**
+ * Открыт ли доступ прямо сейчас.
+ *
+ * Одного статуса мало: строку пишет вебхук, и если следующий платёж не дошёл —
+ * сеть, ошибка на нашей стороне, — она так и осталась бы `active` навсегда.
+ * Нет даты — полагаемся на статус.
+ */
+function isPro(row) {
+  if (!LIVE.has(row?.status)) return false;
+  const until = row?.current_period_end ? Date.parse(row.current_period_end) : NaN;
+  return Number.isNaN(until) ? true : until > Date.now();
+}
 
 // Последнее, что мы знаем об аккаунте. Держим отдельно, чтобы перерисовать
 // экран при смене языка, не ходя за подпиской в сеть заново.
@@ -404,10 +417,12 @@ function paint() {
 
   $('who').textContent = session.email;
 
-  const status = sub?.status ?? 'none';
-  const [key, tone] = STATUS_TEXT[status] ?? [null, 'warn'];
-  $('status').textContent = key ? t(key) : status;
-  $('status').className = tone;
+  // Два имени вместо шести состояний: человеку важно, открыт доступ или нет.
+  // Жёлтым красим и `past_due` — доступ ещё есть, но платёж не прошёл, и через
+  // несколько дней он закроется; молчать об этом значит готовить сюрприз.
+  const pro = isPro(sub);
+  $('status').textContent = t(pro ? 'account.planPro' : 'account.planFree');
+  $('status').className = pro && sub?.status !== 'past_due' ? 'ok' : 'warn';
 
   const until = sub?.current_period_end ? new Date(sub.current_period_end) : null;
   $('untilLine').hidden = !until || Number.isNaN(+until);
