@@ -89,6 +89,18 @@
   @media (prefers-reduced-motion: reduce) {
     .swap, .face { transition: none; }
   }
+
+  /* Удаление аккаунта: не кнопка, а ссылка, и приглушённая. Действие
+     необратимое и нужное редко — оно не должно соперничать за внимание
+     с оплатой и выходом. Красной делаем только на подтверждении. */
+  .danger-row { margin: 18px 0 0; text-align: center; }
+  .danger-row button {
+    background: none; border: 0; padding: 4px;
+    color: var(--text-3); font: inherit; font-size: 14px; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .danger-row button:hover { color: var(--text-2); }
+  .danger-row.armed button { color: var(--err); }
 </style>
 </head>
 <body class="sheet">
@@ -204,6 +216,10 @@
       </div>
 
       <button class="btn block plain" id="signOut" data-i18n="account.signOut">Выйти</button>
+      <!-- Удаление аккаунта — здесь же, где всё остальное про профиль, но
+           отдельной строкой и без вида кнопки: рядом с «Выйти» её нажимали бы
+           по ошибке, а отменить это нельзя. -->
+      <p class="danger-row"><button type="button" id="deleteAccount"></button></p>
       <div class="msg" id="planMsg"></div>
 
       <div class="what">
@@ -232,7 +248,7 @@
 import { scorePassword } from './password.js';
 import { mailProvider } from './mail-providers.js';
 import { planById, priceLabel, yearlySavings } from './plans.js';
-import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=10';
+import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=11';
 
 /**
  * Страница подписки.
@@ -496,6 +512,7 @@ function show(next, nextSub) {
   extending = false;
   switching = false;
   cancelArmed = false;
+  deleteArmed = false;
   openPlan = null;
   paint();
 
@@ -550,6 +567,7 @@ function paint() {
   }
 
   if (buying) renderPlans();
+  renderDelete();
 }
 
 /**
@@ -812,6 +830,61 @@ for (const id of ['email', 'password', 'password2']) {
 $('signOut').addEventListener('click', () => {
   writeSession(null);
   show(null);
+});
+
+/**
+ * Удаление аккаунта. Как и отмена подписки — вторым нажатием.
+ *
+ * Подтверждение здесь важнее: отменённую подписку можно оформить заново, а
+ * удалённый аккаунт не вернуть — вместе с ним уходят и оплаченные дни.
+ */
+let deleteArmed = false;
+
+/** Подпись и цвет ссылки удаления по тому, ждём мы подтверждения или нет. */
+function renderDelete() {
+  $('deleteAccount').textContent = t(deleteArmed ? 'account.deleteAsk' : 'account.deleteAccount');
+  $('deleteAccount').closest('.danger-row').classList.toggle('armed', deleteArmed);
+}
+
+$('deleteAccount').addEventListener('click', async () => {
+  if (!deleteArmed) {
+    deleteArmed = true;
+    renderDelete();
+    say('planMsg', t('account.deleteWarn'), 'warn');
+    return;
+  }
+
+  deleteArmed = false;
+  renderDelete();
+  say('planMsg', t('account.deleteWait'));
+
+  const token = await freshToken();
+  if (!token) {
+    writeSession(null);
+    show(null);
+    return say('authMsg', t('account.errSession'), 'err');
+  }
+
+  try {
+    const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/account-delete`, {
+      method: 'POST',
+      headers: {
+        apikey: CONFIG.supabaseKey,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    // Аккаунта больше нет — держать его сессию незачем: любой запрос с ней
+    // всё равно вернёт 401, а человек видел бы кабинет удалённого аккаунта.
+    writeSession(null);
+    show(null);
+    say('authMsg', t('account.deleteDone'), 'ok');
+  } catch (e) {
+    console.error(e);
+    say('planMsg', t('account.deleteErr'), 'err');
+  }
 });
 
 /* ------------------------- выбор способа оплаты ------------------------- */
