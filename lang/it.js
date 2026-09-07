@@ -133,6 +133,7 @@ export default {
   "account.payCrypto": "Cripto",
   "account.saveYear": "l’annuale fa risparmiare il {n} %",
   "account.payNote": "Con carta è un abbonamento che si rinnova da solo; puoi disdirlo quando vuoi. In criptovaluta è un pagamento unico senza addebito ricorrente: il periodo lo rinnovi tu e quello nuovo si somma a quello già pagato.",
+  "account.chats": "Statistiche delle chat",
   "account.signOut": "Esci",
   "account.deleteAccount": "Elimina l’account",
   "account.deleteAsk": "Premi di nuovo: l’account verrà eliminato",

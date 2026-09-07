@@ -133,6 +133,7 @@ export default {
   "account.payCrypto": "Crypto",
   "account.saveYear": "het jaarabonnement bespaart {n}%",
   "account.payNote": "Met een kaart is het een abonnement dat zichzelf verlengt; je kunt het altijd opzeggen. Met cryptovaluta is het een eenmalige betaling zonder terugkerende afschrijving: je verlengt zelf en de nieuwe termijn komt bij de al betaalde.",
+  "account.chats": "Statistieken van gesprekken",
   "account.signOut": "Uitloggen",
   "account.deleteAccount": "Account verwijderen",
   "account.deleteAsk": "Druk nogmaals — het account wordt verwijderd",

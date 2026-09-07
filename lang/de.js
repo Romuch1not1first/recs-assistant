@@ -133,6 +133,7 @@ export default {
   "account.payCrypto": "Krypto",
   "account.saveYear": "das Jahresabo spart {n} %",
   "account.payNote": "Mit Karte ist es ein Abo, das sich selbst verlängert; jederzeit kündbar. In Kryptowährung ist es eine einmalige Zahlung ohne wiederkehrende Abbuchung: Sie verlängern selbst, und der neue Zeitraum kommt zum bereits bezahlten hinzu.",
+  "account.chats": "Chat-Statistik",
   "account.signOut": "Abmelden",
   "account.deleteAccount": "Konto löschen",
   "account.deleteAsk": "Erneut drücken — das Konto wird gelöscht",

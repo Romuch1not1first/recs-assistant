@@ -133,6 +133,7 @@ export default {
   "account.payCrypto": "Cripto",
   "account.saveYear": "la anual ahorra un {n} %",
   "account.payNote": "Con tarjeta es una suscripción que se renueva sola; puedes cancelarla cuando quieras. En criptomoneda es un pago único sin cobro recurrente: el plazo lo renuevas tú y el nuevo periodo se suma al ya pagado.",
+  "account.chats": "Estadísticas de chats",
   "account.signOut": "Salir",
   "account.deleteAccount": "Eliminar la cuenta",
   "account.deleteAsk": "Pulsa otra vez: la cuenta se eliminará",

@@ -133,6 +133,7 @@ export default {
   "account.payCrypto": "Kripto",
   "account.saveYear": "yıllık %{n} daha avantajlı",
   "account.payNote": "Kartla kendini yenileyen bir abonelik olur; istediğiniz an iptal edebilirsiniz. Kripto parayla tek seferlik ödemedir, yinelenen çekim yoktur: süreyi kendiniz uzatırsınız ve yeni dönem ödenmiş olana eklenir.",
+  "account.chats": "Sohbet istatistikleri",
   "account.signOut": "Çıkış yap",
   "account.deleteAccount": "Hesabı sil",
   "account.deleteAsk": "Tekrar basın — hesap silinecek",

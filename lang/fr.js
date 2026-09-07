@@ -133,6 +133,7 @@ export default {
   "account.payCrypto": "Crypto",
   "account.saveYear": "l’annuel fait économiser {n} %",
   "account.payNote": "Par carte, c’est un abonnement qui se renouvelle tout seul ; résiliable à tout moment. En cryptomonnaie, c’est un paiement unique sans prélèvement récurrent : vous renouvelez vous-même, et la nouvelle durée s’ajoute à celle déjà payée.",
+  "account.chats": "Statistiques des conversations",
   "account.signOut": "Se déconnecter",
   "account.deleteAccount": "Supprimer le compte",
   "account.deleteAsk": "Appuyez encore : le compte sera supprimé",

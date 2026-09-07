@@ -133,6 +133,7 @@ export default {
   "account.payCrypto": "Krypto",
   "account.saveYear": "roczna jest tańsza o {n}%",
   "account.payNote": "Kartą to subskrypcja, która odnawia się sama; możesz ją anulować w każdej chwili. Kryptowalutą to jednorazowa płatność bez cyklicznych obciążeń: okres przedłużasz sam, a nowy dolicza się do już opłaconego.",
+  "account.chats": "Statystyki rozmów",
   "account.signOut": "Wyloguj się",
   "account.deleteAccount": "Usuń konto",
   "account.deleteAsk": "Naciśnij ponownie — konto zostanie usunięte",

@@ -215,6 +215,11 @@
         </p>
       </div>
 
+      <!-- Дашборд переписок. Отдельной страницей, а не здесь: доска из пяти
+           колонок в панель шириной с форму входа не помещается, а искать её по
+           прямому адресу никто не станет. -->
+      <a class="btn block plain" href="/chats.html" data-i18n="account.chats">Статистика переписок</a>
+
       <button class="btn block plain" id="signOut" data-i18n="account.signOut">Выйти</button>
       <!-- Удаление аккаунта — здесь же, где всё остальное про профиль, но
            отдельной строкой и без вида кнопки: рядом с «Выйти» её нажимали бы
@@ -248,7 +253,7 @@
 import { scorePassword } from './password.js';
 import { mailProvider } from './mail-providers.js';
 import { planById, priceLabel, yearlySavings } from './plans.js';
-import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=13';
+import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=14';
 
 /**
  * Страница подписки.

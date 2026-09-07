@@ -133,6 +133,7 @@ export default {
   "account.payCrypto": "Crypto",
   "account.saveYear": "the yearly one saves {n}%",
   "account.payNote": "By card it is a subscription that renews itself; cancel it whenever you like. In crypto it is a one-off payment with no recurring charge: you renew yourself, and the new term is added to what you already paid for.",
+  "account.chats": "Chat statistics",
   "account.signOut": "Sign out",
   "account.deleteAccount": "Delete the account",
   "account.deleteAsk": "Press again — the account will be deleted",
