@@ -100,7 +100,7 @@
 
 <script type="module">
 import { initI18n, t, whenLangChanges } from './i18n.js?v=14';
-import { board, silentDays } from './chat-states.js?v=2';
+import { board, silentDays } from './chat-states.js?v=3';
 
 const CONFIG = {
   supabaseUrl: 'https://scghlieavejohghkuozu.supabase.co',
@@ -117,6 +117,61 @@ const readSession = () => {
     return null;
   }
 };
+
+const writeSession = (s) => {
+  if (s) localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+  else localStorage.removeItem(SESSION_KEY);
+};
+
+/** Ответ Supabase с токенами → то, что храним. Форма та же, что в кабинете. */
+const toSession = (data) => ({
+  access_token: data.access_token,
+  refresh_token: data.refresh_token ?? null,
+  // Запас в минуту: иначе токен мог истечь между проверкой и самим запросом.
+  expires_at: Date.now() + ((Number(data.expires_in) || 3600) - 60) * 1000,
+  user_id: data.user.id,
+  email: data.user.email,
+});
+
+/**
+ * Живой токен: истёкший обновляем по refresh-токену.
+ *
+ * Токен доступа живёт час. Кабинет это умеет с тех пор, как из-за просроченной
+ * сессии молча переставали работать кнопки оплаты; дашборд не умел — и через
+ * час после входа отвечал «не удалось загрузить», хотя грузить было что.
+ *
+ * Близнец этой функции живёт в account.html. Одна на двоих просится в общий
+ * модуль вроде plans.js, но переносить её отсюда значит трогать оплату, а это
+ * отдельная работа с отдельной проверкой.
+ */
+async function freshToken() {
+  const s = readSession();
+  if (!s) return null;
+  if (s.expires_at && s.expires_at > Date.now()) return s.access_token;
+
+  if (!s.refresh_token) {
+    writeSession(null);
+    return null;
+  }
+
+  try {
+    const res = await fetch(`${CONFIG.supabaseUrl}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST',
+      headers: { apikey: CONFIG.supabaseKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: s.refresh_token }),
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json();
+    writeSession(toSession(data));
+    return data.access_token;
+  } catch {
+    // Refresh-токен тоже недействителен — сессия закончилась.
+    writeSession(null);
+    return null;
+  }
+}
 
 const say = (text, kind = '') => {
   const box = $('msg');
@@ -310,8 +365,8 @@ whenLangChanges(() => {
 await initI18n();
 
 (async () => {
-  const session = readSession();
-  if (!session?.access_token) {
+  const token = await freshToken();
+  if (!token) {
     say(t('chats.needSignIn'), 'err');
     return;
   }
@@ -319,13 +374,13 @@ await initI18n();
   say(t('chats.loading'));
 
   try {
-    let chats = await loadChats(session.access_token);
+    let chats = await loadChats(token);
 
     // Есть неразобранные — просим разобрать и перечитываем. Один лишний запрос
     // раз в неделю дешевле, чем колонка с пустыми причинами.
     if (chats.some((c) => c.status === 'unmatched' && !c.error_tag)) {
-      await classifyRest(session.access_token);
-      chats = await loadChats(session.access_token);
+      await classifyRest(token);
+      chats = await loadChats(token);
     }
 
     say('');
