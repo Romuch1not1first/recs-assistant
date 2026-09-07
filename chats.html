@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title data-i18n="chats.title">AutoSwipe AI — переписки</title>
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/site.css?v=5">
+<style>
+  /* Доска: пять колонок на широком экране, столбик на телефоне. Ширину держит
+     minmax, а не медиазапросы — колонок ровно пять, и подбирать под них точки
+     перелома значило бы описывать одно и то же пятью способами. */
+  /* Панель на сайте узкая: она сделана под форму входа. Доске из пяти колонок
+     этой ширины мало, и раздвигаем её здесь, а не в общем site.css — кроме
+     этой страницы, широкая панель никому не нужна. */
+  .panel.wide { max-width: 1180px; }
+
+  .board {
+    display: grid; gap: 16px; margin-top: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .col { min-width: 0; }
+  .col > h2 {
+    font-size: 15px; margin: 0 0 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .col > h2 b { color: var(--text-3); font-weight: 500; font-size: 13px; }
+
+  /* Цветная полоска у заголовка: колонки различаются не порядком, а смыслом,
+     и на телефоне, где они идут одна под другой, порядок не читается вовсе. */
+  .col > h2::before {
+    content: ''; width: 3px; height: 15px; border-radius: 2px; background: var(--dot);
+  }
+  .col.yours    { --dot: #0a84ff; }
+  .col.waiting  { --dot: #34c759; }
+  .col.unmatch  { --dot: #ff3b30; }
+  .col.reengage { --dot: #ff9f0a; }
+  .col.dead     { --dot: #8e8e93; }
+
+  .chat {
+    display: flex; gap: 10px; align-items: flex-start;
+    background: var(--card); border: 1px solid var(--line-soft); border-radius: 12px;
+    padding: 10px 12px; margin-bottom: 8px;
+  }
+  .chat img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex: none; }
+  .chat .who { min-width: 0; }
+  .chat .name { font-size: 15px; font-weight: 600; }
+  /* Не `.note`: так называется рамка-врезка в site.css, и карточка молча
+     приезжала с чужими отступами в двадцать пикселей и рамкой вокруг слов
+     «молчит 2 дн.». */
+  .chat .mini { color: var(--text-3); font-size: 13px; margin-top: 2px; }
+
+  /* Тег ошибки: короткое слово, по которому колонку и читают. */
+  .tag {
+    display: inline-block; margin-top: 4px; padding: 1px 7px; border-radius: 20px;
+    font-size: 12px; background: var(--line-soft); color: var(--text-2);
+  }
+  .tag.bad { background: #ff3b3018; color: #ff453a; }
+
+  /* Две последние реплики под тегом. Без них «слишком напористо» — приговор без
+     дела: тег называет ошибку, а показать её может только сам разговор. */
+  .quote { margin-top: 6px; padding-left: 8px; border-left: 2px solid var(--line-soft); }
+  .quote p {
+    margin: 0; font-size: 12px; line-height: 1.45; color: var(--text-3);
+    overflow-wrap: anywhere;
+  }
+  .quote b { font-weight: 600; color: var(--text-2); }
+
+  .empty { color: var(--text-3); font-size: 13px; padding: 4px 2px; }
+  .sum { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 18px; color: var(--text-2); font-size: 14px; }
+  .sum b { color: var(--text); }
+</style>
+</head>
+<body class="sheet">
+  <div class="panel wide">
+    <a class="logo" href="/"><img class="mark" src="/img/logo.png" alt="" width="26" height="26"> <span>AutoSwipe AI</span></a>
+
+    <h1 data-i18n="chats.h1">Переписки</h1>
+    <p id="lead" data-i18n="chats.lead">Что происходит в ваших чатах и почему кончаются те, что кончились.</p>
+
+    <div class="msg" id="msg"></div>
+
+    <!-- Сводка по тегам: ради неё классификатор и отдаёт теги, а не текст. -->
+    <div class="sum" id="sum" hidden></div>
+
+    <div class="board" id="board" hidden>
+      <div class="col yours"><h2><span data-i18n="chats.yours">Ваш ход</span> <b id="nYours"></b></h2><div id="cYours"></div></div>
+      <div class="col waiting"><h2><span data-i18n="chats.waiting">Ждут ответа</span> <b id="nWaiting"></b></h2><div id="cWaiting"></div></div>
+      <div class="col unmatch"><h2><span data-i18n="chats.unmatched">Анмэтч</span> <b id="nUnmatched"></b></h2><div id="cUnmatched"></div></div>
+      <div class="col reengage"><h2><span data-i18n="chats.reengage">Пора вернуться</span> <b id="nReengage"></b></h2><div id="cReengage"></div></div>
+      <div class="col dead"><h2><span data-i18n="chats.dead">Мёртвые</span> <b id="nDead"></b></h2><div id="cDead"></div></div>
+    </div>
+
+    <div data-lang></div>
+  </div>
+
+<script type="module">
+import { initI18n, t, whenLangChanges } from './i18n.js?v=13';
+import { board, silentDays } from './chat-states.js?v=2';
+
+const CONFIG = {
+  supabaseUrl: 'https://scghlieavejohghkuozu.supabase.co',
+  supabaseKey: 'sb_publishable_tVIZPhzT4ZS2vBG2cqjMkw_ea2BXSB3',
+};
+
+const SESSION_KEY = 'recs_session';
+const $ = (id) => document.getElementById(id);
+
+const readSession = () => {
+  try {
+    return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+  } catch {
+    return null;
+  }
+};
+
+const say = (text, kind = '') => {
+  const box = $('msg');
+  box.textContent = text;
+  box.className = `msg${kind ? ` ${kind}` : ''}`;
+};
+
+/**
+ * Свои переписки из базы.
+ *
+ * Прямо в REST, без своей функции: строки читает сам пользователь своим
+ * токеном, и отделяет его переписки от чужих RLS — та же защита, что у
+ * подписки. Лишняя функция здесь только добавила бы места, где можно ошибиться.
+ */
+async function loadChats(token) {
+  const res = await fetch(
+    `${CONFIG.supabaseUrl}/rest/v1/chats` +
+      '?select=match_id,name,photo,status,last_mine,last_at,messages,error_tag,short_reason,tail' +
+      '&order=last_at.desc.nullslast&limit=500',
+    {
+      headers: {
+        apikey: CONFIG.supabaseKey,
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return await res.json();
+}
+
+/** Досчитать причины у тех, кого расширение принесло, но разобрать не успело. */
+async function classifyRest(token) {
+  await fetch(`${CONFIG.supabaseUrl}/functions/v1/analyze-unmatch`, {
+    method: 'POST',
+    headers: {
+      apikey: CONFIG.supabaseKey,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: '{}',
+  }).catch(() => {
+    // Не вышло — доска всё равно покажет всё, что уже разобрано.
+  });
+}
+
+/**
+ * Подписи тегов.
+ *
+ * Списком, а не сборкой ключа из тега: собранный ключ не найти поиском по
+ * файлу, и `check-lang` считает такую строку неиспользуемой — справедливо, ведь
+ * опечатку в ней тоже никто не заметит.
+ */
+const TAG_KEY = {
+  too_needy: 'chats.tag.too_needy',
+  boring_interview: 'chats.tag.boring_interview',
+  creepy: 'chats.tag.creepy',
+  logical_fail: 'chats.tag.logical_fail',
+  no_mistake: 'chats.tag.no_mistake',
+};
+
+/** Карточка переписки. */
+function card(chat) {
+  const box = document.createElement('div');
+  box.className = 'chat';
+
+  if (chat.photo) {
+    const img = document.createElement('img');
+    img.src = chat.photo;
+    img.alt = '';
+    img.loading = 'lazy';
+    box.append(img);
+  }
+
+  const who = document.createElement('div');
+  who.className = 'who';
+
+  const name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = chat.name || '—';
+  who.append(name);
+
+  const days = silentDays(chat);
+  if (days !== null) {
+    const note = document.createElement('div');
+    note.className = 'mini';
+    note.textContent = days === 0 ? t('chats.today') : t('chats.days', { n: days });
+    who.append(note);
+  }
+
+  // Тег ошибки — то, ради чего колонка с анмэтчами и существует.
+  if (chat.error_tag) {
+    const tag = document.createElement('div');
+    tag.className = `tag${chat.error_tag === 'no_mistake' ? '' : ' bad'}`;
+    tag.textContent = t(TAG_KEY[chat.error_tag] ?? chat.error_tag);
+    tag.title = chat.short_reason || '';
+    who.append(tag);
+
+    if (chat.short_reason) {
+      const why = document.createElement('div');
+      why.className = 'mini';
+      why.textContent = chat.short_reason;
+      who.append(why);
+    }
+  } else if (chat.status === 'unmatched') {
+    const wait = document.createElement('div');
+    wait.className = 'mini';
+    wait.textContent = t('chats.tagWait');
+    who.append(wait);
+  }
+
+  // Разговор под тегом. Двумя репликами он и ограничен: их дело — показать, за
+  // что тег поставлен, а не пересказать переписку, и больше сервер не хранит.
+  const tail = Array.isArray(chat.tail) ? chat.tail.slice(-2) : [];
+
+  if (chat.status === 'unmatched' && tail.length) {
+    const quote = document.createElement('div');
+    quote.className = 'quote';
+
+    for (const said of tail) {
+      const line = document.createElement('p');
+
+      const lead = document.createElement('b');
+      lead.textContent = `${said?.mine ? t('chats.me') : chat.name || t('chats.her')}: `;
+
+      line.append(lead, String(said?.text ?? ''));
+      quote.append(line);
+    }
+
+    who.append(quote);
+  }
+
+  box.append(who);
+  return box;
+}
+
+/** Раскладывает доску. */
+function render(chats) {
+  const cols = board(chats);
+
+  for (const [key, id] of [
+    ['yours', 'Yours'],
+    ['waiting', 'Waiting'],
+    ['unmatched', 'Unmatched'],
+    ['reengage', 'Reengage'],
+    ['dead', 'Dead'],
+  ]) {
+    const list = cols[key];
+    $(`n${id}`).textContent = list.length || '';
+
+    const box = $(`c${id}`);
+    box.replaceChildren(...list.map(card));
+
+    if (!list.length) {
+      const none = document.createElement('div');
+      none.className = 'empty';
+      none.textContent = t('chats.none');
+      box.append(none);
+    }
+  }
+
+  // Сводка по тегам: девять «too_needy» за месяц — это уже вывод, а карточки
+  // по одной такого не показывают.
+  const tags = {};
+  for (const c of cols.unmatched) if (c.error_tag) tags[c.error_tag] = (tags[c.error_tag] ?? 0) + 1;
+
+  const sum = Object.entries(tags).sort((a, b) => b[1] - a[1]);
+  $('sum').hidden = !sum.length;
+  $('sum').replaceChildren(
+    ...sum.map(([tag, n]) => {
+      const one = document.createElement('span');
+      one.textContent = t(TAG_KEY[tag] ?? tag);
+
+      const count = document.createElement('b');
+      count.textContent = ` ${n}`;
+      one.append(count);
+      return one;
+    })
+  );
+
+  $('board').hidden = false;
+}
+
+/** Что показано сейчас: чтобы перерисовать при смене языка, не ходя в сеть. */
+let shown = [];
+
+whenLangChanges(() => {
+  if (shown.length) render(shown);
+});
+
+await initI18n();
+
+(async () => {
+  const session = readSession();
+  if (!session?.access_token) {
+    say(t('chats.needSignIn'), 'err');
+    return;
+  }
+
+  say(t('chats.loading'));
+
+  try {
+    let chats = await loadChats(session.access_token);
+
+    // Есть неразобранные — просим разобрать и перечитываем. Один лишний запрос
+    // раз в неделю дешевле, чем колонка с пустыми причинами.
+    if (chats.some((c) => c.status === 'unmatched' && !c.error_tag)) {
+      await classifyRest(session.access_token);
+      chats = await loadChats(session.access_token);
+    }
+
+    say('');
+
+    if (!chats.length) {
+      say(t('chats.emptyAll'));
+      return;
+    }
+
+    shown = chats;
+    render(chats);
+  } catch {
+    say(t('chats.errLoad'), 'err');
+  }
+})();
+</script>
+</body>
+</html>

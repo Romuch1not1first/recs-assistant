@@ -212,7 +212,18 @@ h1, h2, h3 { letter-spacing: -.02em; font-weight: 600; margin: 0; }
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 1px solid var(--line-soft);
 }
-.site-head .bar { display: flex; align-items: center; gap: 18px; height: 56px; }
+/* Ряд переносится, а не выдавливает страницу вбок. Кнопок в шапке три, языков
+   одиннадцать, и «Downloaden» с «Завантажити» шире «Скачать» настолько, что на
+   узком экране ряд перестаёт помещаться — до третьей кнопки он не помещался в
+   голландском и украинском уже сам по себе. Вторая строка стоит двадцати
+   пикселей высоты; горизонтальная прокрутка всей страницы — нет. */
+.site-head .bar {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 18px; row-gap: 8px;
+  /* Только сверху и снизу: боковые поля у `.wrap` свои, и сокращённая запись
+     `padding: 6px 0` их обнуляла — логотип упирался в край экрана. */
+  min-height: 56px; padding-block: 6px;
+}
 
 .logo {
   display: inline-flex; align-items: center; gap: 8px;
@@ -240,7 +251,10 @@ h1, h2, h3 { letter-spacing: -.02em; font-weight: 600; margin: 0; }
 .site-nav a { color: var(--text-2); font-size: 15px; text-decoration: none; }
 .site-nav a:hover { color: var(--text); text-decoration: none; }
 
-.head-cta { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.head-cta {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end;
+  gap: 10px; row-gap: 8px; margin-left: auto;
+}
 
 /* Переключатель языка.
    Обычный <select>: на телефоне он открывается системным списком, с клавиатуры
@@ -271,6 +285,21 @@ h1, h2, h3 { letter-spacing: -.02em; font-weight: 600; margin: 0; }
 .lang:hover { border-color: var(--text-3); }
 .site-foot .lang { font-size: 14px; padding: 7px 28px 7px 12px; }
 
+/* Вход в кабинет. Третья кнопка в шапке нарочно тише двух соседних: сюда идут
+   те, кто уже заплатил, и отбирать внимание у «Скачать» ей незачем. */
+.head-cta .acct svg { opacity: .7; }
+
+/* Подпись остаётся только там, где для неё есть место. Ряд и без неё держится
+   на честном слове: до 900px в нём переключатель языка и две кнопки, а выше
+   возвращаются ссылки навигации и снова съедают всё, что освободилось. Значок
+   с подсказкой понятнее, чем шапка в две строки на ноутбуке. Подпись при этом
+   никуда не девается для читалки — она в aria-label, потому что `display:
+   none` вырезает текст и из того, что читают вслух. */
+@media (max-width: 1080px) {
+  .head-cta .acct span { display: none; }
+  .head-cta .acct { padding: 8px 12px; }
+}
+
 @media (max-width: 900px) {
   .site-nav { display: none; }
   .head-cta { margin-left: auto; }
@@ -279,8 +308,16 @@ h1, h2, h3 { letter-spacing: -.02em; font-weight: 600; margin: 0; }
   .site-head .bar { gap: 10px; }
   .logo span { display: none; }
   .head-cta { gap: 7px; }
-  .head-cta .btn { padding: 8px 13px; font-size: 14px; }
+  .head-cta .btn { padding: 8px 11px; font-size: 14px; }
   .head-cta .lang { font-size: 13px; padding: 7px 25px 7px 10px; background-position: right 9px center; }
+
+  /* «Оплатить» уходит: в ряд на телефоне помещаются переключатель языка и две
+     кнопки, и вторая из них — вход в кабинет. Подписку проверяют с телефона
+     чаще, чем с компьютера, а на правовых страницах другой двери к ней нет.
+     Оплата при этом в одном касании: та же кнопка стоит на первом экране
+     главной, куда ведёт логотип. */
+  .head-cta .pay { display: none; }
+  .head-cta .acct { padding: 8px 9px; }
 }
 
 /* Простая шапка правовых страниц. На узком экране «На главную» уходит: туда же
