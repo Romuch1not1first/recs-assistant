@@ -221,7 +221,7 @@ export default {
   "chats.her": "She",
   "chats.tagWait": "working out why…",
   "chats.loading": "Loading…",
-  "chats.emptyAll": "Nothing here yet. Open a chat on Tinder, press “Chat Assistant” in the panel, expand “Settings” and turn on “Chats dashboard on the site” — your chats will show up within the hour.",
+  "chats.emptyAll": "Nothing here yet. Open Tinder with the extension running — within the hour it sends the state of your chats and they show up here.",
   "chats.needSignIn": "Sign in to see your chats.",
   "chats.errLoad": "Could not load. Try refreshing the page.",
   "chats.tag.too_needy": "Too pushy",

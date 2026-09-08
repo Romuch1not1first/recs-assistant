@@ -221,7 +221,7 @@ export default {
   "chats.her": "Elle",
   "chats.tagWait": "recherche de la raison…",
   "chats.loading": "Chargement…",
-  "chats.emptyAll": "Rien ici pour l’instant. Ouvrez une conversation sur Tinder, cliquez sur « Assistant » dans le panneau, dépliez « Réglages » et activez « Tableau de bord des conversations sur le site » : vos conversations apparaîtront dans l’heure.",
+  "chats.emptyAll": "Rien ici pour l’instant. Ouvrez Tinder avec l’extension active : dans l’heure, elle envoie l’état de vos conversations et elles apparaissent ici.",
   "chats.needSignIn": "Connectez-vous pour voir vos conversations.",
   "chats.errLoad": "Échec du chargement. Actualisez la page.",
   "chats.tag.too_needy": "Trop insistant",

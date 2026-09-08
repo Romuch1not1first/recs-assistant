@@ -221,7 +221,7 @@ export default {
   "chats.her": "Ela",
   "chats.tagWait": "a apurar o motivo…",
   "chats.loading": "A carregar…",
-  "chats.emptyAll": "Ainda não há nada aqui. Abre uma conversa no Tinder, carrega em “Assistente de conversa” no painel, abre “Definições” e liga “Painel de conversas no site” — as tuas conversas aparecem dentro de uma hora.",
+  "chats.emptyAll": "Ainda não há nada aqui. Abre o Tinder com a extensão ativa — dentro de uma hora envia o estado das tuas conversas e elas aparecem aqui.",
   "chats.needSignIn": "Inicia sessão para veres as tuas conversas.",
   "chats.errLoad": "Não foi possível carregar. Atualiza a página.",
   "chats.tag.too_needy": "Demasiado insistente",

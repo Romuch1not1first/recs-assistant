@@ -221,7 +221,7 @@ export default {
   "chats.her": "Lei",
   "chats.tagWait": "sto capendo il motivo…",
   "chats.loading": "Carico…",
-  "chats.emptyAll": "Qui non c’è ancora nulla. Apri una chat su Tinder, premi “Assistente chat” nel pannello, apri “Impostazioni” e attiva “Dashboard delle chat sul sito”: le tue chat compariranno entro un’ora.",
+  "chats.emptyAll": "Qui non c’è ancora nulla. Apri Tinder con l’estensione attiva: entro un’ora invia lo stato delle tue chat e compariranno qui.",
   "chats.needSignIn": "Accedi per vedere le tue chat.",
   "chats.errLoad": "Caricamento non riuscito. Aggiorna la pagina.",
   "chats.tag.too_needy": "Troppo insistente",
