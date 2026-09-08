@@ -221,7 +221,7 @@ export default {
   "chats.her": "Zij",
   "chats.tagWait": "reden wordt bepaald…",
   "chats.loading": "Laden…",
-  "chats.emptyAll": "Nog niets. Zet “Gesprekkenoverzicht” aan in de instellingen van de extensie — binnen een uur verschijnen je gesprekken.",
+  "chats.emptyAll": "Hier is nog niets. Open een gesprek op Tinder, klik in het paneel op “Chat-assistent”, klap “Instellingen” uit en zet “Chatdashboard op de site” aan — binnen een uur staan je gesprekken hier.",
   "chats.needSignIn": "Log in om je gesprekken te zien.",
   "chats.errLoad": "Laden mislukt. Ververs de pagina.",
   "chats.tag.too_needy": "Te opdringerig",

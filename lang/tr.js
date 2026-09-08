@@ -221,7 +221,7 @@ export default {
   "chats.her": "O",
   "chats.tagWait": "nedeni bulunuyor…",
   "chats.loading": "Yükleniyor…",
-  "chats.emptyAll": "Henüz bir şey yok. Uzantı ayarlarından “Sohbet panosu”nu aç — bir saat içinde sohbetlerin burada görünür.",
+  "chats.emptyAll": "Burada henüz bir şey yok. Tinder’da bir sohbeti aç, panelde “Sohbet Asistanı”na bas, “Ayarlar”ı genişlet ve “Sitede sohbet panosu”nu aç — sohbetlerin bir saat içinde burada görünür.",
   "chats.needSignIn": "Sohbetlerini görmek için giriş yap.",
   "chats.errLoad": "Yüklenemedi. Sayfayı yenile.",
   "chats.tag.too_needy": "Fazla ısrarcı",

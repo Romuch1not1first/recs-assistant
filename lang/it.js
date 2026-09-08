@@ -221,7 +221,7 @@ export default {
   "chats.her": "Lei",
   "chats.tagWait": "sto capendo il motivo…",
   "chats.loading": "Carico…",
-  "chats.emptyAll": "Ancora niente. Attiva «Bacheca chat» nelle impostazioni dell’estensione: entro un’ora compariranno le tue chat.",
+  "chats.emptyAll": "Qui non c’è ancora nulla. Apri una chat su Tinder, premi “Assistente chat” nel pannello, apri “Impostazioni” e attiva “Dashboard delle chat sul sito”: le tue chat compariranno entro un’ora.",
   "chats.needSignIn": "Accedi per vedere le tue chat.",
   "chats.errLoad": "Caricamento non riuscito. Aggiorna la pagina.",
   "chats.tag.too_needy": "Troppo insistente",

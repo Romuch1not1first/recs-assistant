@@ -221,7 +221,7 @@ export default {
   "chats.her": "Sie",
   "chats.tagWait": "Grund wird ermittelt …",
   "chats.loading": "Lädt …",
-  "chats.emptyAll": "Noch nichts da. Aktiviere „Chat-Dashboard“ in den Einstellungen der Erweiterung — innerhalb einer Stunde erscheinen deine Chats.",
+  "chats.emptyAll": "Noch nichts da. Öffne einen Chat bei Tinder, klicke im Panel auf „Chat-Assistent“, klappe „Einstellungen“ auf und aktiviere „Chat-Dashboard auf der Website“ — innerhalb einer Stunde erscheinen deine Chats hier.",
   "chats.needSignIn": "Melde dich an, um deine Chats zu sehen.",
   "chats.errLoad": "Laden fehlgeschlagen. Lade die Seite neu.",
   "chats.tag.too_needy": "Zu aufdringlich",

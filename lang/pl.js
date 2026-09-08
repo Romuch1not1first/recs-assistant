@@ -221,7 +221,7 @@ export default {
   "chats.her": "Ona",
   "chats.tagWait": "ustalam powód…",
   "chats.loading": "Ładuję…",
-  "chats.emptyAll": "Na razie pusto. Włącz „Panel rozmów” w ustawieniach rozszerzenia — w ciągu godziny pojawią się tu twoje rozmowy.",
+  "chats.emptyAll": "Na razie pusto. Otwórz rozmowę na Tinderze, kliknij w panelu „Asystent czatu”, rozwiń „Ustawienia” i włącz „Panel rozmów na stronie” — w ciągu godziny pojawią się tu twoje rozmowy.",
   "chats.needSignIn": "Zaloguj się, aby zobaczyć swoje rozmowy.",
   "chats.errLoad": "Nie udało się wczytać. Odśwież stronę.",
   "chats.tag.too_needy": "Zbyt nachalnie",
