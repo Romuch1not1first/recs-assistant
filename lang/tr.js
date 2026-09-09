@@ -53,7 +53,7 @@ export default {
   "index.free3": "Açıklamadaki yasak kelimeler, düzenli ifadeler dahil",
   "index.free4": "Yalnızca Verified işaretli ya da yakında aktif olanlar",
   "index.free5": "Oturum başına kaydırma sınırı ve ret oranı",
-  "index.free6": "Arayüz Rusça, Ukraynaca ve İngilizce",
+  "index.free6": "11 dilde arayüz",
   "index.proTitle": "Abonelikle <span class=\"badge\">AI</span>",
   "index.pro1": "<b>Görünüm filtresi</b> — modelin 1’den 10’a puanı ve istediğiniz aralık",
   "index.pro2": "<b>Vücut yapısı filtresi</b> — fotoğraflardan boy ve kilo, BKİ aralığı",

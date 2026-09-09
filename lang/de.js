@@ -53,7 +53,7 @@ export default {
   "index.free3": "Stoppwörter im Profiltext, auch reguläre Ausdrücke",
   "index.free4": "Nur mit Verified-Kennzeichen oder kürzlich aktiv",
   "index.free5": "Wischlimit pro Sitzung und Anteil der Absagen",
-  "index.free6": "Oberfläche auf Russisch, Ukrainisch und Englisch",
+  "index.free6": "Oberfläche in 11 Sprachen",
   "index.proTitle": "Mit Abo <span class=\"badge\">AI</span>",
   "index.pro1": "<b>Aussehensfilter</b> — Bewertung des Modells von 1 bis 10 und der Bereich, den Sie behalten",
   "index.pro2": "<b>Statur-Filter</b> — Größe und Gewicht anhand der Fotos, BMI-Bereich",

@@ -53,7 +53,7 @@ export default {
   "index.free3": "Słowa zakazane w opisie, także wyrażenia regularne",
   "index.free4": "Tylko z oznaczeniem Verified albo ostatnio aktywni",
   "index.free5": "Limit przesunięć na sesję i udział odrzuceń",
-  "index.free6": "Interfejs po rosyjsku, ukraińsku i angielsku",
+  "index.free6": "Interfejs w 11 językach",
   "index.proTitle": "W subskrypcji <span class=\"badge\">AI</span>",
   "index.pro1": "<b>Filtr wyglądu</b> — ocena modelu od 1 do 10 i zakres, który chcesz zostawić",
   "index.pro2": "<b>Filtr budowy ciała</b> — wzrost i waga ze zdjęć, zakres BMI",

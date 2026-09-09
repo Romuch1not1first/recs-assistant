@@ -53,7 +53,7 @@ export default {
   "index.free3": "Parole vietate nella descrizione, espressioni regolari comprese",
   "index.free4": "Solo con contrassegno Verified o attivi di recente",
   "index.free5": "Limite di swipe per sessione e quota di rifiuti",
-  "index.free6": "Interfaccia in russo, ucraino e inglese",
+  "index.free6": "Interfaccia in 11 lingue",
   "index.proTitle": "Con l’abbonamento <span class=\"badge\">AI</span>",
   "index.pro1": "<b>Filtro aspetto</b> — voto del modello da 1 a 10 e l’intervallo che vuoi",
   "index.pro2": "<b>Filtro corporatura</b> — altezza e peso dalle foto, intervallo di BMI",

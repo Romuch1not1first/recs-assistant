@@ -53,7 +53,7 @@ export default {
   "index.free3": "Palabras vetadas en la descripción, expresiones regulares incluidas",
   "index.free4": "Solo con distintivo Verified o activos hace poco",
   "index.free5": "Límite de deslizamientos por sesión y proporción de descartes",
-  "index.free6": "Interfaz en ruso, ucraniano e inglés",
+  "index.free6": "Interfaz en 11 idiomas",
   "index.proTitle": "Con suscripción <span class=\"badge\">AI</span>",
   "index.pro1": "<b>Filtro de aspecto</b> — puntuación del modelo de 1 a 10 y el rango que quieres",
   "index.pro2": "<b>Filtro de complexión</b> — estatura y peso a partir de las fotos, rango de IMC",

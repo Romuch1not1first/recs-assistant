@@ -53,7 +53,7 @@ export default {
   "index.free3": "Verboden woorden in de beschrijving, ook reguliere expressies",
   "index.free4": "Alleen met Verified-label of recent actief",
   "index.free5": "Swipelimiet per sessie en aandeel afwijzingen",
-  "index.free6": "Interface in het Russisch, Oekraïens en Engels",
+  "index.free6": "Interface in 11 talen",
   "index.proTitle": "Met abonnement <span class=\"badge\">AI</span>",
   "index.pro1": "<b>Uiterlijkfilter</b> — score van het model van 1 tot 10 en het bereik dat jij wilt",
   "index.pro2": "<b>Bouwfilter</b> — lengte en gewicht uit de foto’s, BMI-bereik",

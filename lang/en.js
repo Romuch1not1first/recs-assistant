@@ -53,7 +53,7 @@ export default {
   "index.free3": "Stop-words in the bio, regular expressions included",
   "index.free4": "Verified badge only, or recently active only",
   "index.free5": "Swipe limit per session and share of passes",
-  "index.free6": "Interface in English, русский and українською",
+  "index.free6": "Interface in 11 languages",
   "index.proTitle": "With a subscription <span class=\"badge\">AI</span>",
   "index.pro1": "<b>Looks filter</b> — a model score from 1 to 10 and a range to keep",
   "index.pro2": "<b>Body filter</b> — height and weight from the photos, a BMI range",

@@ -53,7 +53,7 @@ export default {
   "index.free3": "Palavras proibidas na descrição, inclusive expressões regulares",
   "index.free4": "Somente com selo Verified ou ativos recentemente",
   "index.free5": "Limite de deslizes por sessão e proporção de recusas",
-  "index.free6": "Interface em russo, ucraniano e inglês",
+  "index.free6": "Interface em 11 idiomas",
   "index.proTitle": "Com assinatura <span class=\"badge\">AI</span>",
   "index.pro1": "<b>Filtro de aparência</b> — nota do modelo de 1 a 10 e a faixa que você quiser",
   "index.pro2": "<b>Filtro de porte físico</b> — altura e peso pelas fotos, faixa de IMC",

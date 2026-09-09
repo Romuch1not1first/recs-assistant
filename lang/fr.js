@@ -53,7 +53,7 @@ export default {
   "index.free3": "Mots interdits dans la description, expressions régulières comprises",
   "index.free4": "Uniquement les profils Verified ou actifs récemment",
   "index.free5": "Limite de swipes par session et part de refus",
-  "index.free6": "Interface en russe, ukrainien et anglais",
+  "index.free6": "Interface en 11 langues",
   "index.proTitle": "Avec l’abonnement <span class=\"badge\">AI</span>",
   "index.pro1": "<b>Filtre d’apparence</b> — note du modèle de 1 à 10 et la plage que vous gardez",
   "index.pro2": "<b>Filtre de corpulence</b> — taille et poids d’après les photos, plage d’IMC",
