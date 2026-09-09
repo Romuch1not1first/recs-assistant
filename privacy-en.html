@@ -37,8 +37,9 @@
       of your Tinder conversations: who wrote last and when. When you press a button asking for a
       suggested reply, the open conversation is sent to a text-model provider to write it, and is
       not stored afterwards; if you have linked that conversation to the same person's chat in
-      another app, the last few messages of that chat travel with it. Which chats are linked is
-      remembered only in your browser. A voice message you ask to transcribe is sent to a
+      another app, the last few messages of that chat travel with it. The conversations themselves
+      are kept only in your browser, so that the assistant does not have to re-read them every
+      time — and the panel menu erases them whenever you want. A voice message you ask to transcribe is sent to a
       speech-to-text provider and not kept. Of a match that has disappeared we also keep its last
       two messages, so the dashboard can say what ended it. Filter settings and swipe counters stay
       in your browser. Profile photos are sent to an external model <b>only when you explicitly
@@ -101,15 +102,18 @@
     </tr>
     <tr>
       <td>
-        Which conversations belong to the same person, and the last messages of each of them
+        The conversations you have opened with the assistant — up to the last few hundred messages
+        of each of the last few dozen chats — and which of them belong to the same person
       </td>
       <td>
-        So that a conversation that moved from Tinder to a messenger keeps its history, and the
-        assistant does not start from scratch in the new place
+        Telegram and Instagram keep only a handful of messages on screen at a time. Without this
+        the assistant would have to scroll the whole conversation open again every time you
+        return to it, and a chat that moved from Tinder to a messenger would lose its history
       </td>
       <td>
         Only in the browser (<code>chrome.storage</code>). Never sent to our servers; the messages
-        themselves reach a model only as part of a request you make, as described in the row above
+        themselves reach a model only as part of a request you make, as described in the row above.
+        The panel menu has <b>Forget saved chats</b>, which erases all of it at once
       </td>
     </tr>
     <tr>
