@@ -70,6 +70,24 @@
   }
   .quote b { font-weight: 600; color: var(--text-2); }
 
+  /* Карточка раскрывается по нажатию: под ней разговор, как он сохранён в
+     расширении. Сама карточка — кнопка, и выглядит ею при наведении. */
+  .chat { cursor: pointer; flex-wrap: wrap; }
+  .chat:hover { border-color: var(--line); }
+  .chat .who { flex: 1; }
+  .talk { flex-basis: 100%; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line-soft); cursor: auto; }
+  .talk .msgs { display: flex; flex-direction: column; gap: 5px; max-height: 360px; overflow-y: auto; padding: 2px; }
+  .talk .m {
+    max-width: 88%; padding: 6px 10px; border-radius: 12px;
+    font-size: 13px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .talk .m.me { align-self: flex-end; background: #0a84ff; color: #fff; }
+  .talk .m.her { align-self: flex-start; background: var(--line-soft); color: var(--text); }
+  .talk .foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 8px; }
+  .talk .foot .mini { margin: 0; }
+  .talk a { color: var(--text-2); font-size: 13px; text-decoration: none; white-space: nowrap; }
+  .talk a:hover { color: var(--text); }
+
   .empty { color: var(--text-3); font-size: 13px; padding: 4px 2px; }
   .sum { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 18px; color: var(--text-2); font-size: 14px; }
   .sum b { color: var(--text); }
@@ -99,7 +117,7 @@
   </div>
 
 <script type="module">
-import { initI18n, t, whenLangChanges } from './i18n.js?v=17';
+import { initI18n, t, whenLangChanges } from './i18n.js?v=18';
 import { board, silentDays } from './chat-states.js?v=3';
 
 const CONFIG = {
@@ -305,7 +323,109 @@ function card(chat) {
   }
 
   box.append(who);
+  box.addEventListener('click', () => open(box, chat));
   return box;
+}
+
+/**
+ * Переписка — из расширения, а не с сервера.
+ *
+ * На сервере лежит только состояние: кто ждёт ответа, кто пропал. Сами
+ * реплики хранит расширение у себя, и страница спрашивает их через мост
+ * (src/site-bridge.js) в этом же браузере — на сервер они не уезжают. Нет
+ * моста — значит расширения в этом браузере нет, и показать нечего, кроме
+ * пары реплик, по которым поставлен тег анмэтча.
+ */
+let bridge = false;
+const waiting = new Map();
+
+window.addEventListener('message', (e) => {
+  if (e.source !== window || e.origin !== location.origin) return;
+  const msg = e.data;
+
+  if (msg?.type === 'autoswipe:here') bridge = true;
+  if (msg?.type === 'autoswipe:chat-log') {
+    waiting.get(String(msg.id))?.(Array.isArray(msg.rows) ? msg.rows : []);
+    waiting.delete(String(msg.id));
+  }
+});
+
+/** Реплики этой переписки из расширения — или пусто, если его нет. */
+function askLog(id) {
+  if (!bridge) return Promise.resolve(null);
+
+  return new Promise((done) => {
+    waiting.set(String(id), done);
+    window.postMessage({ type: 'autoswipe:chat', id: String(id) }, location.origin);
+    // Мост молчит — расширение перезагружалось. Не висим.
+    setTimeout(() => { if (waiting.delete(String(id))) done([]); }, 3000);
+  });
+}
+
+/** Открытая сейчас карточка — одна: две раскрытые переписки рядом не читаются. */
+let opened = null;
+
+/**
+ * Раскрыть карточку: разговор пузырями и ссылка в сам Tinder.
+ *
+ * Что показать, решается по источнику: пришло из расширения — всё, что оно
+ * сохранило; расширения нет — хвост с сервера, если он есть (только у
+ * анмэтчей); нет и его — говорим, откуда переписка берётся.
+ */
+async function open(box, chat) {
+  if (opened && opened !== box) opened.querySelector('.talk')?.remove();
+  if (opened === box) {
+    box.querySelector('.talk')?.remove();
+    opened = null;
+    return;
+  }
+  opened = box;
+
+  const talk = document.createElement('div');
+  talk.className = 'talk';
+  talk.addEventListener('click', (e) => e.stopPropagation());
+
+  const note = document.createElement('div');
+  note.className = 'mini';
+  note.textContent = t('chats.loadingChat');
+  talk.append(note);
+  box.append(talk);
+
+  const rows = (await askLog(chat.match_id)) ?? (Array.isArray(chat.tail) ? chat.tail : []);
+  if (opened !== box) return; // пока грузили, открыли другую
+
+  note.remove();
+
+  if (rows.length) {
+    const msgs = document.createElement('div');
+    msgs.className = 'msgs';
+    for (const said of rows) {
+      const m = document.createElement('div');
+      m.className = `m ${said?.mine ? 'me' : 'her'}`;
+      m.textContent = String(said?.text ?? '');
+      msgs.append(m);
+    }
+    talk.append(msgs);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  const foot = document.createElement('div');
+  foot.className = 'foot';
+
+  const hint = document.createElement('div');
+  hint.className = 'mini';
+  hint.textContent = rows.length
+    ? t('chats.rows', { n: rows.length })
+    : t(bridge ? 'chats.noLog' : 'chats.noBridge');
+
+  const link = document.createElement('a');
+  link.href = `https://tinder.com/app/messages/${encodeURIComponent(chat.match_id)}`;
+  link.target = '_blank';
+  link.rel = 'noopener';
+  link.textContent = t('chats.open');
+
+  foot.append(hint, link);
+  talk.append(foot);
 }
 
 /** Раскладывает доску. */
