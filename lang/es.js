@@ -150,6 +150,7 @@ export default {
   "account.linkPrivacy": "Privacidad",
   "account.planPro": "Pro Plan",
   "account.planFree": "Free Plan",
+  "account.planOwner": "Cuenta de desarrollador",
   "account.renewsAuto": "La suscripción se renueva sola: cobramos al final del plazo pagado. Puedes cancelarla cuando quieras y el acceso se mantiene hasta esa fecha.",
   "account.renewsManual": "No hay renovación automática: el acceso se cierra en la fecha de fin. Paga por adelantado y los días nuevos se suman a los pagados, no se pierde nada.",
   "account.extend": "Renovar la suscripción",

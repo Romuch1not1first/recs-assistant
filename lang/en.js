@@ -150,6 +150,7 @@ export default {
   "account.linkPrivacy": "Privacy",
   "account.planPro": "Pro Plan",
   "account.planFree": "Free Plan",
+  "account.planOwner": "Developer account",
   "account.renewsAuto": "The subscription renews itself — we charge at the end of the paid term. Cancel any time and access stays until that date.",
   "account.renewsManual": "There is no auto-renewal: access closes on the end date. Pay in advance and the new days are added to the paid ones, nothing is lost.",
   "account.extend": "Extend the subscription",

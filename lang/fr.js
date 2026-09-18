@@ -150,6 +150,7 @@ export default {
   "account.linkPrivacy": "Confidentialité",
   "account.planPro": "Pro Plan",
   "account.planFree": "Free Plan",
+  "account.planOwner": "Compte développeur",
   "account.renewsAuto": "L’abonnement se reconduit tout seul : nous prélevons à la fin de la durée payée. Résiliable à tout moment, l’accès reste jusqu’à cette date.",
   "account.renewsManual": "Il n’y a pas de reconduction automatique : l’accès se ferme à la date de fin. Payez à l’avance et les nouveaux jours s’ajoutent à ceux déjà payés, rien n’est perdu.",
   "account.extend": "Prolonger l’abonnement",

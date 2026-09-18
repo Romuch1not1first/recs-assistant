@@ -253,7 +253,7 @@
 import { scorePassword } from './password.js';
 import { mailProvider } from './mail-providers.js';
 import { planById, priceLabel, yearlySavings } from './plans.js';
-import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=18';
+import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=19';
 
 /**
  * Страница подписки.
@@ -485,6 +485,12 @@ async function loadPlan() {
       { token }
     );
     row = rows?.[0] ?? null;
+
+    // Аккаунт разработчика в таблице ничем не отмечен — его знает только
+    // сервер. Спрашиваем его: иначе владелец видел здесь «Free Plan» с
+    // истёкшей датой. Сервер промолчал — верим таблице.
+    const plan = await api('/functions/v1/plan', { token, method: 'POST' }).catch(() => null);
+    if (plan?.owner) row = { status: 'active', current_period_end: null, paddle_subscription_id: 'owner' };
   } catch (e) {
     // Токен протух — просим войти заново, а не показываем непонятную ошибку.
     if (String(e.message).includes('401')) {
@@ -538,7 +544,8 @@ function paint() {
   // Жёлтым красим и `past_due` — доступ ещё есть, но платёж не прошёл, и через
   // несколько дней он закроется; молчать об этом значит готовить сюрприз.
   const pro = isPro(sub);
-  $('status').textContent = t(pro ? 'account.planPro' : 'account.planFree');
+  const owner = sub?.paddle_subscription_id === 'owner';
+  $('status').textContent = t(owner ? 'account.planOwner' : pro ? 'account.planPro' : 'account.planFree');
   $('status').className = pro && sub?.status !== 'past_due' ? 'ok' : 'warn';
 
   const until = sub?.current_period_end ? new Date(sub.current_period_end) : null;
@@ -555,8 +562,9 @@ function paint() {
   const auto = renewsItself(sub) && lavaActive > 0;
   const buying = !pro || extending || switching;
 
-  $('planPick').hidden = !buying;
-  $('planHave').hidden = buying;
+  // Разработчику ни покупать, ни продлевать нечего: доступ у него не по подписке.
+  $('planPick').hidden = !buying || owner;
+  $('planHave').hidden = buying || owner;
 
   if (pro) {
     $('renewNote').textContent = t(auto ? 'account.renewsAuto' : 'account.renewsManual');

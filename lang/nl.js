@@ -150,6 +150,7 @@ export default {
   "account.linkPrivacy": "Privacy",
   "account.planPro": "Pro Plan",
   "account.planFree": "Free Plan",
+  "account.planOwner": "Ontwikkelaarsaccount",
   "account.renewsAuto": "Het abonnement verlengt zichzelf — we schrijven af aan het einde van de betaalde termijn. Altijd opzegbaar, de toegang blijft tot die datum.",
   "account.renewsManual": "Er is geen automatische verlenging: op de einddatum sluit de toegang. Betaal vooraf en de nieuwe dagen komen bij de betaalde, er gaat niets verloren.",
   "account.extend": "Abonnement verlengen",

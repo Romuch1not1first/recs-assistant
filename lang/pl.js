@@ -150,6 +150,7 @@ export default {
   "account.linkPrivacy": "Prywatność",
   "account.planPro": "Pro Plan",
   "account.planFree": "Free Plan",
+  "account.planOwner": "Konto dewelopera",
   "account.renewsAuto": "Subskrypcja odnawia się sama — pobierzemy opłatę na koniec opłaconego okresu. Możesz anulować w każdej chwili, dostęp zostanie do tej daty.",
   "account.renewsManual": "Nie ma automatycznego odnawiania: w dniu zakończenia dostęp się zamknie. Zapłać z wyprzedzeniem, a nowe dni dolicza się do opłaconych, nic nie przepadnie.",
   "account.extend": "Przedłuż subskrypcję",

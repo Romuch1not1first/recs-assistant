@@ -150,6 +150,7 @@ export default {
   "account.linkPrivacy": "Privacidade",
   "account.planPro": "Pro Plan",
   "account.planFree": "Free Plan",
+  "account.planOwner": "Conta de programador",
   "account.renewsAuto": "A assinatura se renova sozinha — cobramos no fim do prazo pago. Pode cancelar quando quiser e o acesso fica até essa data.",
   "account.renewsManual": "Não há renovação automática: o acesso fecha na data final. Pague com antecedência e os novos dias somam-se aos pagos, nada se perde.",
   "account.extend": "Renovar a assinatura",

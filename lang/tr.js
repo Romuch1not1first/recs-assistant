@@ -150,6 +150,7 @@ export default {
   "account.linkPrivacy": "Gizlilik",
   "account.planPro": "Pro Plan",
   "account.planFree": "Free Plan",
+  "account.planOwner": "Geliştirici hesabı",
   "account.renewsAuto": "Abonelik kendini yeniler — ödenmiş sürenin sonunda tahsil ederiz. İstediğiniz an iptal edebilirsiniz, erişim o tarihe kadar kalır.",
   "account.renewsManual": "Otomatik yenileme yok: bitiş gününde erişim kapanır. Önceden ödeyin, yeni günler ödenmiş olanlara eklenir, hiçbir şey yanmaz.",
   "account.extend": "Aboneliği uzat",

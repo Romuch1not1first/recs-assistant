@@ -150,6 +150,7 @@ export default {
   "account.linkPrivacy": "Datenschutz",
   "account.planPro": "Pro Plan",
   "account.planFree": "Free Plan",
+  "account.planOwner": "Entwicklerkonto",
   "account.renewsAuto": "Das Abo verlängert sich selbst — wir buchen am Ende des bezahlten Zeitraums ab. Jederzeit kündbar, der Zugang bleibt bis zu diesem Datum.",
   "account.renewsManual": "Es gibt keine automatische Verlängerung: am Enddatum schließt sich der Zugang. Zahlen Sie im Voraus — die neuen Tage kommen zu den bezahlten hinzu, nichts verfällt.",
   "account.extend": "Abo verlängern",

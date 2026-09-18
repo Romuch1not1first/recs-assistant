@@ -150,6 +150,7 @@ export default {
   "account.linkPrivacy": "Privacy",
   "account.planPro": "Pro Plan",
   "account.planFree": "Free Plan",
+  "account.planOwner": "Account sviluppatore",
   "account.renewsAuto": "L’abbonamento si rinnova da solo: addebitiamo alla fine del periodo pagato. Puoi disdirlo quando vuoi e l’accesso resta fino a quella data.",
   "account.renewsManual": "Non c’è rinnovo automatico: l’accesso si chiude alla data di fine. Paga in anticipo e i nuovi giorni si sommano a quelli pagati, non si perde nulla.",
   "account.extend": "Rinnova l’abbonamento",
