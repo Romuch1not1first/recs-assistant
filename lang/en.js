@@ -221,6 +221,8 @@ export default {
   "chats.me": "You",
   "chats.her": "She",
   "chats.tagWait": "working out why…",
+  "chats.noChat": "no conversation — nothing to explain",
+  "chats.close": "Close",
   "chats.open": "Open in Tinder",
   "chats.loadingChat": "loading the chat…",
   "chats.rows": "{n} messages kept by the extension",

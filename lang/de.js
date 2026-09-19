@@ -221,6 +221,8 @@ export default {
   "chats.me": "Du",
   "chats.her": "Sie",
   "chats.tagWait": "Grund wird ermittelt …",
+  "chats.noChat": "kein Gespräch — nichts zu erklären",
+  "chats.close": "Schließen",
   "chats.open": "In Tinder öffnen",
   "chats.loadingChat": "Chat wird geladen…",
   "chats.rows": "{n} Nachrichten in der Erweiterung gespeichert",

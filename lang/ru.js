@@ -221,6 +221,8 @@ export default {
   "chats.me": "Вы",
   "chats.her": "Она",
   "chats.tagWait": "разбираю причину…",
+  "chats.noChat": "переписки не было — объяснять нечего",
+  "chats.close": "Закрыть",
   "chats.open": "Открыть в Tinder",
   "chats.loadingChat": "загружаю переписку…",
   "chats.rows": "{n} сообщ. в памяти расширения",

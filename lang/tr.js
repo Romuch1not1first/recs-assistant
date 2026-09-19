@@ -221,6 +221,8 @@ export default {
   "chats.me": "Sen",
   "chats.her": "O",
   "chats.tagWait": "nedeni bulunuyor…",
+  "chats.noChat": "sohbet olmadı — açıklanacak bir şey yok",
+  "chats.close": "Kapat",
   "chats.open": "Tinder'da aç",
   "chats.loadingChat": "sohbet yükleniyor…",
   "chats.rows": "eklentide {n} mesaj saklı",

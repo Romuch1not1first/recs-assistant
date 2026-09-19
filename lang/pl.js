@@ -221,6 +221,8 @@ export default {
   "chats.me": "Ty",
   "chats.her": "Ona",
   "chats.tagWait": "ustalam powód…",
+  "chats.noChat": "nie było rozmowy — nie ma czego wyjaśniać",
+  "chats.close": "Zamknij",
   "chats.open": "Otwórz w Tinderze",
   "chats.loadingChat": "wczytuję rozmowę…",
   "chats.rows": "{n} wiadomości zapisanych w rozszerzeniu",

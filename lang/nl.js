@@ -221,6 +221,8 @@ export default {
   "chats.me": "Jij",
   "chats.her": "Zij",
   "chats.tagWait": "reden wordt bepaald…",
+  "chats.noChat": "geen gesprek — niets te verklaren",
+  "chats.close": "Sluiten",
   "chats.open": "Openen in Tinder",
   "chats.loadingChat": "chat laden…",
   "chats.rows": "{n} berichten bewaard door de extensie",

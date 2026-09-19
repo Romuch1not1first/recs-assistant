@@ -70,24 +70,52 @@
   }
   .quote b { font-weight: 600; color: var(--text-2); }
 
-  /* Карточка раскрывается по нажатию: под ней разговор, как он сохранён в
-     расширении. Сама карточка — кнопка, и выглядит ею при наведении. */
-  .chat { cursor: pointer; flex-wrap: wrap; }
+  /* Карточка — кнопка: по нажатию разговор открывается на весь экран. Раньше
+     он раскрывался прямо в карточке, в колонке шириной в двести пикселей и
+     окошке в 360 px, — и читать его там было нельзя. */
+  .chat { cursor: pointer; }
   .chat:hover { border-color: var(--line); }
   .chat .who { flex: 1; }
-  .talk { flex-basis: 100%; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line-soft); cursor: auto; }
-  .talk .msgs { display: flex; flex-direction: column; gap: 5px; max-height: 360px; overflow-y: auto; padding: 2px; }
-  .talk .m {
-    max-width: 88%; padding: 6px 10px; border-radius: 12px;
-    font-size: 13px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere;
+
+  /* Экран переписки: шапка, лента на всю высоту, подпись внизу. */
+  .view {
+    position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column;
+    background: var(--bg);
   }
-  .talk .m.me { align-self: flex-end; background: #0a84ff; color: #fff; }
-  .talk .m.her { align-self: flex-start; background: var(--line-soft); color: var(--text); }
-  /* Колонки узкие: подпись и ссылка друг под другом, а не в одну строку. */
-  .talk .foot { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: 8px; }
-  .talk .foot .mini { margin: 0; }
-  .talk a { color: var(--text-2); font-size: 13px; text-decoration: none; white-space: nowrap; }
-  .talk a:hover { color: var(--text); }
+  .view[hidden] { display: none; }
+  .view .head {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    border-bottom: 1px solid var(--line-soft); background: var(--card);
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+  .view .head img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: none; }
+  .view .head .who { flex: 1; min-width: 0; }
+  .view .head .name { font-size: 17px; font-weight: 600; }
+  .view .head .mini { color: var(--text-3); font-size: 13px; margin-top: 2px; }
+  .view .head .mini .tag { margin: 0 6px 0 0; vertical-align: middle; }
+  .view .head a { color: var(--text-2); font-size: 14px; text-decoration: none; white-space: nowrap; }
+  .view .head a:hover { color: var(--text); }
+  .view .close {
+    width: 36px; height: 36px; border-radius: 50%; border: 0; flex: none;
+    background: var(--line-soft); color: var(--text); font-size: 18px; line-height: 1;
+    cursor: pointer; font-family: inherit;
+  }
+  .view .close:hover { background: var(--line); }
+  .view .msgs { flex: 1; min-height: 0; overflow-y: auto; padding: 16px; }
+  /* Лента не шире газетной колонки: пузыри на всю ширину монитора не читаются. */
+  .view .inner { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 6px; }
+  .view .m {
+    max-width: 72%; padding: 8px 12px; border-radius: 14px;
+    font-size: 15px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .view .m.me { align-self: flex-end; background: #0a84ff; color: #fff; }
+  .view .m.her { align-self: flex-start; background: var(--card); border: 1px solid var(--line-soft); color: var(--text); }
+  .view .foot {
+    padding: 10px 16px; border-top: 1px solid var(--line-soft);
+    color: var(--text-3); font-size: 13px; text-align: center;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+  body.viewing { overflow: hidden; }
 
   .empty { color: var(--text-3); font-size: 13px; padding: 4px 2px; }
   .sum { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 18px; color: var(--text-2); font-size: 14px; }
@@ -115,6 +143,22 @@
     </div>
 
     <div data-lang></div>
+  </div>
+
+  <!-- Экран переписки. Один на страницу: показывается поверх доски, пока
+       открыт, и заполняется из карточки. -->
+  <div class="view" id="view" hidden>
+    <div class="head">
+      <img id="vPhoto" alt="" hidden>
+      <div class="who">
+        <div class="name" id="vName"></div>
+        <div class="mini" id="vMeta"></div>
+      </div>
+      <a id="vOpen" target="_blank" rel="noopener" data-i18n="chats.open">Открыть в Tinder</a>
+      <button class="close" id="vClose" type="button" data-i18n-attr="title:chats.close, aria-label:chats.close">✕</button>
+    </div>
+    <div class="msgs" id="vMsgs"><div class="inner" id="vInner"></div></div>
+    <div class="foot" id="vFoot"></div>
   </div>
 
 <script type="module">
@@ -296,9 +340,10 @@ function card(chat) {
       who.append(why);
     }
   } else if (chat.status === 'unmatched') {
+    // Без единого сообщения разбирать нечего: причина здесь не в переписке.
     const wait = document.createElement('div');
     wait.className = 'mini';
-    wait.textContent = t('chats.tagWait');
+    wait.textContent = t(chat.messages ? 'chats.tagWait' : 'chats.noChat');
     who.append(wait);
   }
 
@@ -324,7 +369,7 @@ function card(chat) {
   }
 
   box.append(who);
-  box.addEventListener('click', () => open(box, chat));
+  box.addEventListener('click', () => openView(chat));
   return box;
 }
 
@@ -363,71 +408,86 @@ function askLog(id) {
   });
 }
 
-/** Открытая сейчас карточка — одна: две раскрытые переписки рядом не читаются. */
-let opened = null;
+/** Какая переписка открыта сейчас: ответ моста на другую — уже не про нас. */
+let viewing = null;
 
 /**
- * Раскрыть карточку: разговор пузырями и ссылка в сам Tinder.
+ * Переписка на весь экран: шапка с именем и тегом, лента пузырями на всю
+ * высоту, ссылка в сам Tinder.
  *
  * Что показать, решается по источнику: пришло из расширения — всё, что оно
  * сохранило; расширения нет — хвост с сервера, если он есть (только у
  * анмэтчей); нет и его — говорим, откуда переписка берётся.
+ *
+ * Открытие — запись в истории: кнопка «назад» (и жест на телефоне) закрывает
+ * экран, а не уводит со страницы.
  */
-async function open(box, chat) {
-  if (opened && opened !== box) opened.querySelector('.talk')?.remove();
-  if (opened === box) {
-    box.querySelector('.talk')?.remove();
-    opened = null;
-    return;
+async function openView(chat) {
+  viewing = chat;
+
+  $('vPhoto').hidden = !chat.photo;
+  if (chat.photo) $('vPhoto').src = chat.photo;
+  $('vName').textContent = chat.name || '—';
+
+  // Под именем — то же, что на карточке: тег с причиной, молчание, статус.
+  const meta = $('vMeta');
+  meta.replaceChildren();
+  if (chat.error_tag) {
+    const tag = document.createElement('span');
+    tag.className = `tag${chat.error_tag === 'no_mistake' ? '' : ' bad'}`;
+    tag.textContent = t(TAG_KEY[chat.error_tag] ?? chat.error_tag);
+    meta.append(tag);
+    if (chat.short_reason) meta.append(chat.short_reason);
+  } else if (chat.status === 'unmatched') {
+    meta.textContent = t(chat.messages ? 'chats.tagWait' : 'chats.noChat');
+  } else {
+    const days = silentDays(chat);
+    if (days !== null) meta.textContent = days === 0 ? t('chats.today') : t('chats.days', { n: days });
   }
-  opened = box;
 
-  const talk = document.createElement('div');
-  talk.className = 'talk';
-  talk.addEventListener('click', (e) => e.stopPropagation());
+  $('vOpen').href = `https://tinder.com/app/messages/${encodeURIComponent(chat.match_id)}`;
+  $('vInner').replaceChildren();
+  $('vFoot').textContent = t('chats.loadingChat');
 
-  const note = document.createElement('div');
-  note.className = 'mini';
-  note.textContent = t('chats.loadingChat');
-  talk.append(note);
-  box.append(talk);
+  if (!history.state?.view) history.pushState({ view: true }, '');
+  $('view').hidden = false;
+  document.body.classList.add('viewing');
 
   const rows = (await askLog(chat.match_id)) ?? (Array.isArray(chat.tail) ? chat.tail : []);
-  if (opened !== box) return; // пока грузили, открыли другую
+  if (viewing !== chat) return; // пока грузили, открыли другую или закрыли
 
-  note.remove();
-
-  if (rows.length) {
-    const msgs = document.createElement('div');
-    msgs.className = 'msgs';
-    for (const said of rows) {
-      const m = document.createElement('div');
-      m.className = `m ${said?.mine ? 'me' : 'her'}`;
-      m.textContent = String(said?.text ?? '');
-      msgs.append(m);
-    }
-    talk.append(msgs);
-    msgs.scrollTop = msgs.scrollHeight;
+  const inner = $('vInner');
+  for (const said of rows) {
+    const m = document.createElement('div');
+    m.className = `m ${said?.mine ? 'me' : 'her'}`;
+    m.textContent = String(said?.text ?? '');
+    inner.append(m);
   }
-
-  const foot = document.createElement('div');
-  foot.className = 'foot';
-
-  const hint = document.createElement('div');
-  hint.className = 'mini';
-  hint.textContent = rows.length
+  $('vFoot').textContent = rows.length
     ? t('chats.rows', { n: rows.length })
     : t(bridge ? 'chats.noLog' : 'chats.noBridge');
 
-  const link = document.createElement('a');
-  link.href = `https://tinder.com/app/messages/${encodeURIComponent(chat.match_id)}`;
-  link.target = '_blank';
-  link.rel = 'noopener';
-  link.textContent = t('chats.open');
-
-  foot.append(hint, link);
-  talk.append(foot);
+  const msgs = $('vMsgs');
+  msgs.scrollTop = msgs.scrollHeight;
 }
+
+function closeView() {
+  viewing = null;
+  $('view').hidden = true;
+  document.body.classList.remove('viewing');
+}
+
+$('vClose').addEventListener('click', () => {
+  // Через историю, чтобы «назад» потом не открыл экран заново.
+  if (history.state?.view) history.back();
+  else closeView();
+});
+window.addEventListener('popstate', () => {
+  if (!history.state?.view) closeView();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && viewing) $('vClose').click();
+});
 
 /** Раскладывает доску. */
 function render(chats) {
