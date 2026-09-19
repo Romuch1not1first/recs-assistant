@@ -117,6 +117,11 @@
   }
   body.viewing { overflow: hidden; }
 
+  .sync { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0 0; }
+  .sync .btn { width: auto; padding: 8px 14px; font-size: 14px; }
+  .sync .mini { color: var(--text-3); font-size: 13px; }
+  .sync .mini.err { color: #ff453a; }
+
   .empty { color: var(--text-3); font-size: 13px; padding: 4px 2px; }
   .sum { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 18px; color: var(--text-2); font-size: 14px; }
   .sum b { color: var(--text); }
@@ -130,6 +135,13 @@
     <p id="lead" data-i18n="chats.lead">Что происходит в ваших чатах и почему кончаются те, что кончились.</p>
 
     <div class="msg" id="msg"></div>
+
+    <!-- Сверка с Tinder сейчас — через расширение (site-bridge.js). Кнопка
+         появляется, только когда расширение в этом браузере есть. -->
+    <p class="sync" id="sync" hidden>
+      <button class="btn" id="syncNow" data-i18n="chats.syncNow">Сверить с Tinder сейчас</button>
+      <span class="mini" id="syncMsg"></span>
+    </p>
 
     <!-- Сводка по тегам: ради неё классификатор и отдаёт теги, а не текст. -->
     <div class="sum" id="sum" hidden></div>
@@ -389,12 +401,70 @@ window.addEventListener('message', (e) => {
   if (e.source !== window || e.origin !== location.origin) return;
   const msg = e.data;
 
-  if (msg?.type === 'autoswipe:here') bridge = true;
+  if (msg?.type === 'autoswipe:here') {
+    bridge = true;
+    $('sync').hidden = false;
+  }
+  if (msg?.type === 'autoswipe:sweep-done') sweepDone?.(msg.sweep ?? null);
   if (msg?.type === 'autoswipe:chat-log') {
     waiting.get(String(msg.id))?.(Array.isArray(msg.rows) ? msg.rows : []);
     waiting.delete(String(msg.id));
   }
 });
+
+/** Ждёт итог сверки, которую попросили у расширения. */
+let sweepDone = null;
+
+/**
+ * Сверить список мэтчей с Tinder прямо сейчас — и перечитать доску.
+ *
+ * Делает это расширение (оно одно знает токен Tinder), страница только просит
+ * и показывает, чем кончилось: сколько мэтчей, сколько анмэтчей нашлось, или
+ * почему не вышло. Раньше об этом можно было узнать только из popup.
+ */
+async function syncNow() {
+  const btn = $('syncNow');
+  const out = $('syncMsg');
+  btn.disabled = true;
+  out.className = 'mini';
+  out.textContent = t('chats.syncing');
+
+  const sweep = await new Promise((done) => {
+    sweepDone = done;
+    window.postMessage({ type: 'autoswipe:sweep' }, location.origin);
+    // Списки у активного человека большие, читаются постранично — даём минуту.
+    setTimeout(() => { if (sweepDone === done) done(null); }, 60000);
+  });
+  sweepDone = null;
+
+  if (!sweep) {
+    out.className = 'mini err';
+    out.textContent = t('chats.syncFail', { why: t('chats.syncSilent') });
+  } else if (sweep.ok) {
+    out.textContent = t('chats.syncOk', { n: sweep.chats ?? 0, gone: sweep.gone ?? 0 });
+  } else {
+    const why = sweep.why === 'no_token' || /Tinder HTTP 401/.test(String(sweep.why))
+      ? t('chats.syncNoToken')
+      : sweep.why === 'not_signed_in' ? t('chats.syncNotSignedIn') : String(sweep.why ?? '');
+    out.className = 'mini err';
+    out.textContent = t('chats.syncFail', { why });
+  }
+  btn.disabled = false;
+
+  // Доску перечитываем в любом случае: даже неудачная сверка могла успеть
+  // сохранить то, что нашла в прошлый раз.
+  try {
+    const token = await freshToken();
+    if (token) {
+      shown = await loadChats(token);
+      render(shown);
+    }
+  } catch {
+    // Осталась прежняя доска — и она не хуже пустой.
+  }
+}
+
+$('syncNow').addEventListener('click', syncNow);
 
 /** Реплики этой переписки из расширения — или пусто, если его нет. */
 function askLog(id) {
