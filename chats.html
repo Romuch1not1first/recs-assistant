@@ -79,7 +79,33 @@
     border-bottom: 1px solid var(--line-soft); background: var(--card);
     padding-top: max(12px, env(safe-area-inset-top));
   }
-  .view .head img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: none; }
+  .view .head img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: none; cursor: zoom-in; }
+  .view .head img:hover { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Просмотр фото: поверх экрана переписки, на весь экран, листается. */
+  .shot {
+    position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+    background: rgba(0, 0, 0, .92); cursor: zoom-out;
+    -webkit-user-select: none; user-select: none;
+  }
+  .shot[hidden] { display: none; }
+  .shot img {
+    max-width: 94vw; max-height: 92vh; border-radius: 12px; object-fit: contain; cursor: default;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+  }
+  .shot .nav {
+    position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px;
+    border-radius: 50%; border: 0; background: rgba(255, 255, 255, .14); color: #fff;
+    font-size: 24px; line-height: 1; cursor: pointer; font-family: inherit;
+  }
+  .shot .nav:hover { background: rgba(255, 255, 255, .26); }
+  .shot .nav.prev { left: 16px; }
+  .shot .nav.next { right: 16px; }
+  .shot .nav[hidden] { display: none; }
+  .shot .count {
+    position: absolute; bottom: max(16px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+    color: #fff; font-size: 13px; opacity: .8;
+  }
   .view .head .who { flex: 1; min-width: 0; }
   .view .head .name { font-size: 17px; font-weight: 600; }
   .view .head .mini { color: var(--text-3); font-size: 13px; margin-top: 2px; }
@@ -162,6 +188,14 @@
     </div>
     <div class="msgs" id="vMsgs"><div class="inner" id="vInner"></div></div>
     <div class="foot" id="vFoot"></div>
+  </div>
+
+  <!-- Фото анкеты крупно: по нажатию на аватар в шапке переписки. -->
+  <div class="shot" id="shot" hidden>
+    <button class="nav prev" id="shotPrev" type="button" aria-label="‹">‹</button>
+    <img id="shotImg" alt="">
+    <button class="nav next" id="shotNext" type="button" aria-label="›">›</button>
+    <div class="count" id="shotCount"></div>
   </div>
 
 <script type="module">
@@ -360,7 +394,10 @@ window.addEventListener('message', (e) => {
   }
   if (msg?.type === 'autoswipe:sweep-done') sweepDone?.(msg.sweep ?? null);
   if (msg?.type === 'autoswipe:chat-log') {
-    waiting.get(String(msg.id))?.(Array.isArray(msg.rows) ? msg.rows : []);
+    waiting.get(String(msg.id))?.({
+      rows: Array.isArray(msg.rows) ? msg.rows : [],
+      photos: Array.isArray(msg.photos) ? msg.photos : [],
+    });
     waiting.delete(String(msg.id));
   }
 });
@@ -450,6 +487,7 @@ async function openView(chat) {
 
   $('vPhoto').hidden = !chat.photo;
   if (chat.photo) $('vPhoto').src = chat.photo;
+  shots = chat.photo ? [chat.photo] : [];
   $('vName').textContent = chat.name || '—';
 
   // Под именем — то же, что на карточке: тег с причиной, молчание, статус.
@@ -476,8 +514,13 @@ async function openView(chat) {
   $('view').hidden = false;
   document.body.classList.add('viewing');
 
-  const rows = (await askLog(chat.match_id)) ?? (Array.isArray(chat.tail) ? chat.tail : []);
+  const got = await askLog(chat.match_id);
+  const rows = got?.rows ?? (Array.isArray(chat.tail) ? chat.tail : []);
   if (viewing !== chat) return; // пока грузили, открыли другую или закрыли
+
+  // Все фото анкеты — от Tinder через расширение; без него — то одно, что
+  // хранит сервер. Аватар в шапке открывает их крупно.
+  shots = got?.photos?.length ? got.photos : chat.photo ? [chat.photo] : [];
 
   const inner = $('vInner');
   for (const said of rows) {
@@ -494,7 +537,40 @@ async function openView(chat) {
   msgs.scrollTop = msgs.scrollHeight;
 }
 
+/* ---- фото крупно ---- */
+
+/** Фото открытой переписки и какое из них на экране. */
+let shots = [];
+let shotAt = 0;
+
+function showShot(i) {
+  if (!shots.length) return;
+  shotAt = (i + shots.length) % shots.length;
+  $('shotImg').src = shots[shotAt];
+  $('shotCount').textContent = shots.length > 1 ? `${shotAt + 1} / ${shots.length}` : '';
+  $('shotPrev').hidden = shots.length < 2;
+  $('shotNext').hidden = shots.length < 2;
+  $('shot').hidden = false;
+}
+
+function closeShot() {
+  $('shot').hidden = true;
+}
+
+$('vPhoto').addEventListener('click', () => showShot(0));
+$('shotPrev').addEventListener('click', (e) => { e.stopPropagation(); showShot(shotAt - 1); });
+$('shotNext').addEventListener('click', (e) => { e.stopPropagation(); showShot(shotAt + 1); });
+$('shotImg').addEventListener('click', (e) => e.stopPropagation());
+$('shot').addEventListener('click', closeShot);
+document.addEventListener('keydown', (e) => {
+  if ($('shot').hidden) return;
+  if (e.key === 'Escape') { e.stopImmediatePropagation(); closeShot(); }
+  if (e.key === 'ArrowLeft') showShot(shotAt - 1);
+  if (e.key === 'ArrowRight') showShot(shotAt + 1);
+}, true);
+
 function closeView() {
+  closeShot();
   viewing = null;
   $('view').hidden = true;
   document.body.classList.remove('viewing');
