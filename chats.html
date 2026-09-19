@@ -61,15 +61,6 @@
   }
   .tag.bad { background: #ff3b3018; color: #ff453a; }
 
-  /* Две последние реплики под тегом. Без них «слишком напористо» — приговор без
-     дела: тег называет ошибку, а показать её может только сам разговор. */
-  .quote { margin-top: 6px; padding-left: 8px; border-left: 2px solid var(--line-soft); }
-  .quote p {
-    margin: 0; font-size: 12px; line-height: 1.45; color: var(--text-3);
-    overflow-wrap: anywhere;
-  }
-  .quote b { font-weight: 600; color: var(--text-2); }
-
   /* Карточка — кнопка: по нажатию разговор открывается на весь экран. Раньше
      он раскрывался прямо в карточке, в колонке шириной в двести пикселей и
      окошке в 360 px, — и читать его там было нельзя. */
@@ -337,49 +328,11 @@ function card(chat) {
     who.append(note);
   }
 
-  // Тег ошибки — то, ради чего колонка с анмэтчами и существует.
-  if (chat.error_tag) {
-    const tag = document.createElement('div');
-    tag.className = `tag${chat.error_tag === 'no_mistake' ? '' : ' bad'}`;
-    tag.textContent = t(TAG_KEY[chat.error_tag] ?? chat.error_tag);
-    tag.title = chat.short_reason || '';
-    who.append(tag);
-
-    if (chat.short_reason) {
-      const why = document.createElement('div');
-      why.className = 'mini';
-      why.textContent = chat.short_reason;
-      who.append(why);
-    }
-  } else if (chat.status === 'unmatched') {
-    // Без единого сообщения разбирать нечего: причина здесь не в переписке.
-    const wait = document.createElement('div');
-    wait.className = 'mini';
-    wait.textContent = t(chat.messages ? 'chats.tagWait' : 'chats.noChat');
-    who.append(wait);
-  }
-
-  // Разговор под тегом. Двумя репликами он и ограничен: их дело — показать, за
-  // что тег поставлен, а не пересказать переписку, и больше сервер не хранит.
-  const tail = Array.isArray(chat.tail) ? chat.tail.slice(-2) : [];
-
-  if (chat.status === 'unmatched' && tail.length) {
-    const quote = document.createElement('div');
-    quote.className = 'quote';
-
-    for (const said of tail) {
-      const line = document.createElement('p');
-
-      const lead = document.createElement('b');
-      lead.textContent = `${said?.mine ? t('chats.me') : chat.name || t('chats.her')}: `;
-
-      line.append(lead, String(said?.text ?? ''));
-      quote.append(line);
-    }
-
-    who.append(quote);
-  }
-
+  // Карточка анмэтча выглядит как любая другая: имя и сколько молчит. Тег,
+  // причина и две последние реплики раньше стояли прямо здесь — колонка
+  // становилась в три раза выше остальных и читалась как стена текста. Всё это
+  // осталось в экране переписки: нажатие на карточку показывает тег с причиной
+  // в шапке и сам разговор. Сводка по тегам над доской тоже на месте.
   box.append(who);
   box.addEventListener('click', () => openView(chat));
   return box;
