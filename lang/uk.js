@@ -231,6 +231,9 @@ export default {
   "chats.syncNoToken": "немає токена Tinder — відкрийте tinder.com і повторіть",
   "chats.syncNotSignedIn": "розширення не увійшло в акаунт",
   "chats.open": "Відкрити в Tinder",
+  "chats.movedTo": "Переписка продовжилася в {app}",
+  "chats.openApp": "Відкрити в {app}",
+  "chats.goneTinder": "у Tinder — анмеч",
   "chats.loadingChat": "завантажую переписку…",
   "chats.rows": "{n} повідомл. у пам'яті розширення",
   "chats.noLog": "Переписка ще не збережена: відкрийте її в Tinder з увімкненим розширенням — і вона з'явиться тут.",
@@ -244,4 +247,10 @@ export default {
   "chats.tag.creepy": "Перейшов межу",
   "chats.tag.logical_fail": "Відповів невпопад",
   "chats.tag.no_mistake": "Без помилок",
+"chats.byHer": "she unmatched",
+  "chats.byMe": "you unmatched",
+  "chats.byUnknown": "who ended it is unknown",
+  "chats.countHer": "unmatched by her",
+  "chats.countMe": "by me",
+  "chats.countUnknown": "unknown"
 };

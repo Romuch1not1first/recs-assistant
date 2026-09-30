@@ -119,3 +119,20 @@ export const ERROR_TAGS = [
 
 /** Тег из чужого ответа — или `null`, если это не наш тег. */
 export const errorTag = (v) => (ERROR_TAGS.includes(String(v ?? '')) ? String(v) : null);
+
+/**
+ * Кто оборвал переписку.
+ *
+ * Три ответа, а не два: записи, помеченные до появления этой пометки, не знают
+ * ничего, и выдавать их за её анмэтч нельзя — статистика ошибок строится
+ * только на подтверждённом. Поле приходит под двумя именами: в расширении
+ * `unmatchedBy`, из базы `unmatched_by`, — как и время последнего сообщения.
+ *
+ * @param {{unmatchedBy?: string, unmatched_by?: string}} chat
+ * @returns {'me'|'her'|'unknown'}
+ */
+export function unmatchedByOf(chat) {
+  const by = chat?.unmatchedBy ?? chat?.unmatched_by;
+  return by === 'me' || by === 'her' ? by : 'unknown';
+}
+

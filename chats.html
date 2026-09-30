@@ -54,6 +54,13 @@
      «молчит 2 дн.». */
   .chat .mini { color: var(--text-3); font-size: 13px; margin-top: 2px; }
 
+  /* Кто оборвал переписку: её анмэтч — то, из чего строится разбор ошибок,
+     мой — просто факт, а неизвестное не должно выглядеть ни тем, ни другим. */
+  .chat .by { font-size: 12px; margin-top: 3px; }
+  .chat .by.her  { color: #ff453a; }          /* тот же красный, что у колонки и у .tag.bad */
+  .chat .by.me   { color: var(--text-3); font-weight: 500; }
+  .chat .by.unknown { color: var(--text-3); opacity: .75; }
+
   /* Тег ошибки: короткое слово, по которому колонку и читают. */
   .tag {
     display: inline-block; margin-top: 4px; padding: 1px 7px; border-radius: 20px;
@@ -127,6 +134,19 @@
   }
   .view .m.me { align-self: flex-end; background: #0a84ff; color: #fff; }
   .view .m.her { align-self: flex-start; background: var(--card); border: 1px solid var(--line-soft); color: var(--text); }
+  /* Разговор переехал на другую площадку: полоса поперёк ленты. */
+  .view .switch {
+    align-self: stretch; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 10px;
+    margin: 14px 0 8px; padding: 8px 12px; border-radius: 12px;
+    background: color-mix(in srgb, #0a84ff 12%, transparent); border: 1px dashed color-mix(in srgb, #0a84ff 45%, transparent);
+    color: var(--text-2); font-size: 13px; font-weight: 600; text-align: center;
+  }
+  .view .switch a { color: #0a84ff; font-weight: 500; text-decoration: none; }
+  .view .switch a:hover { text-decoration: underline; }
+  .chat .moved {
+    display: inline-block; margin-top: 4px; padding: 1px 8px; border-radius: 999px;
+    background: color-mix(in srgb, #0a84ff 14%, transparent); color: #0a84ff; font-size: 12px; font-weight: 600;
+  }
   .view .foot {
     padding: 10px 16px; border-top: 1px solid var(--line-soft);
     color: var(--text-3); font-size: 13px; text-align: center;
@@ -199,8 +219,8 @@
   </div>
 
 <script type="module">
-import { initI18n, t, whenLangChanges } from './i18n.js?v=19';
-import { board, silentDays } from './chat-states.js?v=3';
+import { initI18n, lang, t, whenLangChanges } from './i18n.js?v=20';
+import { board, silentDays, unmatchedByOf } from './chat-states.js?v=4';
 
 const CONFIG = {
   supabaseUrl: 'https://scghlieavejohghkuozu.supabase.co',
@@ -289,7 +309,7 @@ const say = (text, kind = '') => {
 async function loadChats(token) {
   const res = await fetch(
     `${CONFIG.supabaseUrl}/rest/v1/chats` +
-      '?select=match_id,name,photo,status,last_mine,last_at,messages,error_tag,short_reason,tail' +
+      '?select=match_id,name,photo,status,last_mine,last_at,messages,error_tag,short_reason,tail,unmatched_by' +
       '&order=last_at.desc.nullslast&limit=500',
     {
       headers: {
@@ -333,6 +353,9 @@ const TAG_KEY = {
   no_mistake: 'chats.tag.no_mistake',
 };
 
+const BY_KEY = { her: 'chats.byHer', me: 'chats.byMe', unknown: 'chats.byUnknown' };
+const COUNT_KEY = { her: 'chats.countHer', me: 'chats.countMe', unknown: 'chats.countUnknown' };
+
 /** Карточка переписки. */
 function card(chat) {
   const box = document.createElement('div');
@@ -354,12 +377,35 @@ function card(chat) {
   name.textContent = chat.name || '—';
   who.append(name);
 
+  if (chat.status === 'unmatched') {
+    const by = unmatchedByOf(chat);
+    const mark = document.createElement('div');
+    mark.className = `by ${by}`;
+    mark.textContent = t(BY_KEY[by]);
+    who.append(mark);
+  }
+
   const days = silentDays(chat);
   if (days !== null) {
     const note = document.createElement('div');
     note.className = 'mini';
     note.textContent = days === 0 ? t('chats.today') : t('chats.days', { n: days });
     who.append(note);
+  }
+
+  // Продолжилась в мессенджере — видно сразу, не открывая.
+  if (chat.movedTo?.length) {
+    const moved = document.createElement('div');
+    moved.className = 'moved';
+    moved.textContent = chat.movedTo.map((s) => `→ ${siteName(s)}`).join(' ');
+    if (chat.goneFromTinder) moved.title = t('chats.goneTinder');
+    who.append(moved);
+    if (chat.goneFromTinder) {
+      const gone = document.createElement('div');
+      gone.className = 'mini';
+      gone.textContent = t('chats.goneTinder');
+      who.append(gone);
+    }
   }
 
   // Карточка анмэтча выглядит как любая другая: имя и сколько молчит. Тег,
@@ -391,12 +437,19 @@ window.addEventListener('message', (e) => {
   if (msg?.type === 'autoswipe:here') {
     bridge = true;
     $('sync').hidden = false;
+    // Какие переписки продолжились в мессенджерах — доска переложит карточки.
+    window.postMessage({ type: 'autoswipe:linked' }, location.origin);
+  }
+  if (msg?.type === 'autoswipe:linked-done') {
+    linkedMap = msg.linked && typeof msg.linked === 'object' ? msg.linked : {};
+    if (shown.length) render(shown);
   }
   if (msg?.type === 'autoswipe:sweep-done') sweepDone?.(msg.sweep ?? null);
   if (msg?.type === 'autoswipe:chat-log') {
     waiting.get(String(msg.id))?.({
       rows: Array.isArray(msg.rows) ? msg.rows : [],
       photos: Array.isArray(msg.photos) ? msg.photos : [],
+      continued: Array.isArray(msg.continued) ? msg.continued : [],
     });
     waiting.delete(String(msg.id));
   }
@@ -455,6 +508,39 @@ async function syncNow() {
 }
 
 $('syncNow').addEventListener('click', syncNow);
+
+/**
+ * Продолжение разговора в мессенджерах — по данным расширения.
+ *
+ * Разговор начинается в Tinder и переезжает в телеграм или директ, а доска
+ * судила только по Tinder: там переписка «молчит неделю», а то и значится
+ * анмэтчем, хотя разговор идёт вовсю. Поэтому колонка и «молчит N дн.»
+ * берутся по последнему сообщению продолжения, если оно новее. Анмэтч в
+ * Tinder при живом продолжении — не конец разговора, а переезд: карточка
+ * встаёт по продолжению, с пометкой, что в Tinder пары уже нет.
+ */
+let linkedMap = {};
+
+const SITE_NAMES = { tinder: 'Tinder', telegram: 'Telegram', instagram: 'Instagram' };
+const siteName = (id) => SITE_NAMES[id] ?? id;
+
+function withContinuation(chat) {
+  const mate = linkedMap[String(chat.match_id)];
+  if (!mate) return chat;
+
+  const out = { ...chat, movedTo: mate.sites ?? [] };
+  const at = Number(mate.lastAt) || 0;
+  const was = chat.last_at ? Date.parse(chat.last_at) : 0;
+  if (at && (at > was || chat.status === 'unmatched')) {
+    out.last_at = new Date(at).toISOString();
+    out.last_mine = !!mate.lastMine;
+    if (chat.status === 'unmatched') {
+      out.status = 'active';
+      out.goneFromTinder = true;
+    }
+  }
+  return out;
+}
 
 /** Реплики этой переписки из расширения — или пусто, если его нет. */
 function askLog(id) {
@@ -523,18 +609,51 @@ async function openView(chat) {
   shots = got?.photos?.length ? got.photos : chat.photo ? [chat.photo] : [];
 
   const inner = $('vInner');
-  for (const said of rows) {
+  const bubble = (said) => {
     const m = document.createElement('div');
     m.className = `m ${said?.mine ? 'me' : 'her'}`;
     m.textContent = String(said?.text ?? '');
-    inner.append(m);
-  }
-  $('vFoot').textContent = rows.length
-    ? t('chats.rows', { n: rows.length })
+    return m;
+  };
+  for (const said of rows) inner.append(bubble(said));
+
+  // Продолжение в мессенджерах: полоса «здесь кончился Tinder — дальше
+  // Telegram», потом его реплики теми же пузырями.
+  const continued = got?.continued ?? [];
+  for (const part of continued) inner.append(switchLine(part), ...part.rows.map(bubble));
+
+  const total = rows.length + continued.reduce((n, p) => n + p.rows.length, 0);
+  $('vFoot').textContent = total
+    ? t('chats.rows', { n: total })
     : t(bridge ? 'chats.noLog' : 'chats.noBridge');
 
   const msgs = $('vMsgs');
   msgs.scrollTop = msgs.scrollHeight;
+}
+
+/** Полоса-разделитель: где разговор переехал на другую площадку. */
+function switchLine(part) {
+  const line = document.createElement('div');
+  line.className = 'switch';
+
+  const what = document.createElement('span');
+  const first = part.rows.find((r) => r.at)?.at;
+  const when = first
+    ? new Date(first).toLocaleDateString(lang(), { day: 'numeric', month: 'short', year: 'numeric' })
+    : '';
+  const who = part.handle ? `@${part.handle}` : '';
+  what.textContent = [t('chats.movedTo', { app: siteName(part.site) }), when, who].filter(Boolean).join(' · ');
+  line.append(what);
+
+  if (part.url) {
+    const open = document.createElement('a');
+    open.href = part.url;
+    open.target = '_blank';
+    open.rel = 'noopener';
+    open.textContent = t('chats.openApp', { app: siteName(part.site) });
+    line.append(open);
+  }
+  return line;
 }
 
 /* ---- фото крупно ---- */
@@ -590,7 +709,7 @@ document.addEventListener('keydown', (e) => {
 
 /** Раскладывает доску. */
 function render(chats) {
-  const cols = board(chats);
+  const cols = board(chats.map(withContinuation));
 
   for (const [key, id] of [
     ['yours', 'Yours'],
@@ -615,22 +734,37 @@ function render(chats) {
 
   // Сводка по тегам: девять «too_needy» за месяц — это уже вывод, а карточки
   // по одной такого не показывают.
+  const mine = cols.unmatched.filter((c) => unmatchedByOf(c) === 'me');
+  const hers = cols.unmatched.filter((c) => unmatchedByOf(c) === 'her');
+  const unknown = cols.unmatched.filter((c) => unmatchedByOf(c) === 'unknown');
+
   const tags = {};
-  for (const c of cols.unmatched) if (c.error_tag) tags[c.error_tag] = (tags[c.error_tag] ?? 0) + 1;
+  for (const c of hers) if (c.error_tag) tags[c.error_tag] = (tags[c.error_tag] ?? 0) + 1;
 
   const sum = Object.entries(tags).sort((a, b) => b[1] - a[1]);
-  $('sum').hidden = !sum.length;
-  $('sum').replaceChildren(
-    ...sum.map(([tag, n]) => {
-      const one = document.createElement('span');
-      one.textContent = t(TAG_KEY[tag] ?? tag);
 
-      const count = document.createElement('b');
-      count.textContent = ` ${n}`;
-      one.append(count);
-      return one;
-    })
-  );
+  const entry = (label, n) => {
+    const one = document.createElement('span');
+    one.textContent = label;
+
+    const count = document.createElement('b');
+    count.textContent = ` ${n}`;
+    one.append(count);
+    return one;
+  };
+
+  const children = sum.map(([tag, n]) => entry(t(TAG_KEY[tag] ?? tag), n));
+
+  if (cols.unmatched.length) {
+    children.push(entry(t('chats.countHer'), hers.length));
+    children.push(entry(t('chats.countMe'), mine.length));
+    if (unknown.length > 0) {
+      children.push(entry(t('chats.countUnknown'), unknown.length));
+    }
+  }
+
+  $('sum').hidden = !sum.length && !cols.unmatched.length;
+  $('sum').replaceChildren(...children);
 
   $('board').hidden = false;
 }

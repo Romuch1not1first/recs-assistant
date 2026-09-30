@@ -231,6 +231,9 @@ export default {
   "chats.syncNoToken": "sem token do Tinder — abra tinder.com e tente de novo",
   "chats.syncNotSignedIn": "a extensão não tem sessão iniciada",
   "chats.open": "Abrir no Tinder",
+  "chats.movedTo": "A conversa continuou no {app}",
+  "chats.openApp": "Abrir no {app}",
+  "chats.goneTinder": "unmatch no Tinder",
   "chats.loadingChat": "a carregar a conversa…",
   "chats.rows": "{n} mensagens guardadas pela extensão",
   "chats.noLog": "Esta conversa ainda não está guardada: abre-a no Tinder com a extensão ligada e ela aparece aqui.",
@@ -244,4 +247,10 @@ export default {
   "chats.tag.creepy": "Passou dos limites",
   "chats.tag.logical_fail": "Respondeu ao lado",
   "chats.tag.no_mistake": "Sem erros",
+"chats.byHer": "she unmatched",
+  "chats.byMe": "you unmatched",
+  "chats.byUnknown": "who ended it is unknown",
+  "chats.countHer": "unmatched by her",
+  "chats.countMe": "by me",
+  "chats.countUnknown": "unknown"
 };

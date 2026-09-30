@@ -231,6 +231,9 @@ export default {
   "chats.syncNoToken": "brak tokena Tindera — otwórz tinder.com i spróbuj ponownie",
   "chats.syncNotSignedIn": "rozszerzenie nie jest zalogowane",
   "chats.open": "Otwórz w Tinderze",
+  "chats.movedTo": "Rozmowa przeniosła się do {app}",
+  "chats.openApp": "Otwórz w {app}",
+  "chats.goneTinder": "unmatch w Tinderze",
   "chats.loadingChat": "wczytuję rozmowę…",
   "chats.rows": "{n} wiadomości zapisanych w rozszerzeniu",
   "chats.noLog": "Ta rozmowa nie jest jeszcze zapisana: otwórz ją w Tinderze z włączonym rozszerzeniem, a pojawi się tutaj.",
@@ -244,4 +247,10 @@ export default {
   "chats.tag.creepy": "Przekroczył granicę",
   "chats.tag.logical_fail": "Nie na temat",
   "chats.tag.no_mistake": "Bez błędów",
+"chats.byHer": "she unmatched",
+  "chats.byMe": "you unmatched",
+  "chats.byUnknown": "who ended it is unknown",
+  "chats.countHer": "unmatched by her",
+  "chats.countMe": "by me",
+  "chats.countUnknown": "unknown"
 };

@@ -231,6 +231,9 @@ export default {
   "chats.syncNoToken": "kein Tinder-Token — tinder.com öffnen und erneut versuchen",
   "chats.syncNotSignedIn": "die Erweiterung ist nicht angemeldet",
   "chats.open": "In Tinder öffnen",
+  "chats.movedTo": "Der Chat ging in {app} weiter",
+  "chats.openApp": "In {app} öffnen",
+  "chats.goneTinder": "in Tinder entmatcht",
   "chats.loadingChat": "Chat wird geladen…",
   "chats.rows": "{n} Nachrichten in der Erweiterung gespeichert",
   "chats.noLog": "Dieser Chat ist noch nicht gespeichert: öffne ihn in Tinder mit aktiver Erweiterung, dann erscheint er hier.",
@@ -244,4 +247,10 @@ export default {
   "chats.tag.creepy": "Grenze überschritten",
   "chats.tag.logical_fail": "Am Thema vorbei",
   "chats.tag.no_mistake": "Kein Fehler",
+"chats.byHer": "she unmatched",
+  "chats.byMe": "you unmatched",
+  "chats.byUnknown": "who ended it is unknown",
+  "chats.countHer": "unmatched by her",
+  "chats.countMe": "by me",
+  "chats.countUnknown": "unknown"
 };

@@ -231,6 +231,9 @@ export default {
   "chats.syncNoToken": "Tinder jetonu yok — tinder.com’u açıp tekrar deneyin",
   "chats.syncNotSignedIn": "uzantı hesaba giriş yapmamış",
   "chats.open": "Tinder'da aç",
+  "chats.movedTo": "Sohbet {app} üzerinde devam etti",
+  "chats.openApp": "{app} içinde aç",
+  "chats.goneTinder": "Tinder’da eşleşme kaldırıldı",
   "chats.loadingChat": "sohbet yükleniyor…",
   "chats.rows": "eklentide {n} mesaj saklı",
   "chats.noLog": "Bu sohbet henüz kaydedilmedi: eklenti açıkken Tinder'da aç, burada görünecek.",
@@ -244,4 +247,10 @@ export default {
   "chats.tag.creepy": "Sınırı aştı",
   "chats.tag.logical_fail": "Konu dışı yanıt",
   "chats.tag.no_mistake": "Hata yok",
+"chats.byHer": "she unmatched",
+  "chats.byMe": "you unmatched",
+  "chats.byUnknown": "who ended it is unknown",
+  "chats.countHer": "unmatched by her",
+  "chats.countMe": "by me",
+  "chats.countUnknown": "unknown"
 };
