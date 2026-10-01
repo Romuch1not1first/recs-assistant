@@ -306,18 +306,30 @@ const say = (text, kind = '') => {
  * токеном, и отделяет его переписки от чужих RLS — та же защита, что у
  * подписки. Лишняя функция здесь только добавила бы места, где можно ошибиться.
  */
+const CHAT_FIELDS = 'match_id,name,photo,status,last_mine,last_at,messages,error_tag,short_reason,tail';
+
 async function loadChats(token) {
-  const res = await fetch(
-    `${CONFIG.supabaseUrl}/rest/v1/chats` +
-      '?select=match_id,name,photo,status,last_mine,last_at,messages,error_tag,short_reason,tail,unmatched_by' +
-      '&order=last_at.desc.nullslast&limit=500',
-    {
-      headers: {
-        apikey: CONFIG.supabaseKey,
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  const ask = (fields) =>
+    fetch(
+      `${CONFIG.supabaseUrl}/rest/v1/chats?select=${fields}&order=last_at.desc.nullslast&limit=500`,
+      {
+        headers: {
+          apikey: CONFIG.supabaseKey,
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+  let res = await ask(`${CHAT_FIELDS},unmatched_by`);
+
+  // Колонки «кто оборвал» в базе может ещё не быть: её добавляет миграция в
+  // supabase/schema.sql, а страница выкладывается раньше. Без неё база
+  // отвечает 400 (код 42703), и доска не грузилась вовсе. Тогда — без колонки:
+  // карточки анмэтчей просто покажут «неизвестно, кто».
+  if (res.status === 400) {
+    const why = await res.clone().json().catch(() => null);
+    if (why?.code === '42703') res = await ask(CHAT_FIELDS);
+  }
 
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return await res.json();
@@ -806,7 +818,10 @@ await initI18n();
 
     shown = chats;
     render(chats);
-  } catch {
+  } catch (e) {
+    // Причина — в консоль: «не загрузилось» без неё не объясняет ничего, а
+    // искать её пришлось бы вслепую.
+    console.error('доска не загрузилась:', e);
     say(t('chats.errLoad'), 'err');
   }
 })();
