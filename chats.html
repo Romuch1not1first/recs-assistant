@@ -125,6 +125,35 @@
     cursor: pointer; font-family: inherit;
   }
   .view .close:hover { background: var(--line); }
+  /* Кнопки шапки — того же вида, что крестик: скруглённые, на мягкой подложке. */
+  .view .hbtn {
+    display: inline-flex; align-items: center; gap: 6px; flex: none;
+    height: 36px; padding: 0 14px; border-radius: 999px; border: 0;
+    background: var(--line-soft); color: var(--text);
+    font: 600 14px/1 inherit; font-family: inherit; white-space: nowrap; cursor: pointer;
+  }
+  .view .hbtn:hover { background: var(--line); }
+  .view .hbtn:disabled { opacity: .6; cursor: default; }
+  .view .hbtn[hidden] { display: none; }
+  .view .hbtn svg { width: 16px; height: 16px; flex: none; }
+  .view .hbtn.accent { background: #0a84ff; color: #fff; }
+  .view .hbtn.accent:hover { background: #2a95ff; }
+  /* Ссылка, которой поделились: под шапкой, пока экран открыт. */
+  .view .sharebar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 16px;
+    border-bottom: 1px solid var(--line-soft); background: color-mix(in srgb, #0a84ff 8%, var(--card));
+  }
+  .view .sharebar[hidden] { display: none; }
+  .view .sharebar input {
+    flex: 1; min-width: 180px; height: 34px; padding: 0 10px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--card); color: var(--text); font: 13px/1 inherit; font-family: inherit;
+  }
+  .view .sharebar .hbtn { height: 34px; }
+  .view .sharebar .hint { flex-basis: 100%; color: var(--text-3); font-size: 12px; }
+  @media (max-width: 680px) {
+    .view .head .hbtn .lb { display: none; }
+    .view .head .hbtn { width: 36px; padding: 0; justify-content: center; }
+  }
   .view .msgs { flex: 1; min-height: 0; overflow-y: auto; padding: 16px; }
   /* Лента не шире газетной колонки: пузыри на всю ширину монитора не читаются. */
   .view .inner { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 6px; }
@@ -203,8 +232,16 @@
         <div class="name" id="vName"></div>
         <div class="mini" id="vMeta"></div>
       </div>
+      <button class="hbtn accent" id="vWhy" type="button" hidden data-i18n-attr="title:chats.why"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span class="lb" data-i18n="chats.why">Узнать, в чём проблема</span></button>
+      <button class="hbtn" id="vShare" type="button" hidden data-i18n-attr="title:chats.share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg><span class="lb" data-i18n="chats.share">Поделиться</span></button>
       <a id="vOpen" target="_blank" rel="noopener" data-i18n="chats.open">Открыть в Tinder</a>
       <button class="close" id="vClose" type="button" data-i18n-attr="title:chats.close, aria-label:chats.close">✕</button>
+    </div>
+    <div class="sharebar" id="vShareBar" hidden>
+      <input id="vShareUrl" readonly>
+      <button class="hbtn" id="vShareCopy" type="button" data-i18n="chats.copy">Копировать</button>
+      <button class="hbtn" id="vShareDel" type="button" data-i18n="chats.shareDelete">Удалить ссылку</button>
+      <div class="hint" data-i18n="chats.shareNote">Ссылка открывается без входа и живёт 30 дней.</div>
     </div>
     <div class="msgs" id="vMsgs"><div class="inner" id="vInner"></div></div>
     <div class="foot" id="vFoot"></div>
@@ -219,7 +256,7 @@
   </div>
 
 <script type="module">
-import { initI18n, lang, t, whenLangChanges } from './i18n.js?v=20';
+import { initI18n, lang, t, whenLangChanges } from './i18n.js?v=21';
 import { board, silentDays, unmatchedByOf } from './chat-states.js?v=4';
 
 const CONFIG = {
@@ -333,21 +370,6 @@ async function loadChats(token) {
 
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return await res.json();
-}
-
-/** Досчитать причины у тех, кого расширение принесло, но разобрать не успело. */
-async function classifyRest(token) {
-  await fetch(`${CONFIG.supabaseUrl}/functions/v1/analyze-unmatch`, {
-    method: 'POST',
-    headers: {
-      apikey: CONFIG.supabaseKey,
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: '{}',
-  }).catch(() => {
-    // Не вышло — доска всё равно покажет всё, что уже разобрано.
-  });
 }
 
 /**
@@ -588,21 +610,17 @@ async function openView(chat) {
   shots = chat.photo ? [chat.photo] : [];
   $('vName').textContent = chat.name || '—';
 
-  // Под именем — то же, что на карточке: тег с причиной, молчание, статус.
-  const meta = $('vMeta');
-  meta.replaceChildren();
-  if (chat.error_tag) {
-    const tag = document.createElement('span');
-    tag.className = `tag${chat.error_tag === 'no_mistake' ? '' : ' bad'}`;
-    tag.textContent = t(TAG_KEY[chat.error_tag] ?? chat.error_tag);
-    meta.append(tag);
-    if (chat.short_reason) meta.append(chat.short_reason);
-  } else if (chat.status === 'unmatched') {
-    meta.textContent = t(chat.messages ? 'chats.tagWait' : 'chats.noChat');
-  } else {
-    const days = silentDays(chat);
-    if (days !== null) meta.textContent = days === 0 ? t('chats.today') : t('chats.days', { n: days });
-  }
+  paintMeta(chat);
+
+  // Причину спрашивает сам человек — только у оборвавшейся переписки, где ещё
+  // нет разбора и было о чём говорить.
+  // Свой анмэтч сервер не разбирает (и хвост его не хранит) — спрашивать не о чем.
+  $('vWhy').hidden = !(chat.status === 'unmatched' && !chat.error_tag && chat.messages && unmatchedByOf(chat) !== 'me');
+  // Делиться можно, когда разговор загрузится, — см. ниже.
+  $('vShare').hidden = true;
+  $('vShareBar').hidden = true;
+  sharing = null;
+  shareLink = null;
 
   $('vOpen').href = `https://tinder.com/app/messages/${encodeURIComponent(chat.match_id)}`;
   $('vInner').replaceChildren();
@@ -633,6 +651,10 @@ async function openView(chat) {
   // Telegram», потом его реплики теми же пузырями.
   const continued = got?.continued ?? [];
   for (const part of continued) inner.append(switchLine(part), ...part.rows.map(bubble));
+
+  // Есть что показать — есть чем и поделиться.
+  sharing = rows.length || continued.length ? { chat, rows, continued } : null;
+  $('vShare').hidden = !sharing;
 
   const total = rows.length + continued.reduce((n, p) => n + p.rows.length, 0);
   $('vFoot').textContent = total
@@ -667,6 +689,145 @@ function switchLine(part) {
   }
   return line;
 }
+
+/** Под именем — то же, что на карточке: тег с причиной, молчание, статус. */
+function paintMeta(chat) {
+  const meta = $('vMeta');
+  meta.replaceChildren();
+  if (chat.error_tag) {
+    const tag = document.createElement('span');
+    tag.className = `tag${chat.error_tag === 'no_mistake' ? '' : ' bad'}`;
+    tag.textContent = t(TAG_KEY[chat.error_tag] ?? chat.error_tag);
+    meta.append(tag);
+    if (chat.short_reason) meta.append(chat.short_reason);
+  } else if (chat.status === 'unmatched') {
+    if (!chat.messages) meta.textContent = t('chats.noChat');
+  } else {
+    const days = silentDays(chat);
+    if (days !== null) meta.textContent = days === 0 ? t('chats.today') : t('chats.days', { n: days });
+  }
+}
+
+/** Запрос к функции Supabase от имени вошедшего. */
+async function callFunction(name, { method = 'POST', body, query = '' } = {}) {
+  const token = await freshToken();
+  if (!token) throw new Error(t('chats.needSignIn'));
+  const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/${name}${query}`, {
+    method,
+    headers: {
+      apikey: CONFIG.supabaseKey,
+      Authorization: `Bearer ${token}`,
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+  return data;
+}
+
+/**
+ * «Узнать, в чём проблема» — разбор одной оборвавшейся переписки по просьбе.
+ *
+ * Раньше разбор запускался сам, при каждом открытии страницы, — и переписка
+ * часами висела «разбираю причину…». Теперь его зовёт человек, и только для
+ * той, что открыта.
+ */
+async function explainChat() {
+  const chat = viewing;
+  if (!chat) return;
+  const btn = $('vWhy');
+  const label = btn.querySelector('.lb');
+  btn.disabled = true;
+  label.textContent = t('chats.whyWorking');
+  try {
+    const data = await callFunction('analyze-unmatch', { body: { match_id: chat.match_id } });
+    const got = (data?.chats ?? []).find((c) => String(c.match_id) === String(chat.match_id));
+    if (!got) throw Object.assign(new Error(t('chats.whyNone')), { plain: true });
+    for (const c of [chat, ...shown.filter((x) => String(x.match_id) === String(chat.match_id))]) {
+      c.error_tag = got.error_tag;
+      c.short_reason = got.short_reason;
+    }
+    if (viewing === chat) paintMeta(chat);
+    btn.hidden = true;
+    render(shown);
+  } catch (e) {
+    if (viewing === chat) $('vMeta').textContent = e.plain ? e.message : t('chats.whyFail', { why: e.message });
+  } finally {
+    btn.disabled = false;
+    label.textContent = t('chats.why');
+  }
+}
+
+/** Что сейчас открыто и чем можно поделиться; ссылка, если её уже сделали. */
+let sharing = null;
+let shareLink = null;
+
+/**
+ * «Поделиться» — ссылкой на страницу, где переписку видно без входа.
+ *
+ * Слова уезжают на сервер только здесь и только эта переписка: иначе по ссылке
+ * нечего было бы показать. Ссылка живёт 30 дней, её можно удалить раньше.
+ */
+async function shareChat() {
+  if (!sharing) return;
+  const btn = $('vShare');
+  const label = btn.querySelector('.lb');
+  btn.disabled = true;
+  label.textContent = t('chats.sharing');
+  try {
+    if (!shareLink) {
+      const { chat, rows, continued } = sharing;
+      const data = await callFunction('share-chat', {
+        body: {
+          name: chat.name || '',
+          site: 'tinder',
+          rows: rows.map(({ mine, text, at }) => ({ mine, text, at })),
+          continued: continued.map((p) => ({ site: p.site, rows: p.rows })),
+        },
+      });
+      shareLink = { id: data.id, url: `${location.origin}/share.html?id=${encodeURIComponent(data.id)}` };
+    }
+    $('vShareUrl').value = shareLink.url;
+    $('vShareBar').hidden = false;
+    // Подвал мог остаться от прошлой попытки («ссылка удалена», ошибка).
+    const { rows, continued } = sharing;
+    $('vFoot').textContent = t('chats.rows', { n: rows.length + continued.reduce((n, p) => n + p.rows.length, 0) });
+    const copied = await navigator.clipboard?.writeText(shareLink.url).then(() => true, () => false);
+    label.textContent = t(copied ? 'chats.shareCopied' : 'chats.share');
+    // На телефоне — системное «Поделиться»: так ссылку сразу шлют в мессенджер.
+    if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+      navigator.share({ title: sharing.chat.name || 'AutoSwipe AI', url: shareLink.url }).catch(() => {});
+    }
+    setTimeout(() => { label.textContent = t('chats.share'); }, 2500);
+  } catch (e) {
+    label.textContent = t('chats.share');
+    $('vFoot').textContent = t('chats.shareFail', { why: e.message });
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+$('vWhy').addEventListener('click', explainChat);
+$('vShare').addEventListener('click', shareChat);
+$('vShareCopy').addEventListener('click', async () => {
+  const ok = await navigator.clipboard?.writeText($('vShareUrl').value).then(() => true, () => false);
+  if (!ok) $('vShareUrl').select();
+  $('vShareCopy').textContent = t(ok ? 'chats.copied' : 'chats.copy');
+  setTimeout(() => { $('vShareCopy').textContent = t('chats.copy'); }, 2000);
+});
+$('vShareUrl').addEventListener('focus', () => $('vShareUrl').select());
+$('vShareDel').addEventListener('click', async () => {
+  if (!shareLink) return;
+  try {
+    await callFunction('share-chat', { method: 'DELETE', query: `?id=${encodeURIComponent(shareLink.id)}` });
+    shareLink = null;
+    $('vShareBar').hidden = true;
+    $('vFoot').textContent = t('chats.shareDeleted');
+  } catch (e) {
+    $('vFoot').textContent = t('chats.shareFail', { why: e.message });
+  }
+});
 
 /* ---- фото крупно ---- */
 
@@ -800,14 +961,9 @@ await initI18n();
   say(t('chats.loading'));
 
   try {
-    let chats = await loadChats(token);
-
-    // Есть неразобранные — просим разобрать и перечитываем. Один лишний запрос
-    // раз в неделю дешевле, чем колонка с пустыми причинами.
-    if (chats.some((c) => c.status === 'unmatched' && !c.error_tag)) {
-      await classifyRest(token);
-      chats = await loadChats(token);
-    }
+    // Причины анмэтчей сами по себе не разбираются: человек спрашивает их
+    // кнопкой в открытой переписке («Узнать, в чём проблема»).
+    const chats = await loadChats(token);
 
     say('');
 
