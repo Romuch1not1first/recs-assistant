@@ -191,6 +191,97 @@
   .empty { color: var(--text-3); font-size: 13px; padding: 4px 2px; }
   .sum { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 18px; color: var(--text-2); font-size: 14px; }
   .sum b { color: var(--text); }
+
+  /* Статистика: когда пишут и сколько мэтчей. Цвета рядов — свои: синий —
+     новые мэтчи, красный — мои анмэтчи (тот же красный, что у колонки
+     «Анмэтч»), серый — фон, на котором они читаются. Пара проверена на
+     различимость при дальтонизме в обеих темах. */
+  body {
+    --s-new: var(--accent);
+    --s-cut: #e0352b;
+    --s-base: color-mix(in srgb, var(--text-3) 40%, var(--card));
+  }
+  @media (prefers-color-scheme: dark) {
+    body { --s-cut: #ff453a; }
+  }
+
+  .st-msg { color: var(--text-3); font-size: 13px; margin: 18px 0 0; }
+  .stats {
+    display: grid; gap: 16px; margin-top: 24px; align-items: start;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+  .stats[hidden] { display: none; }
+  @media (max-width: 760px) {
+    .stats { grid-template-columns: minmax(0, 1fr); }
+  }
+  .scard {
+    background: var(--card); border: 1px solid var(--line-soft); border-radius: 14px;
+    padding: 14px 16px; min-width: 0;
+  }
+  .scard h2 { font-size: 15px; margin: 0 0 6px; }
+  .scard h3 {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px;
+    font-size: 13px; font-weight: 500; color: var(--text-2); margin: 16px 0 0;
+  }
+  .st-lede { font-size: 14px; color: var(--text); margin: 0 0 4px; }
+  .st-foot { font-size: 12px; color: var(--text-3); margin: 10px 0 0; line-height: 1.45; }
+
+  .tiles { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 4px 0 2px; }
+  .tile { display: flex; flex-direction: column; min-width: 0; }
+  .tile .lb { font-size: 12px; color: var(--text-3); }
+  .tile b { font-size: 28px; font-weight: 600; line-height: 1.15; color: var(--text); }
+  .tile .mini { font-size: 12px; color: var(--text-3); }
+
+  .legend { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .key { width: 10px; height: 10px; border-radius: 3px; }
+  .key { flex: none; width: 10px; height: 2px; border-radius: 1px; background: var(--s-base); }
+  .key.new { background: var(--s-new); }
+  .key.cut { background: var(--s-cut); }
+  .key.none { background: transparent; }
+
+  /* Столбики — обычной вёрсткой, не SVG: ширина подстраивается сама, от
+     телефона до монитора. Слот — вся высота дня, он и есть цель наведения:
+     попасть в столбик в четыре пикселя нельзя. Верхняя линия — отметка шкалы
+     с подписью справа, нижняя — ноль. */
+  .plot {
+    position: relative; display: flex; height: 92px; margin-top: 18px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(var(--line-soft), var(--line-soft)) top / 100% 1px no-repeat;
+  }
+  .plot .ymax {
+    position: absolute; right: 0; top: -2px; transform: translateY(-100%);
+    font-size: 11px; color: var(--text-3); font-variant-numeric: tabular-nums;
+  }
+  .slot {
+    flex: 1; min-width: 0; display: flex; align-items: flex-end; justify-content: center; gap: 2px;
+    border-radius: 4px; outline: none;
+  }
+  .slot:hover, .slot.on, .slot:focus-visible { background: var(--fill); }
+  .slot:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+  .bar { display: block; width: min(14px, 64%); border-radius: 4px 4px 0 0; background: var(--s-base); }
+  .bar.new { background: var(--s-new); width: min(8px, 40%); }
+  .bar.cut { background: var(--s-cut); width: min(8px, 40%); }
+
+  /* Дни недели: подпись значения над лучшими днями — только над ними. */
+  .plot.wk { background: none; margin-top: 8px; }
+  .plot.wk .slot { flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; }
+  .plot.wk .bar { width: min(24px, 60%); }
+  .plot.wk .bar.hot { background: var(--s-new); }
+  .plot .val { font-size: 12px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+  .x-axis { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; font-size: 11px; color: var(--text-3); }
+  .wk-days { display: flex; margin-top: 4px; }
+  .wk-days span { flex: 1; text-align: center; font-size: 12px; color: var(--text-3); }
+  .wk-days span.hot { color: var(--text); font-weight: 600; }
+
+  .tip {
+    position: fixed; z-index: 40; pointer-events: none; max-width: 260px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow-sm);
+    padding: 8px 10px; font-size: 12px; color: var(--text-2);
+  }
+  .tip[hidden] { display: none; }
+  .tip .th { color: var(--text-3); margin-bottom: 3px; }
+  .tip .tr { display: flex; align-items: center; gap: 7px; line-height: 1.6; }
+  .tip .tr b { min-width: 2ch; text-align: right; color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body class="sheet">
@@ -211,6 +302,37 @@
 
     <!-- Сводка по тегам: ради неё классификатор и отдаёт теги, а не текст. -->
     <div class="sum" id="sum" hidden></div>
+
+    <!-- Статистика: в какие дни недели пишут и сколько мэтчей обычно в
+         списке. Считает расширение у себя (src/chat-stats.js) и отдаёт через
+         мост; нет расширения в этом браузере — нет и блока. -->
+    <p class="st-msg" id="stMsg" hidden></p>
+    <div class="stats" id="stats" hidden>
+      <div class="scard">
+        <h2 data-i18n="chats.st.wkTitle">Когда пишут</h2>
+        <p class="st-lede" id="wkTop"></p>
+        <div class="plot wk" id="wkBars"></div>
+        <div class="wk-days" id="wkDays" aria-hidden="true"></div>
+        <p class="st-foot" id="wkNote"></p>
+      </div>
+      <div class="scard">
+        <h2 data-i18n="chats.st.cnTitle">Сколько мэтчей</h2>
+        <div class="tiles">
+          <div class="tile"><span class="lb" data-i18n="chats.st.now">Сейчас</span><b id="cnNow">—</b><span class="mini" id="cnNowSplit"></span></div>
+          <div class="tile"><span class="lb" data-i18n="chats.st.usual">Обычно</span><b id="cnUsual">—</b><span class="mini" id="cnUsualNote"></span></div>
+        </div>
+        <h3 data-i18n="chats.st.listTitle">Мэтчей в списке, по дням</h3>
+        <div class="plot" id="cnList" aria-hidden="true"></div>
+        <h3>
+          <span class="legend"><i class="key new"></i><span data-i18n="chats.st.born">новые мэтчи</span></span>
+          <span class="legend"><i class="key cut"></i><span data-i18n="chats.st.cut">ваши анмэтчи</span></span>
+        </h3>
+        <div class="plot" id="cnFlow"></div>
+        <div class="x-axis" id="cnAxis" aria-hidden="true"></div>
+        <p class="st-lede" id="cnEffect" style="margin-top: 12px"></p>
+        <p class="st-foot" id="cnNote"></p>
+      </div>
+    </div>
 
     <div class="board" id="board" hidden>
       <div class="col yours"><h2><span data-i18n="chats.yours">Ваш ход</span> <b id="nYours"></b></h2><div id="cYours"></div></div>
@@ -247,6 +369,9 @@
     <div class="foot" id="vFoot"></div>
   </div>
 
+  <!-- Подсказка над столбиком статистики: одна на страницу. -->
+  <div class="tip" id="tip" hidden></div>
+
   <!-- Фото анкеты крупно: по нажатию на аватар в шапке переписки. -->
   <div class="shot" id="shot" hidden>
     <button class="nav prev" id="shotPrev" type="button" aria-label="‹">‹</button>
@@ -256,7 +381,7 @@
   </div>
 
 <script type="module">
-import { initI18n, lang, t, whenLangChanges } from './i18n.js?v=21';
+import { initI18n, lang, t, whenLangChanges } from './i18n.js?v=22';
 import { board, silentDays, unmatchedByOf } from './chat-states.js?v=4';
 
 const CONFIG = {
@@ -473,7 +598,9 @@ window.addEventListener('message', (e) => {
     $('sync').hidden = false;
     // Какие переписки продолжились в мессенджерах — доска переложит карточки.
     window.postMessage({ type: 'autoswipe:linked' }, location.origin);
+    askStats();
   }
+  if (msg?.type === 'autoswipe:stats-done') gotStats(msg.stats);
   if (msg?.type === 'autoswipe:linked-done') {
     linkedMap = msg.linked && typeof msg.linked === 'object' ? msg.linked : {};
     if (shown.length) render(shown);
@@ -539,6 +666,9 @@ async function syncNow() {
   } catch {
     // Осталась прежняя доска — и она не хуже пустой.
   }
+
+  // Сверка принесла свежий снимок списка — статистика тоже.
+  askStats();
 }
 
 $('syncNow').addEventListener('click', syncNow);
@@ -880,6 +1010,224 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && viewing) $('vClose').click();
 });
 
+/* ---- статистика ---- */
+
+/**
+ * Статистика из расширения: в какие дни недели пишут и сколько мэтчей обычно
+ * в списке.
+ *
+ * Считает её расширение (src/chat-stats.js): дни, когда она писала, и снимки
+ * списка лежат только у него, как и сами разговоры. Страница просит итог через
+ * мост и рисует. Ответ может прийти раньше словаря — тогда рисуем, когда он
+ * загрузится.
+ */
+let stats = null;
+let statsWait = 0;
+let i18nReady = false;
+
+function askStats() {
+  if (!bridge) return;
+  clearTimeout(statsWait);
+  window.postMessage({ type: 'autoswipe:stats' }, location.origin);
+  // Расширение прежней версии о статистике не знает и молчит.
+  statsWait = setTimeout(() => gotStats({ ok: false }), 8000);
+}
+
+function gotStats(data) {
+  clearTimeout(statsWait);
+  stats = data ?? { ok: false };
+  renderStats();
+}
+
+const el = (tag, cls = '', text = null) => {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text != null) node.textContent = text;
+  return node;
+};
+
+const num = (v) => new Intl.NumberFormat(lang(), { maximumFractionDigits: 1 }).format(v);
+
+/** Имя дня недели: 0 — понедельник. 1 января 2024 года — понедельник. */
+const weekdayName = (i, style = 'short') =>
+  new Intl.DateTimeFormat(lang(), { weekday: style, timeZone: 'UTC' }).format(new Date(Date.UTC(2024, 0, 1 + i, 12)));
+
+/** '2026-10-12' → «12 окт.» на языке страницы; long — «12 октября», для середины фразы. */
+const dayLabel = (key, month = 'short') => {
+  const [y, m, d] = String(key).split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(lang(), { day: 'numeric', month });
+};
+
+/** Сколько дней от и до, включая оба. */
+const daysBetween = (from, to) => {
+  const at = (k) => { const [y, m, d] = k.split('-').map(Number); return Date.UTC(y, m - 1, d); };
+  return Math.round((at(to) - at(from)) / 86400000) + 1;
+};
+
+/** Верх шкалы — круглое число не меньше наибольшего значения. */
+function niceMax(v) {
+  if (!(v > 0)) return 1;
+  const step = 10 ** Math.floor(Math.log10(v));
+  return [1, 2, 2.5, 5, 10].map((k) => k * step).find((n) => n >= v);
+}
+
+/* Подсказка над столбиком: одна на страницу, на наведение и на фокус. На
+   телефоне наведения нет — подсказку открывает касание, закрывает касание мимо. */
+function showTip(anchor, head, rows) {
+  const box = $('tip');
+  box.replaceChildren(
+    el('div', 'th', head),
+    ...rows.map(([key, label, value]) => {
+      const row = el('div', 'tr');
+      row.append(el('i', `key ${key}`));
+      if (value !== '') row.append(el('b', '', value));
+      row.append(el('span', '', label));
+      return row;
+    })
+  );
+  box.hidden = false;
+
+  const r = anchor.getBoundingClientRect();
+  const x = Math.max(8, Math.min(r.left + r.width / 2 - box.offsetWidth / 2, innerWidth - box.offsetWidth - 8));
+  const above = r.top - box.offsetHeight - 8;
+  box.style.left = `${x}px`;
+  box.style.top = `${above >= 8 ? above : r.bottom + 8}px`;
+}
+
+const hideTip = () => { $('tip').hidden = true; };
+
+function tipOn(slot, make, mark = () => {}) {
+  const show = () => { mark(true); showTip(slot, ...make()); };
+  const hide = () => { mark(false); hideTip(); };
+  slot.addEventListener('pointerenter', show);
+  slot.addEventListener('pointerleave', hide);
+  slot.addEventListener('click', show);
+  slot.addEventListener('focus', show);
+  slot.addEventListener('blur', hide);
+}
+
+document.addEventListener('pointerdown', (e) => { if (!e.target.closest?.('.slot')) hideTip(); });
+window.addEventListener('scroll', hideTip, { passive: true });
+
+function renderStats() {
+  if (!i18nReady || !stats) return;
+
+  const ok = !!(stats.ok && stats.weekdays && stats.counts);
+  $('stats').hidden = !ok;
+  // Словами — только сбой самого подсчёта. Молчание — это расширение прежней
+  // версии, без статистики: обновление из магазина приходит не сразу, и
+  // просьба «обновите» висела бы над доской без толку. Тогда блока просто нет.
+  $('stMsg').hidden = ok || !stats.error;
+  if (!ok) {
+    if (stats.error) $('stMsg').textContent = t('chats.st.fail', { why: stats.error });
+    return;
+  }
+
+  renderWeek(stats.weekdays);
+  renderCounts(stats.counts);
+}
+
+/** «Когда пишут»: семь столбиков, лучшие дни — цветом и подписью. */
+function renderWeek(w) {
+  const top = new Set(w.top);
+  $('wkTop').textContent = w.total
+    ? t('chats.st.wkTop', { days: w.top.map((i) => weekdayName(i, 'long')).join(', ') })
+    : t('chats.st.wkNone');
+
+  // С запасом сверху: над лучшими столбиками стоит подпись значения.
+  const scale = Math.max(...w.avg) * 1.3 || 1;
+
+  $('wkBars').replaceChildren(...w.avg.map((v, i) => {
+    const slot = el('div', 'slot');
+    slot.tabIndex = 0;
+    const said = t('chats.st.wkTip', { avg: num(v), n: w.counts[i] });
+    slot.setAttribute('aria-label', `${weekdayName(i, 'long')}: ${said}`);
+
+    if (v > 0) {
+      if (top.has(i)) slot.append(el('span', 'val', num(v)));
+      const bar = el('i', `bar${top.has(i) ? ' hot' : ''}`);
+      bar.style.height = `${(v / scale) * 100}%`;
+      slot.append(bar);
+    }
+    tipOn(slot, () => [weekdayName(i, 'long'), [[top.has(i) ? 'new' : '', said, '']]]);
+    return slot;
+  }));
+
+  $('wkDays').replaceChildren(...w.avg.map((_, i) => el('span', top.has(i) ? 'hot' : '', weekdayName(i))));
+
+  $('wkNote').textContent = w.total
+    ? [t('chats.st.wkNote', { days: daysBetween(w.from, w.to), chats: w.chats }), w.total < 15 ? t('chats.st.wkFew') : '']
+        .filter(Boolean).join(' ')
+    : '';
+}
+
+/**
+ * «Сколько мэтчей»: сейчас и обычно — числами, по дням — двумя графиками с
+ * общей шкалой дат. Число мэтчей в списке (десятки и сотни) и новые мэтчи с
+ * анмэтчами (единицы в день) на одной оси не уживаются — поэтому два графика
+ * друг под другом, и наведение на день подсвечивает его в обоих.
+ */
+function renderCounts(c) {
+  const days = c.series ?? [];
+
+  $('cnNow').textContent = c.now ? num(c.now.total) : '—';
+  $('cnNowSplit').textContent = c.now ? t('chats.st.nowSplit', { chats: num(c.now.chats), fresh: num(c.now.fresh) }) : '';
+  $('cnUsual').textContent = c.usual != null ? num(c.usual) : '—';
+  $('cnUsualNote').textContent = c.max != null ? t('chats.st.usualNote', { max: num(c.max) }) : '';
+
+  const listTop = niceMax(Math.max(0, ...days.map((d) => d.total ?? 0)));
+  const flowTop = niceMax(Math.max(0, ...days.map((d) => Math.max(d.born, d.mine))));
+  const today = days[days.length - 1]?.day;
+
+  const tipOf = (d) => [
+    d.day === today ? `${dayLabel(d.day)} · ${t('chats.today')}` : dayLabel(d.day),
+    [
+      ['', t('chats.st.inList'), d.total == null ? '—' : num(d.total)],
+      ['new', t('chats.st.born'), num(d.born)],
+      ['cut', t('chats.st.cut'), num(d.mine)],
+      ['none', t('chats.st.hers'), num(d.hers)],
+    ],
+  ];
+
+  const bar = (cls, v, top) => {
+    const b = el('i', `bar${cls ? ` ${cls}` : ''}`);
+    b.style.height = `${(v / top) * 100}%`;
+    return b;
+  };
+
+  const list = days.map((d) => {
+    const slot = el('div', 'slot');
+    if (d.total) slot.append(bar('', d.total, listTop));
+    return slot;
+  });
+
+  const flow = days.map((d, i) => {
+    const slot = el('div', 'slot');
+    slot.tabIndex = 0;
+    const [head, rows] = tipOf(d);
+    slot.setAttribute('aria-label', `${head}: ${rows.map(([, label, v]) => `${label} ${v}`).join(', ')}`);
+    if (d.born) slot.append(bar('new', d.born, flowTop));
+    if (d.mine) slot.append(bar('cut', d.mine, flowTop));
+    const mark = (on) => { slot.classList.toggle('on', on); list[i].classList.toggle('on', on); };
+    tipOn(slot, () => tipOf(d), mark);
+    tipOn(list[i], () => tipOf(d), mark);
+    return slot;
+  });
+
+  $('cnList').replaceChildren(el('span', 'ymax', num(listTop)), ...list);
+  $('cnFlow').replaceChildren(el('span', 'ymax', num(flowTop)), ...flow);
+  $('cnAxis').replaceChildren(el('span', '', days.length ? dayLabel(days[0].day) : ''), el('span', '', t('chats.today')));
+
+  const e = c.effect ?? {};
+  $('cnEffect').textContent = !c.since
+    ? ''
+    : e.nAfter >= 3 && e.nOther >= 3
+      ? t('chats.st.effect', { after: num(e.after), other: num(e.other), nAfter: e.nAfter, nOther: e.nOther })
+      : t('chats.st.effectFew', { nAfter: e.nAfter ?? 0, nOther: e.nOther ?? 0 });
+
+  $('cnNote').textContent = c.since ? t('chats.st.since', { date: dayLabel(c.since, 'long') }) : t('chats.st.noCount');
+}
+
 /** Раскладывает доску. */
 function render(chats) {
   const cols = board(chats.map(withContinuation));
@@ -947,9 +1295,12 @@ let shown = [];
 
 whenLangChanges(() => {
   if (shown.length) render(shown);
+  renderStats();
 });
 
 await initI18n();
+i18nReady = true;
+renderStats();
 
 (async () => {
   const token = await freshToken();
