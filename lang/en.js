@@ -293,5 +293,19 @@ export default {
   "chats.st.since": "Counting since {date}. Your unmatches show up when you make them on Tinder in this browser; from before counting started, only matches still in the list are visible.",
   "chats.st.noCount": "The match count appears after the first sync — it runs every 15 minutes, or press the sync button above.",
   "chats.st.old": "Stats will appear once the extension is updated: reload it on chrome://extensions, then refresh this page.",
-  "chats.st.fail": "stats failed — {why}"
+  "chats.st.fail": "stats failed — {why}",
+  "chats.st.genTitle": "Generated messages",
+  "chats.st.genShare": "Generated",
+  "chats.st.genSplit": "{used} of your {total} messages in 30 days",
+  "chats.st.genAi": "as is",
+  "chats.st.genEdit": "edited",
+  "chats.st.genOwn": "your own",
+  "chats.st.genByDay": "Your messages by day",
+  "chats.st.genUse": "Of the suggested options you send {rate}% — {used} of {offered}.",
+  "chats.st.genNote": "Counts messages sent in this browser with the extension on; messages from your phone are not visible. “Edited” means a generated option you changed before sending.",
+  "chats.st.genNone": "Nothing to count yet: marks appear with the first messages sent while the extension is on.",
+  "chats.gen.ai": "generated",
+  "chats.gen.edit": "generated, edited",
+  "chats.gen.own": "written by you",
+  "chats.genChat": "your marked messages: {total}, generated: {n}"
 };

@@ -293,5 +293,19 @@ export default {
   "chats.st.since": "Geteld sinds {date}. Jouw unmatches zijn zichtbaar als je ze in deze browser op Tinder doet; van vóór de telling zie je alleen matches die nog in de lijst staan.",
   "chats.st.noCount": "Het aantal matches verschijnt na de eerste synchronisatie — die loopt elke 15 minuten, of druk hierboven op de synchronisatieknop.",
   "chats.st.old": "De statistieken verschijnen zodra de extensie is bijgewerkt: herlaad haar op chrome://extensions en vernieuw daarna deze pagina.",
-  "chats.st.fail": "statistieken mislukt — {why}"
+  "chats.st.fail": "statistieken mislukt — {why}",
+  "chats.st.genTitle": "Gegenereerde berichten",
+  "chats.st.genShare": "Gegenereerd",
+  "chats.st.genSplit": "{used} van je {total} berichten in 30 dagen",
+  "chats.st.genAi": "ongewijzigd",
+  "chats.st.genEdit": "bewerkt",
+  "chats.st.genOwn": "eigen",
+  "chats.st.genByDay": "Je berichten per dag",
+  "chats.st.genUse": "Van de voorgestelde opties verstuur je {rate}% — {used} van {offered}.",
+  "chats.st.genNote": "Geteld worden berichten die in deze browser met de extensie aan zijn verstuurd; die van je telefoon zijn niet zichtbaar. ‘Bewerkt’: een gegenereerde optie die je vóór het versturen hebt aangepast.",
+  "chats.st.genNone": "Nog niets om te tellen: markeringen verschijnen bij de eerste berichten die met de extensie aan zijn verstuurd.",
+  "chats.gen.ai": "gegenereerd",
+  "chats.gen.edit": "gegenereerd, bewerkt",
+  "chats.gen.own": "zelf geschreven",
+  "chats.genChat": "je gemarkeerde berichten: {total}, gegenereerd: {n}"
 };

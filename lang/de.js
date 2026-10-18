@@ -293,5 +293,19 @@ export default {
   "chats.st.since": "Gezählt wird seit {date}. Deine Unmatches sind sichtbar, wenn du sie in diesem Browser auf Tinder machst; von vor dem Zählbeginn sieht man nur Matches, die noch in der Liste sind.",
   "chats.st.noCount": "Die Zahl der Matches erscheint nach dem ersten Abgleich — er läuft alle 15 Minuten, oder drück oben auf den Abgleich-Button.",
   "chats.st.old": "Die Statistik erscheint nach dem Update der Erweiterung: Lade sie unter chrome://extensions neu und aktualisiere dann diese Seite.",
-  "chats.st.fail": "Statistik fehlgeschlagen — {why}"
+  "chats.st.fail": "Statistik fehlgeschlagen — {why}",
+  "chats.st.genTitle": "Generierte Nachrichten",
+  "chats.st.genShare": "Generiert",
+  "chats.st.genSplit": "{used} von {total} deiner Nachrichten in 30 Tagen",
+  "chats.st.genAi": "unverändert",
+  "chats.st.genEdit": "bearbeitet",
+  "chats.st.genOwn": "eigene",
+  "chats.st.genByDay": "Deine Nachrichten pro Tag",
+  "chats.st.genUse": "Von den vorgeschlagenen Varianten sendest du {rate}% — {used} von {offered}.",
+  "chats.st.genNote": "Gezählt werden Nachrichten, die in diesem Browser mit aktiver Erweiterung gesendet wurden; vom Handy aus ist nichts sichtbar. „Bearbeitet“ heißt: eine generierte Variante, die du vor dem Senden geändert hast.",
+  "chats.st.genNone": "Noch nichts zu zählen: Markierungen erscheinen mit den ersten Nachrichten, die bei aktiver Erweiterung gesendet werden.",
+  "chats.gen.ai": "generiert",
+  "chats.gen.edit": "generiert, bearbeitet",
+  "chats.gen.own": "selbst geschrieben",
+  "chats.genChat": "deine markierten Nachrichten: {total}, davon generiert: {n}"
 };

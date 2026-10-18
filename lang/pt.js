@@ -293,5 +293,19 @@ export default {
   "chats.st.since": "A contar desde {date}. Os teus unmatches aparecem se os fizeres no Tinder neste navegador; de antes do início da contagem só se veem os matches que ainda estão na lista.",
   "chats.st.noCount": "O número de matches aparece depois da primeira sincronização — corre a cada 15 minutos, ou carrega no botão de sincronizar acima.",
   "chats.st.old": "As estatísticas aparecem depois de a extensão ser atualizada: recarrega-a em chrome://extensions e depois atualiza esta página.",
-  "chats.st.fail": "não foi possível calcular as estatísticas — {why}"
+  "chats.st.fail": "não foi possível calcular as estatísticas — {why}",
+  "chats.st.genTitle": "Mensagens geradas",
+  "chats.st.genShare": "Geradas",
+  "chats.st.genSplit": "{used} de {total} mensagens tuas em 30 dias",
+  "chats.st.genAi": "tal como estão",
+  "chats.st.genEdit": "editadas",
+  "chats.st.genOwn": "tuas",
+  "chats.st.genByDay": "As tuas mensagens por dia",
+  "chats.st.genUse": "Das opções sugeridas, envias {rate}% — {used} de {offered}.",
+  "chats.st.genNote": "Contam-se as mensagens enviadas neste navegador com a extensão ativa; as do telemóvel não se veem. «Editadas»: uma opção gerada que alteraste antes de enviar.",
+  "chats.st.genNone": "Ainda não há o que contar: as marcas aparecem com as primeiras mensagens enviadas com a extensão ativa.",
+  "chats.gen.ai": "gerada",
+  "chats.gen.edit": "gerada, editada",
+  "chats.gen.own": "escrita por ti",
+  "chats.genChat": "as tuas mensagens marcadas: {total}, geradas: {n}"
 };

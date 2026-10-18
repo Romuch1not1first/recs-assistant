@@ -293,5 +293,19 @@ export default {
   "chats.st.since": "Comptage depuis le {date}. Vos unmatchs sont visibles si vous les faites sur Tinder dans ce navigateur ; d’avant le début du comptage, seuls les matchs encore dans la liste sont visibles.",
   "chats.st.noCount": "Le nombre de matchs apparaîtra après la première synchronisation — elle a lieu toutes les 15 minutes, ou appuyez sur le bouton de synchronisation ci-dessus.",
   "chats.st.old": "Les statistiques apparaîtront après la mise à jour de l’extension : rechargez-la sur chrome://extensions, puis actualisez cette page.",
-  "chats.st.fail": "statistiques indisponibles — {why}"
+  "chats.st.fail": "statistiques indisponibles — {why}",
+  "chats.st.genTitle": "Messages générés",
+  "chats.st.genShare": "Générés",
+  "chats.st.genSplit": "{used} sur vos {total} messages en 30 jours",
+  "chats.st.genAi": "tels quels",
+  "chats.st.genEdit": "modifiés",
+  "chats.st.genOwn": "les vôtres",
+  "chats.st.genByDay": "Vos messages par jour",
+  "chats.st.genUse": "Parmi les propositions, vous en envoyez {rate} % — {used} sur {offered}.",
+  "chats.st.genNote": "Sont comptés les messages envoyés depuis ce navigateur avec l’extension active ; ceux du téléphone ne sont pas visibles. « Modifiés » : une proposition générée que vous avez changée avant l’envoi.",
+  "chats.st.genNone": "Rien à compter pour l’instant : les marques apparaîtront avec les premiers messages envoyés avec l’extension active.",
+  "chats.gen.ai": "généré",
+  "chats.gen.edit": "généré, modifié",
+  "chats.gen.own": "écrit par vous",
+  "chats.genChat": "vos messages marqués : {total}, dont générés : {n}"
 };

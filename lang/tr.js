@@ -293,5 +293,19 @@ export default {
   "chats.st.since": "{date} tarihinden beri sayılıyor. Kaldırdığın eşleşmeler, bunu bu tarayıcıda Tinder’da yaptığında görünür; sayımdan öncesinden yalnızca hâlâ listede olan eşleşmeler görünür.",
   "chats.st.noCount": "Eşleşme sayısı ilk eşitlemeden sonra görünür — her 15 dakikada bir çalışır ya da yukarıdaki eşitleme düğmesine bas.",
   "chats.st.old": "İstatistikler eklenti güncellendikten sonra görünür: chrome://extensions sayfasında eklentiyi yeniden yükle, ardından bu sayfayı yenile.",
-  "chats.st.fail": "istatistik hesaplanamadı — {why}"
+  "chats.st.fail": "istatistik hesaplanamadı — {why}",
+  "chats.st.genTitle": "Üretilen mesajlar",
+  "chats.st.genShare": "Üretilmiş",
+  "chats.st.genSplit": "30 günde {total} mesajından {used} tanesi",
+  "chats.st.genAi": "olduğu gibi",
+  "chats.st.genEdit": "düzenlenmiş",
+  "chats.st.genOwn": "kendi yazdıkların",
+  "chats.st.genByDay": "Günlere göre mesajların",
+  "chats.st.genUse": "Önerilen seçeneklerin %{rate} kadarını gönderiyorsun — {offered} seçenekten {used} tanesi.",
+  "chats.st.genNote": "Bu tarayıcıda eklenti açıkken gönderilen mesajlar sayılır; telefondan gönderilenler görünmez. “Düzenlenmiş”: göndermeden önce değiştirdiğin üretilmiş bir seçenek.",
+  "chats.st.genNone": "Henüz sayacak bir şey yok: işaretler, eklenti açıkken gönderilen ilk mesajlarla görünür.",
+  "chats.gen.ai": "üretildi",
+  "chats.gen.edit": "üretildi, düzenlendi",
+  "chats.gen.own": "kendin yazdın",
+  "chats.genChat": "işaretli mesajların: {total}, üretilmiş: {n}"
 };

@@ -293,5 +293,19 @@ export default {
   "chats.st.since": "Liczymy od {date}. Twoje unmatche widać, jeśli robisz je na Tinderze w tej przeglądarce; sprzed początku liczenia widać tylko matche, które wciąż są na liście.",
   "chats.st.noCount": "Liczba matchy pojawi się po pierwszej synchronizacji — odbywa się co 15 minut, albo naciśnij przycisk synchronizacji powyżej.",
   "chats.st.old": "Statystyki pojawią się po aktualizacji rozszerzenia: przeładuj je na stronie chrome://extensions, a potem odśwież tę stronę.",
-  "chats.st.fail": "nie udało się policzyć statystyk — {why}"
+  "chats.st.fail": "nie udało się policzyć statystyk — {why}",
+  "chats.st.genTitle": "Wygenerowane wiadomości",
+  "chats.st.genShare": "Wygenerowane",
+  "chats.st.genSplit": "{used} z {total} twoich wiadomości w 30 dni",
+  "chats.st.genAi": "bez zmian",
+  "chats.st.genEdit": "z poprawkami",
+  "chats.st.genOwn": "własne",
+  "chats.st.genByDay": "Twoje wiadomości dzień po dniu",
+  "chats.st.genUse": "Z proponowanych wariantów wysyłasz {rate}% — {used} z {offered}.",
+  "chats.st.genNote": "Liczone są wiadomości wysłane w tej przeglądarce z włączonym rozszerzeniem; tych z telefonu nie widać. „Z poprawkami” to wygenerowany wariant, który zmieniłeś przed wysłaniem.",
+  "chats.st.genNone": "Na razie nie ma czego liczyć: oznaczenia pojawią się przy pierwszych wiadomościach wysłanych z włączonym rozszerzeniem.",
+  "chats.gen.ai": "wygenerowane",
+  "chats.gen.edit": "wygenerowane, z poprawkami",
+  "chats.gen.own": "napisane samodzielnie",
+  "chats.genChat": "twoje oznaczone wiadomości: {total}, wygenerowane: {n}"
 };

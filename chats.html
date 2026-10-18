@@ -163,6 +163,15 @@
   }
   .view .m.me { align-self: flex-end; background: #0a84ff; color: #fff; }
   .view .m.her { align-self: flex-start; background: var(--card); border: 1px solid var(--line-soft); color: var(--text); }
+  /* Чьи слова: под его сообщением — сгенерировано, с правкой или своё. */
+  .view .gen {
+    align-self: flex-end; display: inline-flex; align-items: center; gap: 5px;
+    margin: -3px 4px 2px; font-size: 11px; color: var(--text-3);
+  }
+  .view .gen::before { content: ''; width: 8px; height: 8px; border-radius: 2px; background: var(--s-base); }
+  .view .gen.ai::before { background: var(--s-new); }
+  .view .gen.edit::before { background: var(--s-edit); }
+  .view .gen.ai, .view .gen.edit { color: var(--text-2); }
   /* Разговор переехал на другую площадку: полоса поперёк ленты. */
   .view .switch {
     align-self: stretch; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 10px;
@@ -200,6 +209,9 @@
     --s-new: var(--accent);
     --s-cut: #e0352b;
     --s-base: color-mix(in srgb, var(--text-3) 40%, var(--card));
+    /* Сгенерированное с правкой — оранжевый: рядом с синим «как есть»
+       различим и при дальтонизме, и в обеих темах. */
+    --s-edit: #d97706;
   }
   @media (prefers-color-scheme: dark) {
     body { --s-cut: #ff453a; }
@@ -209,11 +221,30 @@
   .stats {
     display: grid; gap: 16px; margin-top: 24px; align-items: start;
     grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    grid-template-areas: "wk cn" "gen cn";
   }
   .stats[hidden] { display: none; }
+  .stats .wk-card { grid-area: wk; }
+  .stats .cn-card { grid-area: cn; }
+  .stats .gen-card { grid-area: gen; }
+  .stats .gen-card[hidden] { display: none; }
   @media (max-width: 760px) {
-    .stats { grid-template-columns: minmax(0, 1fr); }
+    .stats { grid-template-columns: minmax(0, 1fr); grid-template-areas: "wk" "gen" "cn"; }
   }
+
+  /* Доля сгенерированного: одна полоса из трёх частей с зазором между ними. */
+  .split { display: flex; gap: 2px; height: 10px; margin: 12px 0 8px; border-radius: 4px; overflow: hidden; }
+  .split .seg { display: block; min-width: 2px; background: var(--s-base); }
+  .split .seg.ai, .key.ai, .bar.ai { background: var(--s-new); }
+  .split .seg.edit, .key.edit, .bar.edit { background: var(--s-edit); }
+  .split-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--text-2); }
+  .split-legend .legend b { color: var(--text); font-weight: 600; }
+  .split-legend .legend .pct { color: var(--text-3); }
+
+  /* Столбик дня из трёх частей: снизу «как есть», выше «с правкой», сверху свои. */
+  .stack { display: flex; flex-direction: column-reverse; gap: 2px; width: min(14px, 64%); }
+  .stack .bar { width: 100%; border-radius: 0; }
+  .stack .bar:last-child { border-radius: 4px 4px 0 0; }
   .scard {
     background: var(--card); border: 1px solid var(--line-soft); border-radius: 14px;
     padding: 14px 16px; min-width: 0;
@@ -308,14 +339,27 @@
          мост; нет расширения в этом браузере — нет и блока. -->
     <p class="st-msg" id="stMsg" hidden></p>
     <div class="stats" id="stats" hidden>
-      <div class="scard">
+      <div class="scard wk-card">
         <h2 data-i18n="chats.st.wkTitle">Когда пишут</h2>
         <p class="st-lede" id="wkTop"></p>
         <div class="plot wk" id="wkBars"></div>
         <div class="wk-days" id="wkDays" aria-hidden="true"></div>
         <p class="st-foot" id="wkNote"></p>
       </div>
-      <div class="scard">
+      <div class="scard gen-card" id="genCard" hidden>
+        <h2 data-i18n="chats.st.genTitle">Сгенерированные сообщения</h2>
+        <div class="tiles">
+          <div class="tile"><span class="lb" data-i18n="chats.st.genShare">С генерации</span><b id="gnShare">—</b><span class="mini" id="gnSplit"></span></div>
+        </div>
+        <div class="split" id="gnBar" aria-hidden="true"></div>
+        <div class="split-legend" id="gnLegend"></div>
+        <h3 data-i18n="chats.st.genByDay">Ваши сообщения по дням</h3>
+        <div class="plot" id="gnDays"></div>
+        <div class="x-axis" id="gnAxis" aria-hidden="true"></div>
+        <p class="st-lede" id="gnUse" style="margin-top: 12px"></p>
+        <p class="st-foot" id="gnNote"></p>
+      </div>
+      <div class="scard cn-card">
         <h2 data-i18n="chats.st.cnTitle">Сколько мэтчей</h2>
         <div class="tiles">
           <div class="tile"><span class="lb" data-i18n="chats.st.now">Сейчас</span><b id="cnNow">—</b><span class="mini" id="cnNowSplit"></span></div>
@@ -381,7 +425,7 @@
   </div>
 
 <script type="module">
-import { initI18n, lang, t, whenLangChanges } from './i18n.js?v=23';
+import { initI18n, lang, t, whenLangChanges } from './i18n.js?v=24';
 import { board, silentDays, unmatchedByOf } from './chat-states.js?v=4';
 
 const CONFIG = {
@@ -773,7 +817,13 @@ async function openView(chat) {
     const m = document.createElement('div');
     m.className = `m ${said?.mine ? 'me' : 'her'}`;
     m.textContent = String(said?.text ?? '');
-    return m;
+    // Чьи слова — пометкой под пузырём. Её нет у сообщений, отправленных до
+    // учёта или не из этого браузера: о них сказать нечего.
+    const kind = said?.mine ? GEN_KEY[said.gen] : null;
+    if (!kind) return m;
+    const box = document.createDocumentFragment();
+    box.append(m, el('div', `gen ${said.gen}`, t(kind)));
+    return box;
   };
   for (const said of rows) inner.append(bubble(said));
 
@@ -788,11 +838,24 @@ async function openView(chat) {
 
   const total = rows.length + continued.reduce((n, p) => n + p.rows.length, 0);
   $('vFoot').textContent = total
-    ? t('chats.rows', { n: total })
+    ? footOf(rows, continued)
     : t(bridge ? 'chats.noLog' : 'chats.noBridge');
 
   const msgs = $('vMsgs');
   msgs.scrollTop = msgs.scrollHeight;
+}
+
+/** Подписи пометок «чьи слова» у его сообщений. */
+const GEN_KEY = { ai: 'chats.gen.ai', edit: 'chats.gen.edit', own: 'chats.gen.own' };
+
+/** Подвал переписки: сколько сообщений и сколько его отмеченных — с генерации. */
+function footOf(rows, continued) {
+  const all = [...rows, ...continued.flatMap((p) => p.rows)];
+  const marked = all.filter((r) => r?.mine && GEN_KEY[r.gen]);
+  const made = marked.filter((r) => r.gen !== 'own').length;
+  const parts = [t('chats.rows', { n: all.length })];
+  if (marked.length) parts.push(t('chats.genChat', { total: marked.length, n: made }));
+  return parts.join(' · ');
 }
 
 /** Полоса-разделитель: где разговор переехал на другую площадку. */
@@ -922,7 +985,7 @@ async function shareChat() {
     $('vShareBar').hidden = false;
     // Подвал мог остаться от прошлой попытки («ссылка удалена», ошибка).
     const { rows, continued } = sharing;
-    $('vFoot').textContent = t('chats.rows', { n: rows.length + continued.reduce((n, p) => n + p.rows.length, 0) });
+    $('vFoot').textContent = footOf(rows, continued);
     const copied = await navigator.clipboard?.writeText(shareLink.url).then(() => true, () => false);
     label.textContent = t(copied ? 'chats.shareCopied' : 'chats.share');
     // На телефоне — системное «Поделиться»: так ссылку сразу шлют в мессенджер.
@@ -1127,6 +1190,70 @@ function renderStats() {
 
   renderWeek(stats.weekdays);
   renderCounts(stats.counts);
+  // Расширение до учёта сгенерированного этой части не присылает.
+  $('genCard').hidden = !stats.gen;
+  if (stats.gen) renderGen(stats.gen);
+}
+
+/**
+ * «Сгенерированные сообщения»: какая доля ваших сообщений пришла из
+ * подсказок, как есть / с правкой / свои, по дням — и сколько из
+ * предложенных вариантов вы отправляете.
+ */
+function renderGen(g) {
+  const kinds = [['ai', 'chats.st.genAi'], ['edit', 'chats.st.genEdit'], ['own', 'chats.st.genOwn']];
+
+  $('gnShare').textContent = g.share != null ? `${g.share}%` : '—';
+  $('gnSplit').textContent = g.total ? t('chats.st.genSplit', { used: num(g.used), total: num(g.total) }) : '';
+
+  $('gnBar').hidden = !g.total;
+  $('gnBar').replaceChildren(...kinds.filter(([k]) => g[k]).map(([k]) => {
+    const seg = el('i', `seg ${k}`);
+    seg.style.flexGrow = String(g[k]);
+    return seg;
+  }));
+
+  $('gnLegend').replaceChildren(...(g.total ? kinds : []).map(([k, label]) => {
+    const item = el('span', 'legend');
+    item.append(el('i', `key ${k}`), el('span', '', t(label)), el('b', '', num(g[k])),
+      el('span', 'pct', `${Math.round((g[k] / g.total) * 100)}%`));
+    return item;
+  }));
+
+  const days = g.series ?? [];
+  const top = niceMax(Math.max(0, ...days.map((d) => d.ai + d.edit + d.own)));
+  const today = days[days.length - 1]?.day;
+  const tipOf = (d) => [
+    d.day === today ? `${dayLabel(d.day)} · ${t('chats.today')}` : dayLabel(d.day),
+    kinds.map(([k, label]) => [k === 'own' ? '' : k, t(label), num(d[k])]),
+  ];
+
+  $('gnDays').replaceChildren(el('span', 'ymax', num(top)), ...days.map((d) => {
+    const slot = el('div', 'slot');
+    slot.tabIndex = 0;
+    const [head, rows] = tipOf(d);
+    slot.setAttribute('aria-label', `${head}: ${rows.map(([, label, v]) => `${label} ${v}`).join(', ')}`);
+    const sum = d.ai + d.edit + d.own;
+    if (sum) {
+      const stack = el('span', 'stack');
+      stack.style.height = `${(sum / top) * 100}%`;
+      for (const [k] of kinds) {
+        if (!d[k]) continue;
+        const part = el('i', `bar ${k}`);
+        part.style.flex = `${d[k]} 1 0`;
+        stack.append(part);
+      }
+      slot.append(stack);
+    }
+    tipOn(slot, () => tipOf(d), (on) => slot.classList.toggle('on', on));
+    return slot;
+  }));
+  $('gnAxis').replaceChildren(el('span', '', days.length ? dayLabel(days[0].day) : ''), el('span', '', t('chats.today')));
+
+  $('gnUse').textContent = g.offered && g.useRate != null
+    ? t('chats.st.genUse', { rate: g.useRate, used: num(g.used), offered: num(g.offered) })
+    : '';
+  $('gnNote').textContent = g.total ? t('chats.st.genNote') : t('chats.st.genNone');
 }
 
 /** «Когда пишут»: семь столбиков, лучшие дни — цветом и подписью. */
