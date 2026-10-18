@@ -292,5 +292,6 @@ export default {
   "chats.st.effectFew": "To see whether more new matches come after unmatching, it takes at least 3 days with unmatches and 3 without. So far: {nAfter} and {nOther}.",
   "chats.st.since": "Counting since {date}. Your unmatches show up when you make them on Tinder in this browser; from before counting started, only matches still in the list are visible.",
   "chats.st.noCount": "The match count appears after the first sync — it runs every 15 minutes, or press the sync button above.",
+  "chats.st.old": "Stats will appear once the extension is updated: reload it on chrome://extensions, then refresh this page.",
   "chats.st.fail": "stats failed — {why}"
 };

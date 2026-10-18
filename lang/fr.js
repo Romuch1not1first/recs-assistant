@@ -292,5 +292,6 @@ export default {
   "chats.st.effectFew": "Pour voir si davantage de matchs arrivent après des unmatchs, il faut au moins 3 jours avec unmatchs et 3 sans. Pour l’instant : {nAfter} et {nOther}.",
   "chats.st.since": "Comptage depuis le {date}. Vos unmatchs sont visibles si vous les faites sur Tinder dans ce navigateur ; d’avant le début du comptage, seuls les matchs encore dans la liste sont visibles.",
   "chats.st.noCount": "Le nombre de matchs apparaîtra après la première synchronisation — elle a lieu toutes les 15 minutes, ou appuyez sur le bouton de synchronisation ci-dessus.",
+  "chats.st.old": "Les statistiques apparaîtront après la mise à jour de l’extension : rechargez-la sur chrome://extensions, puis actualisez cette page.",
   "chats.st.fail": "statistiques indisponibles — {why}"
 };

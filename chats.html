@@ -381,7 +381,7 @@
   </div>
 
 <script type="module">
-import { initI18n, lang, t, whenLangChanges } from './i18n.js?v=22';
+import { initI18n, lang, t, whenLangChanges } from './i18n.js?v=23';
 import { board, silentDays, unmatchedByOf } from './chat-states.js?v=4';
 
 const CONFIG = {
@@ -1030,12 +1030,14 @@ function askStats() {
   clearTimeout(statsWait);
   window.postMessage({ type: 'autoswipe:stats' }, location.origin);
   // Расширение прежней версии о статистике не знает и молчит.
-  statsWait = setTimeout(() => gotStats({ ok: false }), 8000);
+  statsWait = setTimeout(() => gotStats({ ok: false, silent: true }), 8000);
 }
 
 function gotStats(data) {
   clearTimeout(statsWait);
-  stats = data ?? { ok: false };
+  // null — мост есть, а фон не ответил: расширение перезагрузили, и мост в
+  // этой вкладке остался от прежнего. Для человека это то же «старое».
+  stats = data ?? { ok: false, silent: true };
   renderStats();
 }
 
@@ -1114,12 +1116,12 @@ function renderStats() {
 
   const ok = !!(stats.ok && stats.weekdays && stats.counts);
   $('stats').hidden = !ok;
-  // Словами — только сбой самого подсчёта. Молчание — это расширение прежней
-  // версии, без статистики: обновление из магазина приходит не сразу, и
-  // просьба «обновите» висела бы над доской без толку. Тогда блока просто нет.
-  $('stMsg').hidden = ok || !stats.error;
+  $('stMsg').hidden = ok;
   if (!ok) {
-    if (stats.error) $('stMsg').textContent = t('chats.st.fail', { why: stats.error });
+    // Молчание — расширение прежней версии или перезагруженное без
+    // обновления вкладки. Раньше блок тогда просто прятался, и понять, почему
+    // статистики нет, было не из чего: файлы обновлены, а Chrome держит старое.
+    $('stMsg').textContent = stats.error ? t('chats.st.fail', { why: stats.error }) : t('chats.st.old');
     return;
   }
 
@@ -1175,14 +1177,16 @@ function renderCounts(c) {
   $('cnUsual').textContent = c.usual != null ? num(c.usual) : '—';
   $('cnUsualNote').textContent = c.max != null ? t('chats.st.usualNote', { max: num(c.max) }) : '';
 
-  const listTop = niceMax(Math.max(0, ...days.map((d) => d.total ?? 0)));
+  // За день — наибольший снимок: недоотданный Tinder список число только занижает.
+  const inList = (d) => d.hi ?? d.total;
+  const listTop = niceMax(Math.max(0, ...days.map((d) => inList(d) ?? 0)));
   const flowTop = niceMax(Math.max(0, ...days.map((d) => Math.max(d.born, d.mine))));
   const today = days[days.length - 1]?.day;
 
   const tipOf = (d) => [
     d.day === today ? `${dayLabel(d.day)} · ${t('chats.today')}` : dayLabel(d.day),
     [
-      ['', t('chats.st.inList'), d.total == null ? '—' : num(d.total)],
+      ['', t('chats.st.inList'), inList(d) == null ? '—' : num(inList(d))],
       ['new', t('chats.st.born'), num(d.born)],
       ['cut', t('chats.st.cut'), num(d.mine)],
       ['none', t('chats.st.hers'), num(d.hers)],
@@ -1197,7 +1201,7 @@ function renderCounts(c) {
 
   const list = days.map((d) => {
     const slot = el('div', 'slot');
-    if (d.total) slot.append(bar('', d.total, listTop));
+    if (inList(d)) slot.append(bar('', inList(d), listTop));
     return slot;
   });
 

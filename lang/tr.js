@@ -292,5 +292,6 @@ export default {
   "chats.st.effectFew": "Eşleşme kaldırdıktan sonra daha çok yeni eşleşme gelip gelmediğini görmek için en az 3 kaldırmalı ve 3 kaldırmasız gün gerekir. Şimdilik: {nAfter} ve {nOther}.",
   "chats.st.since": "{date} tarihinden beri sayılıyor. Kaldırdığın eşleşmeler, bunu bu tarayıcıda Tinder’da yaptığında görünür; sayımdan öncesinden yalnızca hâlâ listede olan eşleşmeler görünür.",
   "chats.st.noCount": "Eşleşme sayısı ilk eşitlemeden sonra görünür — her 15 dakikada bir çalışır ya da yukarıdaki eşitleme düğmesine bas.",
+  "chats.st.old": "İstatistikler eklenti güncellendikten sonra görünür: chrome://extensions sayfasında eklentiyi yeniden yükle, ardından bu sayfayı yenile.",
   "chats.st.fail": "istatistik hesaplanamadı — {why}"
 };

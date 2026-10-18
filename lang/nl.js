@@ -292,5 +292,6 @@ export default {
   "chats.st.effectFew": "Om te zien of er na unmatches meer nieuwe matches komen, zijn minstens 3 dagen met en 3 zonder unmatches nodig. Tot nu toe: {nAfter} en {nOther}.",
   "chats.st.since": "Geteld sinds {date}. Jouw unmatches zijn zichtbaar als je ze in deze browser op Tinder doet; van vóór de telling zie je alleen matches die nog in de lijst staan.",
   "chats.st.noCount": "Het aantal matches verschijnt na de eerste synchronisatie — die loopt elke 15 minuten, of druk hierboven op de synchronisatieknop.",
+  "chats.st.old": "De statistieken verschijnen zodra de extensie is bijgewerkt: herlaad haar op chrome://extensions en vernieuw daarna deze pagina.",
   "chats.st.fail": "statistieken mislukt — {why}"
 };
