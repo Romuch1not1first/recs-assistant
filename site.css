@@ -380,6 +380,10 @@ section.soft .card { box-shadow: none; border-color: var(--line-soft); }
 .plan .per { color: var(--text-3); font-size: 15px; margin-bottom: 22px; }
 .plan .btn { margin-top: auto; }
 .plan .save { color: var(--ok); font-size: 14px; font-weight: 500; margin-top: 12px; min-height: 20px; }
+/* Лимиты тарифа — в карточке, над кнопкой: за них и платят. */
+.plan .limits { list-style: none; padding: 0; margin: -10px 0 22px; color: var(--text-2); font-size: 15px; line-height: 1.7; }
+.plan .limits li::before { content: '✓\00a0'; color: var(--ok); font-weight: 600; }
+.addons-line { margin: 22px auto 0; max-width: 560px; color: var(--text-2); font-size: 15px; }
 .plan .ribbon {
   align-self: center; margin-bottom: 10px;
   padding: 4px 12px; border-radius: var(--pill);

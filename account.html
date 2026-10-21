@@ -101,6 +101,43 @@
   }
   .danger-row button:hover { color: var(--text-2); }
   .danger-row.armed button { color: var(--err); }
+
+  /* Pro / Max — переключатель над сроками: что покупаем, решают раньше, чем
+     «на сколько». Под ним — лимиты выбранного: за них и платят. */
+  .tiers {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+    padding: 4px; margin: 14px 0 6px;
+    background: var(--fill); border-radius: var(--pill);
+  }
+  .tiers button {
+    border: 0; border-radius: var(--pill); padding: 9px 0;
+    background: none; color: var(--text-2); font: inherit; font-weight: 600; cursor: pointer;
+  }
+  .tiers button.on { background: var(--card); color: var(--text); box-shadow: var(--shadow-sm); }
+  .tier-what { margin: 6px 0 4px; }
+
+  /* Мессенджеры: три надстройки карточками. Покупка — двумя кнопками срока,
+     затем двумя способами, в той же карточке: уходить на другой экран ради
+     надстройки за $9.99 незачем. */
+  #messengers { margin-top: 30px; scroll-margin-top: 80px; }
+  .addon {
+    border: 1px solid var(--line-soft); border-radius: var(--radius);
+    padding: 14px 16px; margin-top: 12px;
+  }
+  .addon-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .addon-head b { font-size: 17px; }
+  .addon-state { color: var(--text-3); font-size: 14px; text-align: right; }
+  .addon-state.ok { color: var(--ok); }
+  .addon-what { color: var(--text-2); font-size: 14px; margin-top: 4px; }
+  .addon-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .addon-row .btn { margin-top: 0; padding-left: 10px; padding-right: 10px; font-size: 15px; }
+  .addon-row[hidden] { display: none; }
+  .addon-cancel {
+    background: none; border: 0; padding: 4px 0 0; margin-top: 6px;
+    color: var(--text-3); font: inherit; font-size: 14px; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .addon-cancel.armed { color: var(--err); }
 </style>
 </head>
 <body class="sheet">
@@ -167,6 +204,10 @@
       <div class="line"><span data-i18n="account.rowAccount">Аккаунт</span><b id="who">—</b></div>
       <div class="line"><span data-i18n="account.rowStatus">Состояние</span><b id="status">—</b></div>
       <div class="line" id="untilLine" hidden><span data-i18n="account.rowUntil">Оплачена до</span><b id="until">—</b></div>
+      <!-- Остаток лимитов: анализы — на неделю, сообщения — на два дня. Считает
+           сервер (функция plan), здесь ничего не тратится. -->
+      <div class="line" id="useAnalysesLine" hidden><span data-i18n="account.rowAnalyses">Анализов за неделю</span><b id="useAnalyses">—</b></div>
+      <div class="line" id="useMessagesLine" hidden><span data-i18n="account.rowMessages">Сообщений за 2 дня</span><b id="useMessages">—</b></div>
 
       <!-- Подписка уже есть: показывать кнопки покупки незачем, и для карты это
            прямо опасно — вторая оплата завела бы на lava.top второе списание
@@ -191,6 +232,11 @@
              одновременно, а решают всё-таки сначала «на сколько», потом «чем». -->
         <div class="swap" id="planSwap">
           <div class="face on" id="faceTerms">
+            <div class="tiers" role="tablist">
+              <button type="button" id="tierPro" role="tab">Pro</button>
+              <button type="button" id="tierMax" role="tab">Max</button>
+            </div>
+            <p class="tiny center tier-what" id="tierWhat"></p>
             <button class="btn block" id="planMonthly"></button>
             <button class="btn block" id="planYearly"></button>
             <div class="save" id="planSave" hidden></div>
@@ -213,6 +259,13 @@
           Криптовалютой — разовый платёж без автосписания: срок продлеваете
           сами, новый период прибавляется к оплаченному.
         </p>
+      </div>
+
+      <!-- Надстройки мессенджеров. Ссылки из расширения ведут сюда (#messengers). -->
+      <div id="messengers">
+        <h2 class="title-sm center" style="margin:0 0 4px" data-i18n="account.addonsTitle">Мессенджеры</h2>
+        <p class="tiny center" style="margin:0" id="addonsHint"></p>
+        <div id="addonCards"></div>
       </div>
 
       <!-- Дашборд переписок. Отдельной страницей, а не здесь: доска из пяти
@@ -252,8 +305,8 @@
 // приемлемым. Файл кладёт рядом `npm run sync-site`.
 import { scorePassword } from './password.js';
 import { mailProvider } from './mail-providers.js';
-import { planById, priceLabel, yearlySavings } from './plans.js';
-import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=21';
+import { ADDONS, LIMITS, freeMonths, planById, planFor, priceLabel } from './plans.js';
+import { initI18n, t, lang, whenLangChanges } from './i18n.js?v=26';
 
 /**
  * Страница подписки.
@@ -449,7 +502,28 @@ let cancelArmed = false;
  */
 let lavaActive = 0;
 
-/** Отменяла ли lava.top автопродление. Ошибку опроса считаем «всё ещё живо». */
+/** Живо ли автопродление у каждой надстройки (тот же опрос lava.top). */
+let lavaAddons = {};
+
+/** Pro или Max — что выбрано в переключателе над сроками. */
+let tierPick = 'pro';
+
+/** Сводка сервера (функция plan): тариф, остаток лимитов, живые надстройки. */
+let week = null;
+
+/** Строки надстроек этого человека (RLS отдаёт только свои). */
+let addonRows = [];
+
+/** Надстройка, у которой открыт выбор способа оплаты: имя тарифа или null. */
+let addonOpen = null;
+
+/** Надстройка, отмену которой ждут вторым нажатием. */
+let addonCancelArmed = null;
+
+/**
+ * Отменяла ли lava.top автопродление: основной подписки (`active`) и
+ * надстроек (`addons`). Ошибку опроса считаем «всё ещё живо».
+ */
 async function probeLava(token) {
   try {
     const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/lava-cancel`, {
@@ -461,14 +535,22 @@ async function probeLava(token) {
       },
       body: JSON.stringify({ probe: true }),
     });
-    if (!res.ok) return 1;
-    return Number((await res.json())?.active ?? 1);
+    if (!res.ok) return { active: 1, addons: {} };
+    const data = await res.json();
+    return { active: Number(data?.active ?? 1), addons: data?.addons ?? {} };
   } catch {
     // Не дозвонились — обещать «автопродления нет» опаснее, чем промолчать:
     // человек решил бы, что можно не отменять, и получил бы списание.
-    return 1;
+    return { active: 1, addons: {} };
   }
 }
+
+/** Жива ли надстройка: статус и срок — то же правило, что у подписки. */
+const addonLive = (name) => addonRows.some((r) => r.addon === name && isPro(r));
+const addonRow = (name) => addonRows.find((r) => r.addon === name) ?? null;
+
+/** Тариф, купленный до надстроек ($20 / $199): мессенджеры в нём уже есть. */
+const legacyPlan = (row) => ['monthly', 'yearly', 'paid'].includes(String(row?.plan ?? ''));
 
 async function loadPlan() {
   const token = await freshToken();
@@ -481,16 +563,26 @@ async function loadPlan() {
     // оплачено — `lava:` продлевается само, `nowpayments:` нет. От этого зависит,
     // предлагать ли продление вообще.
     const rows = await api(
-      '/rest/v1/subscriptions?select=status,current_period_end,paddle_subscription_id&limit=1',
+      '/rest/v1/subscriptions?select=status,plan,current_period_end,paddle_subscription_id&limit=1',
       { token }
     );
     row = rows?.[0] ?? null;
 
+    // Надстройки — своей таблицей. Её может ещё не быть (сайт выложен раньше
+    // базы) — тогда надстроек просто нет, кабинет от этого не ломается.
+    addonRows = await api(
+      '/rest/v1/subscription_addons?select=addon,status,plan,current_period_end,payment_id',
+      { token }
+    ).catch(() => []);
+    if (!Array.isArray(addonRows)) addonRows = [];
+
     // Аккаунт разработчика в таблице ничем не отмечен — его знает только
     // сервер. Спрашиваем его: иначе владелец видел здесь «Free Plan» с
-    // истёкшей датой. Сервер промолчал — верим таблице.
+    // истёкшей датой. Сервер промолчал — верим таблице. Заодно — остаток
+    // лимитов: его тоже знает только сервер.
     const plan = await api('/functions/v1/plan', { token, method: 'POST' }).catch(() => null);
-    if (plan?.owner) row = { status: 'active', current_period_end: null, paddle_subscription_id: 'owner' };
+    week = plan?.week ?? null;
+    if (plan?.owner) row = { status: 'active', plan: 'owner', current_period_end: null, paddle_subscription_id: 'owner' };
   } catch (e) {
     // Токен протух — просим войти заново, а не показываем непонятную ошибку.
     if (String(e.message).includes('401')) {
@@ -508,8 +600,13 @@ async function loadPlan() {
   // обещанием автосписания и тут же его забрать. Только для карты и только при
   // живой подписке — остальным спрашивать нечего.
   lavaActive = 0;
-  if (isPro(row) && String(row?.paddle_subscription_id ?? '').startsWith('lava:')) {
-    lavaActive = await probeLava(token);
+  lavaAddons = {};
+  const cardBase = isPro(row) && String(row?.paddle_subscription_id ?? '').startsWith('lava:');
+  const cardAddon = addonRows.some((r) => isPro(r) && String(r.payment_id ?? '').startsWith('lava:'));
+  if (cardBase || cardAddon) {
+    const probe = await probeLava(token);
+    lavaActive = cardBase ? probe.active : 0;
+    lavaAddons = probe.addons;
   }
 
   show(saved, row);
@@ -525,6 +622,10 @@ function show(next, nextSub) {
   cancelArmed = false;
   deleteArmed = false;
   openPlan = null;
+  addonOpen = null;
+  addonCancelArmed = null;
+  // Сначала в переключателе — купленный тариф: его и продлевают.
+  tierPick = String(sub?.plan ?? '').startsWith('max') ? 'max' : 'pro';
   paint();
 
   // Пришли с витрины с выбранным тарифом — открываем счёт сразу.
@@ -545,7 +646,10 @@ function paint() {
   // несколько дней он закроется; молчать об этом значит готовить сюрприз.
   const pro = isPro(sub);
   const owner = sub?.paddle_subscription_id === 'owner';
-  $('status').textContent = t(owner ? 'account.planOwner' : pro ? 'account.planPro' : 'account.planFree');
+  const max = String(sub?.plan ?? '').startsWith('max');
+  $('status').textContent = t(
+    owner ? 'account.planOwner' : !pro ? 'account.planFree' : max ? 'account.planMax' : 'account.planPro'
+  );
   $('status').className = pro && sub?.status !== 'past_due' ? 'ok' : 'warn';
 
   const until = sub?.current_period_end ? new Date(sub.current_period_end) : null;
@@ -553,6 +657,15 @@ function paint() {
   // Дата в формате языка страницы: 17.09.2026 против 17/09/2026 — это не
   // мелочь, из даты 03.04 и 04/03 получаются разные дни.
   if (until && !Number.isNaN(+until)) $('until').textContent = until.toLocaleDateString(lang());
+
+  // Остаток лимитов — только с живой подпиской: без неё считать нечего.
+  const usage = pro ? week : null;
+  $('useAnalysesLine').hidden = !usage;
+  $('useMessagesLine').hidden = !usage;
+  if (usage) {
+    $('useAnalyses').textContent = usageText(usage.analyses);
+    $('useMessages').textContent = usageText(usage.messages);
+  }
 
   // Купить можно только то, чего нет. При живой подписке кнопки оплаты не просто
   // лишние — для карты они опасны: вторая оплата завела бы на lava.top второе
@@ -580,7 +693,157 @@ function paint() {
   }
 
   if (buying) renderPlans();
+  renderAddons();
   renderDelete();
+}
+
+/** «37 из 100», у владельца — «без лимита». */
+const usageText = (u) =>
+  !u ? '—' : u.limit == null ? t('account.unlimited') : t('account.usedOf', { used: Math.min(u.used, u.limit), all: u.limit });
+
+/** Имя продукта для подписей: Pro, Max, Instagram, Telegram, «Все мессенджеры». */
+const productName = (group) =>
+  ({ pro: 'Pro', max: 'Max', instagram: 'Instagram', telegram: 'Telegram' })[group] ?? t('account.addonAll');
+
+const ADDON_SHORT = { instagram: 'ig', telegram: 'tg', messengers: 'msg' };
+
+/**
+ * Карточки надстроек. Купить можно только к живой основной подписке; тем, кто
+ * купил до надстроек, мессенджеры уже входят в тариф. Пакет «Все мессенджеры»
+ * включает и Instagram, и Telegram — отдельно их тогда не продаём.
+ */
+function renderAddons() {
+  const pro = isPro(sub);
+  const owner = sub?.paddle_subscription_id === 'owner';
+  const legacy = pro && legacyPlan(sub);
+  const bundle = addonLive('messengers');
+
+  $('messengers').hidden = owner;
+  if (owner) return;
+  $('addonsHint').textContent = t(!pro ? 'account.addonsNeedBase' : legacy ? 'account.addonsLegacy' : 'account.addonsHint');
+
+  const box = $('addonCards');
+  box.replaceChildren();
+  for (const name of ADDONS) {
+    const live = addonLive(name);
+    const row = addonRow(name);
+    const covered = name !== 'messengers' && bundle;
+    const card = document.createElement('div');
+    card.className = 'addon';
+
+    const head = document.createElement('div');
+    head.className = 'addon-head';
+    const title = document.createElement('b');
+    title.textContent = productName(name);
+    const state = document.createElement('span');
+    state.className = `addon-state${live || covered || legacy ? ' ok' : ''}`;
+    const until = row?.current_period_end ? new Date(row.current_period_end) : null;
+    state.textContent = covered
+      ? t('account.addonInBundle')
+      : legacy
+        ? t('account.addonInPlan')
+        : live && until && !Number.isNaN(+until)
+          ? t('account.addonOn', { date: until.toLocaleDateString(lang()) })
+          : live ? t('account.addonOnShort') : t('account.addonOff');
+    head.append(title, state);
+
+    const what = document.createElement('div');
+    what.className = 'addon-what';
+    what.textContent = t(name === 'messengers' ? 'account.addonWhatAll' : 'account.addonWhat', { n: LIMITS[name].messages });
+    card.append(head, what);
+
+    // Автопродление на карте — продлевать незачем, можно только отменить.
+    const auto = live && String(row?.payment_id ?? '').startsWith('lava:') && !!lavaAddons[name];
+    const canBuy = pro && !legacy && !covered && !auto;
+
+    if (canBuy) {
+      const short = ADDON_SHORT[name];
+      const open = addonOpen && planById(addonOpen)?.group === name ? planById(addonOpen) : null;
+      const rowEl = document.createElement('div');
+      rowEl.className = 'addon-row';
+      if (!open) {
+        for (const months of [1, 12]) {
+          const plan = planFor(name, months);
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn plain';
+          btn.textContent = t(months === 12 ? 'account.addonYear' : 'account.addonMonth', { price: priceLabel(plan) });
+          btn.addEventListener('click', () => {
+            say('planMsg', '');
+            addonOpen = `${short}_${months === 12 ? 'yearly' : 'monthly'}`;
+            renderAddons();
+          });
+          rowEl.append(btn);
+        }
+      } else {
+        for (const method of ['card', 'crypto']) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = method === 'card' ? 'btn' : 'btn plain';
+          btn.textContent = t(method === 'card' ? 'account.payCard' : 'account.payCrypto');
+          btn.addEventListener('click', () => openCheckout(open.id, method));
+          rowEl.append(btn);
+        }
+        const back = document.createElement('button');
+        back.type = 'button';
+        back.className = 'addon-cancel';
+        back.textContent = `${priceLabel(open)} · ${t('account.changeTerm')}`;
+        back.addEventListener('click', () => {
+          addonOpen = null;
+          renderAddons();
+        });
+        card.append(rowEl, back);
+        box.append(card);
+        continue;
+      }
+      card.append(rowEl);
+    }
+
+    if (auto) {
+      const cancel = document.createElement('button');
+      cancel.type = 'button';
+      cancel.className = `addon-cancel${addonCancelArmed === name ? ' armed' : ''}`;
+      cancel.textContent = t(addonCancelArmed === name ? 'account.cancelAsk' : 'account.addonCancel');
+      cancel.addEventListener('click', () => cancelAddon(name));
+      card.append(cancel);
+    }
+    box.append(card);
+  }
+}
+
+/** Отменить автопродление надстройки — вторым нажатием, как и подписку. */
+async function cancelAddon(name) {
+  if (addonCancelArmed !== name) {
+    addonCancelArmed = name;
+    return renderAddons();
+  }
+  addonCancelArmed = null;
+  say('planMsg', t('account.cancelWait'));
+
+  const token = await freshToken();
+  if (!token) {
+    writeSession(null);
+    show(null);
+    return say('authMsg', t('account.errSession'), 'err');
+  }
+
+  try {
+    const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/lava-cancel`, {
+      method: 'POST',
+      headers: {
+        apikey: CONFIG.supabaseKey,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ what: name }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await loadPlan();
+    say('planMsg', t('account.addonCancelDone'), 'ok');
+  } catch (e) {
+    console.error(e);
+    say('planMsg', t('account.cancelErr'), 'err');
+  }
 }
 
 /**
@@ -595,13 +858,18 @@ function paint() {
  * от языка длина подписей меняется, а с ней и число строк на узком экране.
  */
 function renderPlans() {
-  for (const [id, button, key] of [
-    ['monthly', 'planMonthly', 'account.payMonth'],
-    ['yearly', 'planYearly', 'account.payYear'],
+  for (const [months, button, key] of [
+    [1, 'planMonthly', 'account.payMonth'],
+    [12, 'planYearly', 'account.payYear'],
   ]) {
-    const plan = planById(id);
+    const plan = planFor(tierPick, months);
     if (plan) $(button).textContent = t(key, { price: priceLabel(plan) });
   }
+  $('tierPro').classList.toggle('on', tierPick === 'pro');
+  $('tierMax').classList.toggle('on', tierPick === 'max');
+  $('tierPro').setAttribute('aria-selected', String(tierPick === 'pro'));
+  $('tierMax').setAttribute('aria-selected', String(tierPick === 'max'));
+  $('tierWhat').textContent = t('account.tierWhat', LIMITS[tierPick]);
 
   // Подпись в своём span: `textContent` у кнопки стёр бы иконку рядом.
   $('payCard').querySelector('.lbl').textContent = t('account.payCard');
@@ -610,13 +878,13 @@ function renderPlans() {
 
   const chosen = openPlan ? planById(openPlan) : null;
   if (chosen) {
-    const key = openPlan === 'yearly' ? 'account.payingYear' : 'account.payingMonth';
-    $('waysFor').textContent = t(key, { price: priceLabel(chosen) });
+    const key = chosen.months === 12 ? 'account.payingYear' : 'account.payingMonth';
+    $('waysFor').textContent = `${productName(chosen.group)} · ${t(key, { price: priceLabel(chosen) })}`;
   }
 
-  const saved = yearlySavings();
-  $('planSave').hidden = !saved;
-  $('planSave').textContent = saved ? t('account.saveYear', { n: saved }) : '';
+  const free = freeMonths(tierPick);
+  $('planSave').hidden = !free;
+  $('planSave').textContent = free ? t('account.freeMonth') : '';
 
   // Заголовок обязан меняться вместе с гранью: «Выберите срок» над кнопками
   // способа противоречило бы тому, что под ним. Подсказка на второй грани
@@ -1030,8 +1298,14 @@ $('cancelSub').addEventListener('click', async () => {
   }
 });
 
-$('planMonthly').addEventListener('click', () => pickTerm('monthly'));
-$('planYearly').addEventListener('click', () => pickTerm('yearly'));
+$('planMonthly').addEventListener('click', () => pickTerm(planFor(tierPick, 1).id));
+$('planYearly').addEventListener('click', () => pickTerm(planFor(tierPick, 12).id));
+for (const [id, tier] of [['tierPro', 'pro'], ['tierMax', 'max']]) {
+  $(id).addEventListener('click', () => {
+    tierPick = tier;
+    renderPlans();
+  });
+}
 $('waysBack').addEventListener('click', backToTerms);
 $('payCard').addEventListener('click', () => openPlan && openCheckout(openPlan, 'card'));
 $('payCrypto').addEventListener('click', () => openPlan && openCheckout(openPlan, 'crypto'));
@@ -1057,6 +1331,16 @@ function usePendingPlan() {
 
   const plan = pendingPlan;
   pendingPlan = null; // один раз: вернулся к срокам — сам решает, что дальше
+
+  // Надстройка с витрины — открываем её карточку на выборе способа.
+  const chosen = planById(plan);
+  if (ADDONS.includes(chosen?.group)) {
+    addonOpen = plan;
+    renderAddons();
+    $('messengers').scrollIntoView({ block: 'start' });
+    return;
+  }
+  tierPick = chosen?.group === 'max' ? 'max' : 'pro';
 
   // Подписка уже есть — намерение с витрины разбирается по способу оплаты.
   // Крипту продлевают заранее, это законно: открываем выбор с нужным сроком.

@@ -457,24 +457,31 @@
         </p>
       </div>
 
+      <!-- Два тарифа — Pro и Max, цена за месяц, год — строкой под ней. Лимиты
+           в карточке: за них и платят. Мессенджеры — надстройками, строкой
+           ниже. Числа — из plans.js, как и в кабинете. -->
       <div class="plans">
         <div class="plan">
-          <div class="name" data-i18n="index.planMonth">Месяц</div>
-          <div class="amount" id="priceMonthly">—</div>
-          <div class="per" data-i18n="index.planMonthPer">за 1 месяц доступа</div>
-          <a class="btn block" href="/account.html?plan=monthly" data-i18n="index.planMonthBtn">Оплатить месяц</a>
-          <div class="save"></div>
+          <div class="name">Pro</div>
+          <div class="amount" id="pricePro">—</div>
+          <div class="per" data-i18n="index.perMonth">в месяц</div>
+          <ul class="limits"><li id="proAnalyses"></li><li id="proMessages"></li></ul>
+          <a class="btn block" href="/account.html?plan=pro_monthly" data-i18n="index.planProBtn">Оформить Pro</a>
+          <div class="save" id="proYear"></div>
         </div>
 
         <div class="plan best">
-          <div class="ribbon" data-i18n="index.ribbon">Выгоднее</div>
-          <div class="name" data-i18n="index.planYear">Год</div>
-          <div class="amount" id="priceYearly">—</div>
-          <div class="per" data-i18n="index.planYearPer">за 12 месяцев доступа</div>
-          <a class="btn block" href="/account.html?plan=yearly" data-i18n="index.planYearBtn">Оплатить год</a>
-          <div class="save" id="save"></div>
+          <div class="ribbon" data-i18n="index.ribbonMax">Для активных</div>
+          <div class="name">Max</div>
+          <div class="amount" id="priceMax">—</div>
+          <div class="per" data-i18n="index.perMonth">в месяц</div>
+          <ul class="limits"><li id="maxAnalyses"></li><li id="maxMessages"></li></ul>
+          <a class="btn block" href="/account.html?plan=max_monthly" data-i18n="index.planMaxBtn">Оформить Max</a>
+          <div class="save" id="maxYear"></div>
         </div>
       </div>
+
+      <p class="center addons-line" id="addonsLine"></p>
 
       <p class="tiny center" style="margin-top:26px" data-i18n-html="index.priceFoot">
         Оплата открывается в кабинете: нужен аккаунт — тот же, с которым вы входите в расширении.
@@ -561,8 +568,8 @@
  * здесь руками, они однажды разошлись бы с тем, что выставляется в счёте, и это
  * был бы спор с покупателем, а не опечатка.
  */
-import { planById, priceLabel, yearlySavings } from './plans.js';
-import { initI18n, t, whenLangChanges } from './i18n.js?v=21';
+import { LIMITS, freeMonths, planFor, priceLabel } from './plans.js';
+import { initI18n, t, whenLangChanges } from './i18n.js?v=26';
 
 /**
  * Ссылка на расширение в Chrome Web Store. Пока пусто — кнопки честно говорят,
@@ -586,13 +593,18 @@ const $ = (id) => document.getElementById(id);
  * строки были бы на новом языке, а эти остались бы на старом.
  */
 function render() {
-  for (const [id, node] of [['monthly', 'priceMonthly'], ['yearly', 'priceYearly']]) {
-    const plan = planById(id);
-    if (plan) $(node).textContent = priceLabel(plan);
+  for (const tier of ['pro', 'max']) {
+    $(`price${tier === 'pro' ? 'Pro' : 'Max'}`).textContent = priceLabel(planFor(tier, 1));
+    $(`${tier}Analyses`).textContent = t('index.limAnalyses', { n: LIMITS[tier].analyses });
+    $(`${tier}Messages`).textContent = t('index.limMessages', { n: LIMITS[tier].messages });
+    $(`${tier}Year`).textContent = freeMonths(tier)
+      ? t('index.yearLine', { price: priceLabel(planFor(tier, 12)) })
+      : '';
   }
-
-  const saved = yearlySavings();
-  $('save').textContent = saved ? t('index.save', { n: saved }) : '';
+  $('addonsLine').textContent = t('index.addonsLine', {
+    one: priceLabel(planFor('instagram', 1)),
+    both: priceLabel(planFor('messengers', 1)),
+  });
 
   $('copy').textContent = t('common.copy', { year: new Date().getFullYear() });
 
