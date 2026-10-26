@@ -26,7 +26,7 @@
 </header>
 <div class="wrap narrow doc">
   <h1>Privacy policy</h1>
-  <p class="updated">In effect from 1 October 2026</p>
+  <p class="updated">In effect from 26 October 2026</p>
   <p>
     This document describes what data the AutoSwipe AI Chrome extension and the autoswipeai.com website
     collect, why it is needed, who it is shared with, and how you can delete it.
@@ -43,6 +43,8 @@
       speech-to-text provider and not kept. Of a match that has disappeared we also keep its last
       few messages, so the dashboard can say what ended it when you ask; after that only two remain.
       A conversation you choose to share by link is stored for 30 days, so that the link can open it.
+      A problem report you send is stored with your account and read by a text model, with names
+      and other profile details removed from its diagnostics.
       Filter settings and swipe counters stay
       in your browser. Profile photos are sent to an external model <b>only when you explicitly
       enable the AI photo filter</b> and are not stored by us. Your Tinder password is never read.
@@ -158,6 +160,26 @@
         press <b>Delete link</b>
       </td>
     </tr>
+    <tr>
+      <td>
+        A problem report you send with the <b>⚑ Report a problem</b> button: your text and, unless you untick
+        <b>Attach diagnostics</b>, technical details of the extension — its version and language,
+        the page language, your settings (stop-words only as a count, no map location), the panel
+        log and the layout of the open Tinder card. Names, bios, cities, links and ids of profiles
+        are removed from them, and the text of the card is replaced with placeholders, before
+        anything leaves the browser
+      </td>
+      <td>
+        Finding and fixing what does not work. A text model reads the report and writes a short
+        explanation for us; the report is linked to your account so that it can be limited to
+        five a day
+      </td>
+      <td>
+        Supabase, only when you press <b>Send</b>; the text-model provider for that one reading,
+        not stored by it; your text and the explanation are also forwarded to our own Telegram
+        chat for support notifications
+      </td>
+    </tr>
   </table>
 
   <h3>What we do not collect</h3>
@@ -196,7 +218,7 @@
     <tr><th>Recipient</th><th>What they receive</th><th>Purpose</th></tr>
     <tr>
       <td>Supabase</td>
-      <td>Email, password hash, subscription status, a conversation you shared by link</td>
+      <td>Email, password hash, subscription status, a conversation you shared by link, problem reports you sent</td>
       <td>Account and database hosting</td>
     </tr>
     <tr>
@@ -216,6 +238,16 @@
         when you press a button that asks for a suggestion
       </td>
       <td>Writing the suggested replies</td>
+    </tr>
+    <tr>
+      <td>Text-model provider</td>
+      <td>A problem report you sent, with its diagnostics (see the table above)</td>
+      <td>Explaining the problem to us</td>
+    </tr>
+    <tr>
+      <td>Telegram</td>
+      <td>The text of a problem report you sent and the model's explanation, without your email</td>
+      <td>Notifying our support of a new report</td>
     </tr>
     <tr>
       <td>OpenRouter (backup route)</td>
@@ -264,6 +296,7 @@
       went wrong; after that only the last two are kept.
     </li>
     <li>A conversation shared by link — 30 days, or until you delete the link.</li>
+    <li>Problem reports — for as long as the account exists; deleting the account removes them.</li>
   </ul>
 
   <h2>7. Your rights</h2>
